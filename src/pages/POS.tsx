@@ -663,6 +663,17 @@ const POS = () => {
           </span>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
+          {receiptCfg.enableDualScreen && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => openCustomerDisplay()}
+              className="rounded-lg"
+              title="Open customer-facing display in a new window"
+            >
+              <Monitor className="h-4 w-4 mr-1.5" /> Customer Display
+            </Button>
+          )}
           <Button
             variant="outline"
             size="sm"
