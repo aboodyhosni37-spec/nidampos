@@ -20,7 +20,18 @@ import {
   Percent,
   Gift,
   Sparkles,
+  Monitor,
+  QrCode,
 } from "lucide-react";
+import { QRCodeSVG } from "qrcode.react";
+import {
+  loadReceiptSettings,
+  type ReceiptSettings,
+} from "@/lib/receiptSettings";
+import {
+  publishDisplay,
+  openCustomerDisplay,
+} from "@/lib/customerDisplay";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
