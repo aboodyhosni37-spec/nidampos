@@ -580,6 +580,35 @@ const POS = () => {
       };
       addOrder(order);
       setCompletedOrder(order);
+      setQrOpen(false);
+
+      // Push PAID screen to customer display
+      if (receiptCfg.enableDualScreen && effectiveDue <= 0) {
+        publishDisplay({
+          type: "paid",
+          items: cart.map((i) => ({ id: i.id, name: i.name, price: i.price, qty: i.qty })),
+          subtotal: totals.subtotal,
+          discount: totals.discount,
+          tax: totals.tax,
+          total,
+          currencySymbol: sys.currency_symbol || "$",
+          businessName: receiptCfg.businessName,
+          paidMethod: order.paymentMethod,
+        });
+        // Return display to idle after a few seconds
+        setTimeout(() => {
+          publishDisplay({
+            type: "idle",
+            items: [],
+            subtotal: 0,
+            discount: 0,
+            tax: 0,
+            total: 0,
+            currencySymbol: sys.currency_symbol || "$",
+            businessName: receiptCfg.businessName,
+          });
+        }, 5000);
+      }
 
       // Loyalty: add spend & consume reward (only when fully paid now).
       if (selectedCustomerId && effectivePaid > 0) {
