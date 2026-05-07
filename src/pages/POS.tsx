@@ -1558,6 +1558,63 @@ const POS = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* QR Code Payment Dialog */}
+      <Dialog
+        open={qrOpen}
+        onOpenChange={(o) => {
+          setQrOpen(o);
+          if (!o && receiptCfg.enableDualScreen) {
+            // restore cart view on customer display
+            publishDisplay({
+              type: cart.length === 0 ? "idle" : "cart",
+              items: cart.map((i) => ({ id: i.id, name: i.name, price: i.price, qty: i.qty })),
+              subtotal: totals.subtotal,
+              discount: totals.discount,
+              tax: totals.tax,
+              total,
+              currencySymbol: sys.currency_symbol || "$",
+              businessName: receiptCfg.businessName,
+            });
+          }
+        }}
+      >
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <QrCode className="h-5 w-5 text-primary" /> Scan to Pay
+            </DialogTitle>
+            <DialogDescription>
+              Customer scans this QR with their mobile money app to pay.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col items-center gap-4 py-2">
+            <div className="bg-white p-5 rounded-2xl shadow-elegant">
+              <QRCodeSVG value={qrPayload} size={240} level="H" />
+            </div>
+            <div className="text-center space-y-1">
+              <div className="text-xs uppercase tracking-wider text-muted-foreground">Pay To</div>
+              <div className="text-base font-bold">{receiptCfg.merchantNumber || "—"}</div>
+              <div className="text-3xl font-extrabold text-primary tabular-nums">
+                {formatMoney(total, sys)}
+              </div>
+              <div className="text-[11px] text-muted-foreground">Order {orderId}</div>
+            </div>
+          </div>
+          <DialogFooter className="flex-col sm:flex-row gap-2">
+            <Button variant="outline" onClick={() => setQrOpen(false)} className="rounded-xl">
+              Cancel
+            </Button>
+            <Button
+              onClick={placeOrder}
+              disabled={submitting}
+              className="rounded-xl bg-gradient-button text-white"
+            >
+              {submitting ? "Processing…" : "Confirm Payment Received"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
