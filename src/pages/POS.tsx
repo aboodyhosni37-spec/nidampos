@@ -20,18 +20,7 @@ import {
   Percent,
   Gift,
   Sparkles,
-  Monitor,
-  QrCode,
 } from "lucide-react";
-import { QRCodeSVG } from "qrcode.react";
-import {
-  loadReceiptSettings,
-  type ReceiptSettings,
-} from "@/lib/receiptSettings";
-import {
-  publishDisplay,
-  openCustomerDisplay,
-} from "@/lib/customerDisplay";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -186,17 +175,6 @@ const POS = () => {
   const [discountValue, setDiscountValue] = useState<string>("");
   const [discountOpen, setDiscountOpen] = useState(false);
   const [appliedReward, setAppliedReward] = useState<"none" | "half_off" | "free_lunch">("none");
-
-  // Receipt / printer / dual-screen settings (local)
-  const [receiptCfg, setReceiptCfg] = useState<ReceiptSettings>(() => loadReceiptSettings());
-  useEffect(() => {
-    const onStorage = () => setReceiptCfg(loadReceiptSettings());
-    window.addEventListener("storage", onStorage);
-    return () => window.removeEventListener("storage", onStorage);
-  }, []);
-
-  // QR payment dialog
-  const [qrOpen, setQrOpen] = useState(false);
 
   const refreshUnpaid = async () => {
     setUnpaidLoading(true);
@@ -414,60 +392,6 @@ const POS = () => {
   );
   const total = totals.total;
 
-  // Real-time sync to customer display (only when dual screen enabled & not in QR/paid mode)
-  useEffect(() => {
-    if (!receiptCfg.enableDualScreen) return;
-    if (qrOpen) return; // QR mode publishes its own state
-    publishDisplay({
-      type: cart.length === 0 ? "idle" : "cart",
-      items: cart.map((i) => ({ id: i.id, name: i.name, price: i.price, qty: i.qty })),
-      subtotal: totals.subtotal,
-      discount: totals.discount,
-      tax: totals.tax,
-      total,
-      currencySymbol: sys.currency_symbol || "$",
-      businessName: receiptCfg.businessName,
-    });
-  }, [cart, totals.subtotal, totals.discount, totals.tax, total, sys.currency_symbol, receiptCfg.enableDualScreen, receiptCfg.businessName, qrOpen]);
-
-  const qrPayload = useMemo(
-    () =>
-      `PAY TO: ${receiptCfg.merchantNumber || "N/A"}, AMOUNT: ${total.toFixed(2)}, ORDER: ${orderId}`,
-    [receiptCfg.merchantNumber, total, orderId]
-  );
-
-  const openQrPayment = () => {
-    if (cart.length === 0) {
-      toast({ title: "Cart is empty", description: "Add items before requesting payment." });
-      return;
-    }
-    if (!receiptCfg.merchantNumber) {
-      toast({
-        title: "Merchant number missing",
-        description: "Set it in Settings → Printer & Receipt before using QR payments.",
-        variant: "destructive",
-      });
-      return;
-    }
-    setQrOpen(true);
-    if (receiptCfg.enableDualScreen) {
-      publishDisplay({
-        type: "qr",
-        items: cart.map((i) => ({ id: i.id, name: i.name, price: i.price, qty: i.qty })),
-        subtotal: totals.subtotal,
-        discount: totals.discount,
-        tax: totals.tax,
-        total,
-        currencySymbol: sys.currency_symbol || "$",
-        businessName: receiptCfg.businessName,
-        qrPayload,
-        merchantNumber: receiptCfg.merchantNumber,
-        orderId,
-      });
-    }
-  };
-
-
   const isMobileMethod = MOBILE_METHODS.includes(payment);
   const isFullDue = payment === "Due";
   const showSplitToggle = isMobileMethod && !isFullDue;
@@ -580,35 +504,6 @@ const POS = () => {
       };
       addOrder(order);
       setCompletedOrder(order);
-      setQrOpen(false);
-
-      // Push PAID screen to customer display
-      if (receiptCfg.enableDualScreen && effectiveDue <= 0) {
-        publishDisplay({
-          type: "paid",
-          items: cart.map((i) => ({ id: i.id, name: i.name, price: i.price, qty: i.qty })),
-          subtotal: totals.subtotal,
-          discount: totals.discount,
-          tax: totals.tax,
-          total,
-          currencySymbol: sys.currency_symbol || "$",
-          businessName: receiptCfg.businessName,
-          paidMethod: order.paymentMethod,
-        });
-        // Return display to idle after a few seconds
-        setTimeout(() => {
-          publishDisplay({
-            type: "idle",
-            items: [],
-            subtotal: 0,
-            discount: 0,
-            tax: 0,
-            total: 0,
-            currencySymbol: sys.currency_symbol || "$",
-            businessName: receiptCfg.businessName,
-          });
-        }, 5000);
-      }
 
       // Loyalty: add spend & consume reward (only when fully paid now).
       if (selectedCustomerId && effectivePaid > 0) {
@@ -663,17 +558,6 @@ const POS = () => {
           </span>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
-          {receiptCfg.enableDualScreen && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => openCustomerDisplay()}
-              className="rounded-lg"
-              title="Open customer-facing display in a new window"
-            >
-              <Monitor className="h-4 w-4 mr-1.5" /> Customer Display
-            </Button>
-          )}
           <Button
             variant="outline"
             size="sm"
@@ -976,8 +860,8 @@ const POS = () => {
             )}
           </div>
 
-          {/* Payment - fixed bottom of cart. Bounded so the cart-items area always remains scrollable. */}
-          <div className="border-t border-border bg-card shrink-0 basis-auto max-h-[55%] overflow-y-auto p-4 space-y-3">
+          {/* Payment - fixed at bottom of cart, internal scroll if it overflows */}
+          <div className="border-t border-border bg-card shrink-0 max-h-[60vh] overflow-y-auto p-4 space-y-3">
             {/* Quick customer picker (for loyalty + due tracking) */}
             <div>
               <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
@@ -1279,24 +1163,13 @@ const POS = () => {
               <span>{formatMoney(total, sys)}</span>
             </div>
 
-            <div className="grid grid-cols-2 gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={openQrPayment}
-                disabled={cart.length === 0}
-                className="h-12 rounded-xl font-semibold"
-              >
-                <QrCode className="h-4 w-4 mr-1.5" /> QR Pay
-              </Button>
-              <Button
-                onClick={placeOrder}
-                disabled={cart.length === 0 || submitting}
-                className="h-12 rounded-xl bg-gradient-button text-white font-semibold shadow-soft hover:shadow-elegant transition-all disabled:opacity-50"
-              >
-                {submitting ? "Processing…" : "Place Order"}
-              </Button>
-            </div>
+            <Button
+              onClick={placeOrder}
+              disabled={cart.length === 0 || submitting}
+              className="w-full h-12 rounded-xl bg-gradient-button text-white font-semibold shadow-soft hover:shadow-elegant hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:hover:translate-y-0"
+            >
+              {submitting ? "Processing…" : "Place Order"}
+            </Button>
           </div>
         </Card>
       </div>
@@ -1554,63 +1427,6 @@ const POS = () => {
               className="rounded-xl bg-gradient-button text-white"
             >
               {payingInline ? "Processing…" : "Confirm Payment"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* QR Code Payment Dialog */}
-      <Dialog
-        open={qrOpen}
-        onOpenChange={(o) => {
-          setQrOpen(o);
-          if (!o && receiptCfg.enableDualScreen) {
-            // restore cart view on customer display
-            publishDisplay({
-              type: cart.length === 0 ? "idle" : "cart",
-              items: cart.map((i) => ({ id: i.id, name: i.name, price: i.price, qty: i.qty })),
-              subtotal: totals.subtotal,
-              discount: totals.discount,
-              tax: totals.tax,
-              total,
-              currencySymbol: sys.currency_symbol || "$",
-              businessName: receiptCfg.businessName,
-            });
-          }
-        }}
-      >
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <QrCode className="h-5 w-5 text-primary" /> Scan to Pay
-            </DialogTitle>
-            <DialogDescription>
-              Customer scans this QR with their mobile money app to pay.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="flex flex-col items-center gap-4 py-2">
-            <div className="bg-white p-5 rounded-2xl shadow-elegant">
-              <QRCodeSVG value={qrPayload} size={240} level="H" />
-            </div>
-            <div className="text-center space-y-1">
-              <div className="text-xs uppercase tracking-wider text-muted-foreground">Pay To</div>
-              <div className="text-base font-bold">{receiptCfg.merchantNumber || "—"}</div>
-              <div className="text-3xl font-extrabold text-primary tabular-nums">
-                {formatMoney(total, sys)}
-              </div>
-              <div className="text-[11px] text-muted-foreground">Order {orderId}</div>
-            </div>
-          </div>
-          <DialogFooter className="flex-col sm:flex-row gap-2">
-            <Button variant="outline" onClick={() => setQrOpen(false)} className="rounded-xl">
-              Cancel
-            </Button>
-            <Button
-              onClick={placeOrder}
-              disabled={submitting}
-              className="rounded-xl bg-gradient-button text-white"
-            >
-              {submitting ? "Processing…" : "Confirm Payment Received"}
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -7,9 +7,6 @@ export type ReceiptSettings = {
   // Kitchen
   enableKitchenPrint: boolean;
 
-  // Dual screen / customer display
-  enableDualScreen: boolean;
-
   // Header
   showLogo: boolean;
   logoUrl: string;
@@ -18,7 +15,6 @@ export type ReceiptSettings = {
   address: string;
   showPhone: boolean;
   phone: string;
-  merchantNumber: string;
 
   // Body
   showItems: boolean;
@@ -39,16 +35,14 @@ export const DEFAULT_RECEIPT_SETTINGS: ReceiptSettings = {
   autoPrint: true,
 
   enableKitchenPrint: false,
-  enableDualScreen: false,
 
   showLogo: false,
   logoUrl: "",
   businessName: "NIDAM POS",
   showAddress: true,
-  address: "Mogadishu-Somalia",
+  address: "123 Gourmet Street, Foodville",
   showPhone: true,
-  phone: "+252 61 000 0000",
-  merchantNumber: "",
+  phone: "+1 (555) 123-4567",
 
   showItems: true,
   showPaymentMethod: true,

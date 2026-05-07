@@ -14,7 +14,6 @@ import Reports from "./pages/Reports.tsx";
 import Settings from "./pages/Settings.tsx";
 import Customers from "./pages/Customers.tsx";
 import Staff from "./pages/Staff.tsx";
-import CustomerDisplay from "./pages/CustomerDisplay.tsx";
 import { DashboardLayout } from "./components/DashboardLayout.tsx";
 import { ProtectedRoute } from "./components/ProtectedRoute.tsx";
 import { RequirePermission } from "./components/RequirePermission.tsx";
@@ -29,7 +28,6 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />
-          <Route path="/customer-display" element={<CustomerDisplay />} />
           <Route
             path="/dashboard"
             element={
