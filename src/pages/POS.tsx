@@ -976,8 +976,8 @@ const POS = () => {
             )}
           </div>
 
-          {/* Payment - fixed at bottom of cart, internal scroll if it overflows */}
-          <div className="border-t border-border bg-card shrink-0 max-h-[60vh] overflow-y-auto p-4 space-y-3">
+          {/* Payment - fixed bottom of cart. Bounded so the cart-items area always remains scrollable. */}
+          <div className="border-t border-border bg-card shrink-0 basis-auto max-h-[55%] overflow-y-auto p-4 space-y-3">
             {/* Quick customer picker (for loyalty + due tracking) */}
             <div>
               <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
