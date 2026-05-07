@@ -414,6 +414,60 @@ const POS = () => {
   );
   const total = totals.total;
 
+  // Real-time sync to customer display (only when dual screen enabled & not in QR/paid mode)
+  useEffect(() => {
+    if (!receiptCfg.enableDualScreen) return;
+    if (qrOpen) return; // QR mode publishes its own state
+    publishDisplay({
+      type: cart.length === 0 ? "idle" : "cart",
+      items: cart.map((i) => ({ id: i.id, name: i.name, price: i.price, qty: i.qty })),
+      subtotal: totals.subtotal,
+      discount: totals.discount,
+      tax: totals.tax,
+      total,
+      currencySymbol: sys.currency_symbol || "$",
+      businessName: receiptCfg.businessName,
+    });
+  }, [cart, totals.subtotal, totals.discount, totals.tax, total, sys.currency_symbol, receiptCfg.enableDualScreen, receiptCfg.businessName, qrOpen]);
+
+  const qrPayload = useMemo(
+    () =>
+      `PAY TO: ${receiptCfg.merchantNumber || "N/A"}, AMOUNT: ${total.toFixed(2)}, ORDER: ${orderId}`,
+    [receiptCfg.merchantNumber, total, orderId]
+  );
+
+  const openQrPayment = () => {
+    if (cart.length === 0) {
+      toast({ title: "Cart is empty", description: "Add items before requesting payment." });
+      return;
+    }
+    if (!receiptCfg.merchantNumber) {
+      toast({
+        title: "Merchant number missing",
+        description: "Set it in Settings → Printer & Receipt before using QR payments.",
+        variant: "destructive",
+      });
+      return;
+    }
+    setQrOpen(true);
+    if (receiptCfg.enableDualScreen) {
+      publishDisplay({
+        type: "qr",
+        items: cart.map((i) => ({ id: i.id, name: i.name, price: i.price, qty: i.qty })),
+        subtotal: totals.subtotal,
+        discount: totals.discount,
+        tax: totals.tax,
+        total,
+        currencySymbol: sys.currency_symbol || "$",
+        businessName: receiptCfg.businessName,
+        qrPayload,
+        merchantNumber: receiptCfg.merchantNumber,
+        orderId,
+      });
+    }
+  };
+
+
   const isMobileMethod = MOBILE_METHODS.includes(payment);
   const isFullDue = payment === "Due";
   const showSplitToggle = isMobileMethod && !isFullDue;
