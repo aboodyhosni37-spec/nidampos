@@ -1279,13 +1279,24 @@ const POS = () => {
               <span>{formatMoney(total, sys)}</span>
             </div>
 
-            <Button
-              onClick={placeOrder}
-              disabled={cart.length === 0 || submitting}
-              className="w-full h-12 rounded-xl bg-gradient-button text-white font-semibold shadow-soft hover:shadow-elegant hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:hover:translate-y-0"
-            >
-              {submitting ? "Processing…" : "Place Order"}
-            </Button>
+            <div className="grid grid-cols-2 gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={openQrPayment}
+                disabled={cart.length === 0}
+                className="h-12 rounded-xl font-semibold"
+              >
+                <QrCode className="h-4 w-4 mr-1.5" /> QR Pay
+              </Button>
+              <Button
+                onClick={placeOrder}
+                disabled={cart.length === 0 || submitting}
+                className="h-12 rounded-xl bg-gradient-button text-white font-semibold shadow-soft hover:shadow-elegant transition-all disabled:opacity-50"
+              >
+                {submitting ? "Processing…" : "Place Order"}
+              </Button>
+            </div>
           </div>
         </Card>
       </div>
