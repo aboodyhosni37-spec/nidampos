@@ -45,9 +45,12 @@ export const ReceiptPreview = ({ order, onClose, autoPrint }: Props) => {
         } catch {}
         if (which === "customer") setPrintedCustomer(true);
         else setPrintedKitchen(true);
-        isPrintingRef.current = false;
-        setIsPrinting(false);
-        resolve();
+        // Keep a small cooldown to prevent any rapid double-trigger from print dialog.
+        setTimeout(() => {
+          isPrintingRef.current = false;
+          setIsPrinting(false);
+          resolve();
+        }, 600);
       }, 250);
     });
 
@@ -60,17 +63,14 @@ export const ReceiptPreview = ({ order, onClose, autoPrint }: Props) => {
     if (settings.enableKitchenPrint) await runPrint("kitchen");
   };
 
-  // Auto-print once per order id, regardless of remounts.
+  // Auto-print exactly ONCE per order id. Module-level Set survives StrictMode double-mount.
   useEffect(() => {
     if (!shouldAutoPrint) return;
     if (autoRanRef.current) return;
     if (printedOrders.has(order.id)) return;
     autoRanRef.current = true;
     printedOrders.add(order.id);
-    (async () => {
-      await runPrint("customer");
-      if (settings.enableKitchenPrint) await runPrint("kitchen");
-    })();
+    runPrint("customer");
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [order.id]);
 
@@ -207,6 +207,11 @@ const CustomerReceipt = ({
       )}
       {settings.showPhone && settings.phone && (
         <div className="text-[10px]">Tel: {settings.phone}</div>
+      )}
+      {settings.showMerchantNumber && settings.merchantNumber && (
+        <div className="text-[10px] font-bold mt-1">
+          Send Money to: {settings.merchantNumber}
+        </div>
       )}
     </div>
 

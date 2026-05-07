@@ -15,6 +15,8 @@ export type ReceiptSettings = {
   address: string;
   showPhone: boolean;
   phone: string;
+  merchantNumber: string;
+  showMerchantNumber: boolean;
 
   // Body
   showItems: boolean;
@@ -40,9 +42,11 @@ export const DEFAULT_RECEIPT_SETTINGS: ReceiptSettings = {
   logoUrl: "",
   businessName: "NIDAM POS",
   showAddress: true,
-  address: "123 Gourmet Street, Foodville",
+  address: "Mogadishu-Somalia",
   showPhone: true,
-  phone: "+1 (555) 123-4567",
+  phone: "+252 61 000 0000",
+  merchantNumber: "",
+  showMerchantNumber: true,
 
   showItems: true,
   showPaymentMethod: true,
@@ -57,7 +61,12 @@ export const loadReceiptSettings = (): ReceiptSettings => {
   try {
     const raw = localStorage.getItem(KEY);
     if (!raw) return { ...DEFAULT_RECEIPT_SETTINGS };
-    return { ...DEFAULT_RECEIPT_SETTINGS, ...JSON.parse(raw) };
+    const merged = { ...DEFAULT_RECEIPT_SETTINGS, ...JSON.parse(raw) };
+    // One-time migration: replace legacy default address.
+    if (merged.address === "123 Gourmet Street, Foodville") {
+      merged.address = "Mogadishu-Somalia";
+    }
+    return merged;
   } catch {
     return { ...DEFAULT_RECEIPT_SETTINGS };
   }
