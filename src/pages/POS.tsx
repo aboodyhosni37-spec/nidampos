@@ -187,6 +187,17 @@ const POS = () => {
   const [discountOpen, setDiscountOpen] = useState(false);
   const [appliedReward, setAppliedReward] = useState<"none" | "half_off" | "free_lunch">("none");
 
+  // Receipt / printer / dual-screen settings (local)
+  const [receiptCfg, setReceiptCfg] = useState<ReceiptSettings>(() => loadReceiptSettings());
+  useEffect(() => {
+    const onStorage = () => setReceiptCfg(loadReceiptSettings());
+    window.addEventListener("storage", onStorage);
+    return () => window.removeEventListener("storage", onStorage);
+  }, []);
+
+  // QR payment dialog
+  const [qrOpen, setQrOpen] = useState(false);
+
   const refreshUnpaid = async () => {
     setUnpaidLoading(true);
     try {
