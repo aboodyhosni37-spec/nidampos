@@ -67,9 +67,10 @@ export const ReceiptPreview = ({ order, onClose, autoPrint }: Props) => {
     if (printedOrders.has(order.id)) return;
     autoRanRef.current = true;
     printedOrders.add(order.id);
-    // Auto-print exactly ONE receipt (customer) on order submission.
-    // Kitchen ticket can be printed manually via its tab to avoid duplicate prints.
-    runPrint("customer");
+    (async () => {
+      await runPrint("customer");
+      if (settings.enableKitchenPrint) await runPrint("kitchen");
+    })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [order.id]);
 

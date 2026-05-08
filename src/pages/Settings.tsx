@@ -502,6 +502,20 @@ const Settings = () => {
                 onCheckedChange={(v) => setR("enableKitchenPrint", v)}
               />
             </div>
+            <div className="flex items-center justify-between p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30">
+              <div>
+                <div className="font-medium flex items-center gap-2">
+                  <span>🖥️ Enable Dual Screen POS</span>
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  Activates the customer-facing display. Open it from POS with the "Customer Display" button.
+                </div>
+              </div>
+              <Switch
+                checked={receipt.enableDualScreen}
+                onCheckedChange={(v) => setR("enableDualScreen", v)}
+              />
+            </div>
           </Card>
 
           <Card className="p-6 rounded-2xl border-border space-y-4">
@@ -544,6 +558,18 @@ const Settings = () => {
                   className="rounded-xl"
                   disabled={!receipt.showAddress}
                 />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label>Merchant number (for QR payments & receipts)</Label>
+              <Input
+                value={receipt.merchantNumber}
+                onChange={(e) => setR("merchantNumber", e.target.value)}
+                className="rounded-xl"
+                placeholder="e.g. 252611234567"
+              />
+              <div className="text-xs text-muted-foreground">
+                Used as "Send Money to" on receipts and inside the QR-code payload.
               </div>
             </div>
             <div className="space-y-2">
