@@ -63,8 +63,6 @@ import {
   type SystemSettings,
   type Currency,
 } from "@/lib/systemSettings";
-import { LANGUAGES, useLanguage } from "@/lib/i18n";
-import { resetAllOrders } from "@/lib/resetOrders";
 
 const Settings = () => {
   const session = getSession();
@@ -72,22 +70,6 @@ const Settings = () => {
   const canManageSystem = !!session?.permissions?.manage_system_settings || session?.role === "admin";
 
   const [tab, setTab] = useState("users");
-  const { lang, setLanguage } = useLanguage();
-  const [resetOpen, setResetOpen] = useState(false);
-  const [resetting, setResetting] = useState(false);
-
-  const doResetOrders = async () => {
-    setResetting(true);
-    try {
-      await resetAllOrders();
-      toast({ title: "All orders reset" });
-      setResetOpen(false);
-    } catch (e: any) {
-      toast({ title: "Reset failed", description: e.message, variant: "destructive" });
-    } finally {
-      setResetting(false);
-    }
-  };
 
   // ===== System settings =====
   const [sys, setSys] = useState<SystemSettings>(DEFAULT_SETTINGS);
@@ -535,22 +517,18 @@ const Settings = () => {
             <div className="grid sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <Label>Merchants Number</Label>
+                  <Label>Phone number</Label>
                   <Switch
-                    checked={receipt.showMerchantNumber}
-                    onCheckedChange={(v) => setR("showMerchantNumber", v)}
+                    checked={receipt.showPhone}
+                    onCheckedChange={(v) => setR("showPhone", v)}
                   />
                 </div>
                 <Input
-                  value={receipt.merchantNumber}
-                  onChange={(e) => setR("merchantNumber", e.target.value)}
+                  value={receipt.phone}
+                  onChange={(e) => setR("phone", e.target.value)}
                   className="rounded-xl"
-                  placeholder="e.g. 0611234567"
-                  disabled={!receipt.showMerchantNumber}
+                  disabled={!receipt.showPhone}
                 />
-                <p className="text-xs text-muted-foreground">
-                  Send payment to merchant (e.g., Hormuud EVC)
-                </p>
               </div>
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
@@ -565,23 +543,6 @@ const Settings = () => {
                   onChange={(e) => setR("address", e.target.value)}
                   className="rounded-xl"
                   disabled={!receipt.showAddress}
-                />
-              </div>
-            </div>
-            <div className="grid sm:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <Label>Contact phone (optional)</Label>
-                  <Switch
-                    checked={receipt.showPhone}
-                    onCheckedChange={(v) => setR("showPhone", v)}
-                  />
-                </div>
-                <Input
-                  value={receipt.phone}
-                  onChange={(e) => setR("phone", e.target.value)}
-                  className="rounded-xl"
-                  disabled={!receipt.showPhone}
                 />
               </div>
             </div>
@@ -774,45 +735,6 @@ const Settings = () => {
             )}
           </Card>
 
-          <Card className="p-6 rounded-2xl border-border space-y-3">
-            <h2 className="font-semibold text-lg">Language</h2>
-            <div className="space-y-2 max-w-xs">
-              <Label>Select Language</Label>
-              <Select value={lang} onValueChange={(v) => setLanguage(v as any)}>
-                <SelectTrigger className="rounded-xl">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {LANGUAGES.map((l) => (
-                    <SelectItem key={l.code} value={l.code}>
-                      {l.label} — {l.native}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <p className="text-xs text-muted-foreground">
-                Applies across POS, dashboard, buttons and receipts.
-              </p>
-            </div>
-          </Card>
-
-          {session?.role === "admin" && (
-            <Card className="p-6 rounded-2xl border-destructive/30 bg-destructive/5 space-y-3">
-              <h2 className="font-semibold text-lg text-destructive">Danger zone</h2>
-              <p className="text-sm text-muted-foreground">
-                Permanently deletes all orders, items, payments and due transactions across POS,
-                Dashboard and Reports. This cannot be undone.
-              </p>
-              <Button
-                variant="destructive"
-                className="rounded-xl"
-                onClick={() => setResetOpen(true)}
-              >
-                <Trash2 className="h-4 w-4 mr-1.5" /> Reset Orders
-              </Button>
-            </Card>
-          )}
-
           <p className="text-xs text-muted-foreground">
             Receipt header, footer & printer options are in <b>Printer & Receipt</b>.
           </p>
@@ -942,29 +864,6 @@ const Settings = () => {
               onClick={() => confirmDelRole && removeRole(confirmDelRole)}
             >
               Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
-      {/* Confirm Reset Orders */}
-      <AlertDialog open={resetOpen} onOpenChange={setResetOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure you want to reset all orders?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This permanently deletes ALL orders, items, payments and due transactions.
-              They will be removed from POS, Dashboard and Reports. This cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>No</AlertDialogCancel>
-            <AlertDialogAction
-              className="bg-destructive text-destructive-foreground"
-              onClick={doResetOrders}
-              disabled={resetting}
-            >
-              {resetting ? "Resetting…" : "Yes, reset"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

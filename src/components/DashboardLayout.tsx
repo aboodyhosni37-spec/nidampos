@@ -30,18 +30,17 @@ import {
 } from "@/components/ui/alert-dialog";
 
 import type { Permission } from "@/lib/permissions";
-import { useLanguage } from "@/lib/i18n";
 
-const nav: { to: string; label: string; tKey?: any; icon: any; perm?: Permission }[] = [
-  { to: "/dashboard", label: "Dashboard", tKey: "dashboard", icon: LayoutDashboard },
-  { to: "/dashboard/orders", label: "Orders", tKey: "orders", icon: ClipboardList, perm: "access_orders" },
-  { to: "/dashboard/pos", label: "POS", tKey: "pos", icon: ShoppingCart, perm: "access_pos" },
-  { to: "/dashboard/customers", label: "Customers", tKey: "customers", icon: UsersIcon, perm: "access_customers" },
-  { to: "/dashboard/inventory", label: "Inventory", tKey: "inventory", icon: Package, perm: "access_inventory" },
-  { to: "/dashboard/expenses", label: "Expenses", tKey: "expenses", icon: Wallet, perm: "access_expenses" },
-  { to: "/dashboard/staff", label: "Staff & Salaries", tKey: "staff", icon: UserCog, perm: "access_staff" },
-  { to: "/dashboard/reports", label: "Reports", tKey: "reports", icon: BarChart3, perm: "view_reports" },
-  { to: "/dashboard/settings", label: "Settings", tKey: "settings", icon: SettingsIcon, perm: "access_settings" },
+const nav: { to: string; label: string; icon: any; perm?: Permission }[] = [
+  { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { to: "/dashboard/orders", label: "Orders", icon: ClipboardList, perm: "access_orders" },
+  { to: "/dashboard/pos", label: "POS", icon: ShoppingCart, perm: "access_pos" },
+  { to: "/dashboard/customers", label: "Customers", icon: UsersIcon, perm: "access_customers" },
+  { to: "/dashboard/inventory", label: "Inventory", icon: Package, perm: "access_inventory" },
+  { to: "/dashboard/expenses", label: "Expenses", icon: Wallet, perm: "access_expenses" },
+  { to: "/dashboard/staff", label: "Staff & Salaries", icon: UserCog, perm: "access_staff" },
+  { to: "/dashboard/reports", label: "Reports", icon: BarChart3, perm: "view_reports" },
+  { to: "/dashboard/settings", label: "Settings", icon: SettingsIcon, perm: "access_settings" },
 ];
 
 export const DashboardLayout = () => {
@@ -202,14 +201,12 @@ const SidebarContent = ({
   userName,
   role,
 }: {
-  items: { to: string; label: string; tKey?: any; icon: any }[];
+  items: { to: string; label: string; icon: any }[];
   onNavigate: () => void;
   onLogout: () => void;
   userName: string;
   role: string;
-}) => {
-  const { t } = useLanguage();
-  return (
+}) => (
   <>
     <div className="h-16 flex items-center gap-3 px-6 border-b border-border">
       <NidamLogo size="sm" />
@@ -236,7 +233,7 @@ const SidebarContent = ({
           }
         >
           <item.icon className="h-4.5 w-4.5" style={{ width: 18, height: 18 }} />
-          {item.tKey ? t(item.tKey) : item.label}
+          {item.label}
         </NavLink>
       ))}
     </nav>
@@ -262,4 +259,3 @@ const SidebarContent = ({
     </div>
   </>
 );
-};
