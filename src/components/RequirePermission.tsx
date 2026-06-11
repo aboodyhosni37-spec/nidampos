@@ -14,7 +14,7 @@ export const RequirePermission = ({
   redirect?: string;
 }) => {
   const session = getSession();
-  if (!session) return <Navigate to="/" replace />;
+  if (!session) return <Navigate to="/login" replace />;
   if (session.permissions?.[permission]) return <>{children}</>;
   if (redirect) return <Navigate to={redirect} replace />;
   return (
