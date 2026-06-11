@@ -39,15 +39,19 @@ export const ReceiptPreview = ({ order, onClose, autoPrint }: Props) => {
       isPrintingRef.current = true;
       setIsPrinting(true);
       setView(which);
+      // Wait one paint so the correct view is in the DOM, then fire a single print.
       setTimeout(() => {
         try {
           window.print();
         } catch {}
         if (which === "customer") setPrintedCustomer(true);
         else setPrintedKitchen(true);
-        isPrintingRef.current = false;
-        setIsPrinting(false);
-        resolve();
+        // Hold the lock briefly to swallow rapid double-clicks / duplicate triggers.
+        setTimeout(() => {
+          isPrintingRef.current = false;
+          setIsPrinting(false);
+          resolve();
+        }, 1000);
       }, 250);
     });
 
@@ -60,17 +64,15 @@ export const ReceiptPreview = ({ order, onClose, autoPrint }: Props) => {
     if (settings.enableKitchenPrint) await runPrint("kitchen");
   };
 
-  // Auto-print once per order id, regardless of remounts.
+  // Auto-print exactly ONE receipt per order id, regardless of remounts / StrictMode.
+  // Kitchen ticket must be triggered manually from the Kitchen tab to avoid duplicate output.
   useEffect(() => {
     if (!shouldAutoPrint) return;
     if (autoRanRef.current) return;
     if (printedOrders.has(order.id)) return;
     autoRanRef.current = true;
     printedOrders.add(order.id);
-    (async () => {
-      await runPrint("customer");
-      if (settings.enableKitchenPrint) await runPrint("kitchen");
-    })();
+    runPrint("customer");
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [order.id]);
 
