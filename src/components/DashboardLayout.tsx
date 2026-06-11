@@ -55,7 +55,7 @@ export const DashboardLayout = () => {
   const logout = () => {
     clearSession();
     toast({ title: "Signed out", description: "See you soon!" });
-    navigate("/", { replace: true });
+    navigate("/login", { replace: true });
   };
 
   const isPosMode = location.pathname.startsWith("/dashboard/pos");
