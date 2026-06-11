@@ -39,15 +39,19 @@ export const ReceiptPreview = ({ order, onClose, autoPrint }: Props) => {
       isPrintingRef.current = true;
       setIsPrinting(true);
       setView(which);
+      // Wait one paint so the correct view is in the DOM, then fire a single print.
       setTimeout(() => {
         try {
           window.print();
         } catch {}
         if (which === "customer") setPrintedCustomer(true);
         else setPrintedKitchen(true);
-        isPrintingRef.current = false;
-        setIsPrinting(false);
-        resolve();
+        // Hold the lock briefly to swallow rapid double-clicks / duplicate triggers.
+        setTimeout(() => {
+          isPrintingRef.current = false;
+          setIsPrinting(false);
+          resolve();
+        }, 1000);
       }, 250);
     });
 
