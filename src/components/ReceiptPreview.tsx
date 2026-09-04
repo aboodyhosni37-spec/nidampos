@@ -116,10 +116,36 @@ export const ReceiptPreview = ({ order, onClose, autoPrint }: Props) => {
     runPrint("customer");
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [order.id]);
-
+  /* Single printable copy, rendered outside every overlay. */
+  const printCopy = createPortal(
+    printView === "customer" ? (
+      <CustomerReceipt
+        idAttr="receipt"
+        order={order}
+        settings={settings}
+        widthClass={widthClass}
+        date={date}
+        paid={paid}
+        due={due}
+        status={status}
+      />
+    ) : (
+      <KitchenReceipt
+        idAttr="receipt"
+        order={order}
+        settings={settings}
+        widthClass={widthClass}
+        date={date}
+      />
+    ),
+    printRoot
+  );
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 print:bg-transparent print:backdrop-blur-none print:p-0 print:items-start">
+    <>
+    {printCopy}
+    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 print:hidden">
+
       <div className="bg-card rounded-2xl shadow-elegant max-w-md w-full max-h-[90vh] overflow-hidden flex flex-col print:shadow-none print:rounded-none print:max-h-none print:max-w-none print:bg-white">
         {/* Header (hidden on print) */}
         <div className="flex items-center justify-between p-4 border-b border-border print:hidden">
