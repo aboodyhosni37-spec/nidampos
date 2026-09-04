@@ -94,6 +94,12 @@
   background: #fff;
 }
 
+/* Print portal: the receipt is rendered to a top-level node (never inside a
+   position:fixed overlay, which browsers repeat on every printed page). */
+#print-root {
+  display: none;
+}
+
 @media print {
   @page {
     size: 80mm auto;
@@ -104,20 +110,26 @@
     background: #fff !important;
     margin: 0 !important;
     padding: 0 !important;
+    height: auto !important;
   }
 
-  body * {
-    visibility: hidden !important;
+  /* Remove app content from the print flow entirely (display, not visibility). */
+  body > *:not(#print-root) {
+    display: none !important;
   }
-  #receipt, #receipt * {
-    visibility: visible !important;
+
+  #print-root {
+    display: block !important;
+    position: static !important;
   }
+
   #receipt {
-    position: absolute;
-    left: 0;
-    top: 0;
     width: 80mm;
     padding: 4mm !important;
     box-shadow: none !important;
+    break-inside: avoid;
+    page-break-inside: avoid;
+    page-break-after: avoid;
   }
 }
+
