@@ -228,6 +228,7 @@ const CustomerReceipt = ({
   paid,
   due,
   status,
+  idAttr,
 }: {
   order: Order;
   settings: ReturnType<typeof loadReceiptSettings>;
@@ -236,9 +237,10 @@ const CustomerReceipt = ({
   paid: number;
   due: number;
   status: "PAID" | "UNPAID";
+  idAttr?: string;
 }) => (
   <div
-    id="receipt"
+    id={idAttr}
     className={`receipt mx-auto p-4 font-mono text-[12px] leading-snug text-black bg-white w-full ${widthClass}`}
   >
     <div className="text-center">
@@ -393,14 +395,16 @@ const KitchenReceipt = ({
   settings,
   widthClass,
   date,
+  idAttr,
 }: {
   order: Order;
   settings: ReturnType<typeof loadReceiptSettings>;
   widthClass: string;
   date: Date;
+  idAttr?: string;
 }) => (
   <div
-    id="receipt"
+    id={idAttr}
     className={`receipt mx-auto p-4 font-mono text-black bg-white w-full ${widthClass}`}
   >
     <div className="text-center">
