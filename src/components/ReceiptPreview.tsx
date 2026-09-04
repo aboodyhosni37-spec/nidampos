@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { Printer, X, ChefHat, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { Order } from "@/lib/orders";
@@ -12,8 +13,43 @@ type Props = {
 
 type View = "customer" | "kitchen";
 
-// Module-level guard to prevent duplicate prints across StrictMode double-mount / re-renders.
-const printedOrders = new Set<string>();
+/* ------------------------------------------------------------------
+   Print job registry — one automatic print job per sale transaction.
+   Persisted in sessionStorage so a refresh / re-render never reprints.
+------------------------------------------------------------------- */
+const AUTO_JOBS_KEY = "nidam_auto_print_jobs_v1";
+
+const autoJobDone = (jobId: string): boolean => {
+  try {
+    const raw = sessionStorage.getItem(AUTO_JOBS_KEY);
+    return raw ? (JSON.parse(raw) as string[]).includes(jobId) : false;
+  } catch {
+    return false;
+  }
+};
+
+const markAutoJob = (jobId: string) => {
+  try {
+    const raw = sessionStorage.getItem(AUTO_JOBS_KEY);
+    const list: string[] = raw ? JSON.parse(raw) : [];
+    if (!list.includes(jobId)) list.push(jobId);
+    // keep the registry small
+    sessionStorage.setItem(AUTO_JOBS_KEY, JSON.stringify(list.slice(-200)));
+  } catch {
+    /* ignore */
+  }
+};
+
+/** Single dedicated top-level print node (outside every fixed overlay). */
+const getPrintRoot = (): HTMLElement => {
+  let el = document.getElementById("print-root");
+  if (!el) {
+    el = document.createElement("div");
+    el.id = "print-root";
+    document.body.appendChild(el);
+  }
+  return el;
+};
 
 export const ReceiptPreview = ({ order, onClose, autoPrint }: Props) => {
   const settings = loadReceiptSettings();
@@ -21,8 +57,10 @@ export const ReceiptPreview = ({ order, onClose, autoPrint }: Props) => {
 
   const isPrintingRef = useRef(false);
   const autoRanRef = useRef(false);
+  const printRoot = useMemo(() => getPrintRoot(), []);
 
   const [view, setView] = useState<View>("customer");
+  const [printView, setPrintView] = useState<View>("customer");
   const [printedCustomer, setPrintedCustomer] = useState(false);
   const [printedKitchen, setPrintedKitchen] = useState(false);
   const [isPrinting, setIsPrinting] = useState(false);
@@ -33,26 +71,29 @@ export const ReceiptPreview = ({ order, onClose, autoPrint }: Props) => {
   const status = due > 0 ? "UNPAID" : "PAID";
   const widthClass = settings.paperSize === "58mm" ? "max-w-[58mm]" : "max-w-[80mm]";
 
+  /** Fires exactly one window.print() per call; concurrent calls are dropped. */
   const runPrint = (which: View): Promise<void> =>
     new Promise((resolve) => {
       if (isPrintingRef.current) return resolve();
       isPrintingRef.current = true;
       setIsPrinting(true);
-      setView(which);
-      // Wait one paint so the correct view is in the DOM, then fire a single print.
-      setTimeout(() => {
-        try {
-          window.print();
-        } catch {}
-        if (which === "customer") setPrintedCustomer(true);
-        else setPrintedKitchen(true);
-        // Hold the lock briefly to swallow rapid double-clicks / duplicate triggers.
-        setTimeout(() => {
+      setPrintView(which);
+
+      // Let React commit the print-portal content before printing.
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          try {
+            window.print();
+          } catch {
+            /* ignore */
+          }
+          if (which === "customer") setPrintedCustomer(true);
+          else setPrintedKitchen(true);
           isPrintingRef.current = false;
           setIsPrinting(false);
           resolve();
-        }, 1000);
-      }, 250);
+        });
+      });
     });
 
   const handleManualPrint = async () => {
@@ -64,20 +105,47 @@ export const ReceiptPreview = ({ order, onClose, autoPrint }: Props) => {
     if (settings.enableKitchenPrint) await runPrint("kitchen");
   };
 
-  // Auto-print exactly ONE receipt per order id, regardless of remounts / StrictMode.
-  // Kitchen ticket must be triggered manually from the Kitchen tab to avoid duplicate output.
+  // Auto-print: exactly ONE job per sale transaction (order id), ever.
   useEffect(() => {
     if (!shouldAutoPrint) return;
     if (autoRanRef.current) return;
-    if (printedOrders.has(order.id)) return;
+    const jobId = `auto:${order.id}`;
+    if (autoJobDone(jobId)) return;
     autoRanRef.current = true;
-    printedOrders.add(order.id);
+    markAutoJob(jobId);
     runPrint("customer");
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [order.id]);
+  /* Single printable copy, rendered outside every overlay. */
+  const printCopy = createPortal(
+    printView === "customer" ? (
+      <CustomerReceipt
+        idAttr="receipt"
+        order={order}
+        settings={settings}
+        widthClass={widthClass}
+        date={date}
+        paid={paid}
+        due={due}
+        status={status}
+      />
+    ) : (
+      <KitchenReceipt
+        idAttr="receipt"
+        order={order}
+        settings={settings}
+        widthClass={widthClass}
+        date={date}
+      />
+    ),
+    printRoot
+  );
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 print:bg-transparent print:backdrop-blur-none print:p-0 print:items-start">
+    <>
+    {printCopy}
+    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 print:hidden">
+
       <div className="bg-card rounded-2xl shadow-elegant max-w-md w-full max-h-[90vh] overflow-hidden flex flex-col print:shadow-none print:rounded-none print:max-h-none print:max-w-none print:bg-white">
         {/* Header (hidden on print) */}
         <div className="flex items-center justify-between p-4 border-b border-border print:hidden">
@@ -174,7 +242,9 @@ export const ReceiptPreview = ({ order, onClose, autoPrint }: Props) => {
         </div>
       </div>
     </div>
+    </>
   );
+
 };
 
 /* -------- Customer receipt (full info) -------- */
@@ -186,6 +256,7 @@ const CustomerReceipt = ({
   paid,
   due,
   status,
+  idAttr,
 }: {
   order: Order;
   settings: ReturnType<typeof loadReceiptSettings>;
@@ -194,9 +265,10 @@ const CustomerReceipt = ({
   paid: number;
   due: number;
   status: "PAID" | "UNPAID";
+  idAttr?: string;
 }) => (
   <div
-    id="receipt"
+    id={idAttr}
     className={`receipt mx-auto p-4 font-mono text-[12px] leading-snug text-black bg-white w-full ${widthClass}`}
   >
     <div className="text-center">
@@ -351,14 +423,16 @@ const KitchenReceipt = ({
   settings,
   widthClass,
   date,
+  idAttr,
 }: {
   order: Order;
   settings: ReturnType<typeof loadReceiptSettings>;
   widthClass: string;
   date: Date;
+  idAttr?: string;
 }) => (
   <div
-    id="receipt"
+    id={idAttr}
     className={`receipt mx-auto p-4 font-mono text-black bg-white w-full ${widthClass}`}
   >
     <div className="text-center">
