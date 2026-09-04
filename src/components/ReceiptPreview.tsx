@@ -242,7 +242,9 @@ export const ReceiptPreview = ({ order, onClose, autoPrint }: Props) => {
         </div>
       </div>
     </div>
+    </>
   );
+
 };
 
 /* -------- Customer receipt (full info) -------- */
