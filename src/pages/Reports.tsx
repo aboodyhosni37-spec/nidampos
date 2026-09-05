@@ -215,7 +215,7 @@ const Reports = () => {
             {top.map(([name, t], i) => (
               <div key={name} className="flex items-center justify-between p-3 rounded-xl bg-secondary/50">
                 <div className="flex items-center gap-3">
-                  <div className="h-8 w-8 rounded-lg bg-gradient-button text-white flex items-center justify-center font-bold text-sm">
+                  <div className="h-8 w-8 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 flex items-center justify-center font-bold text-sm">
                     {i + 1}
                   </div>
                   <div>

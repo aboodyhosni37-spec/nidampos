@@ -223,7 +223,7 @@ const Expenses = () => {
               <Button variant="outline" className="rounded-xl" onClick={() => setCatOpen(true)}>
                 <Tag className="h-4 w-4 mr-2" /> Categories
               </Button>
-              <Button className="rounded-xl bg-gradient-button text-white shadow-soft" onClick={openNew}>
+              <Button className="rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 shadow-soft" onClick={openNew}>
                 <Plus className="h-4 w-4 mr-2" /> Add expense
               </Button>
             </>
@@ -261,7 +261,7 @@ const Expenses = () => {
               className={
                 "px-4 py-2 rounded-xl text-sm font-semibold capitalize transition-all " +
                 (range === r
-                  ? "bg-gradient-button text-white shadow-soft"
+                  ? "bg-primary text-primary-foreground hover:bg-primary/90 shadow-soft"
                   : "bg-secondary text-muted-foreground hover:text-foreground")
               }
             >
@@ -432,7 +432,7 @@ const Expenses = () => {
             <Button
               onClick={submit}
               disabled={submitting}
-              className="bg-gradient-button text-white"
+              className="bg-primary text-primary-foreground hover:bg-primary/90"
             >
               {submitting ? "Saving…" : editing ? "Save changes" : "Add expense"}
             </Button>
@@ -453,7 +453,7 @@ const Expenses = () => {
                 value={newCatName}
                 onChange={(e) => setNewCatName(e.target.value)}
               />
-              <Button onClick={addCategory} className="bg-gradient-button text-white">
+              <Button onClick={addCategory} className="bg-primary text-primary-foreground hover:bg-primary/90">
                 <Plus className="h-4 w-4" />
               </Button>
             </div>

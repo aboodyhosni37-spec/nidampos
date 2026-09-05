@@ -232,7 +232,7 @@ const Staffpage = () => {
           </p>
         </div>
         {canManage && (
-          <Button className="rounded-xl bg-gradient-button text-white" onClick={openNewStaff}>
+          <Button className="rounded-xl bg-primary text-primary-foreground hover:bg-primary/90" onClick={openNewStaff}>
             <Plus className="h-4 w-4 mr-2" /> Add staff
           </Button>
         )}
@@ -344,7 +344,7 @@ const Staffpage = () => {
                     </Button>
                     <Button
                       size="sm"
-                      className="rounded-xl bg-gradient-button text-white"
+                      className="rounded-xl bg-primary text-primary-foreground hover:bg-primary/90"
                       onClick={() => setPayOpen(true)}
                     >
                       <DollarSign className="h-4 w-4 mr-1" /> Record payment
@@ -495,7 +495,7 @@ const Staffpage = () => {
             <Button variant="outline" onClick={() => setStaffOpen(false)}>
               Cancel
             </Button>
-            <Button onClick={submitStaff} className="bg-gradient-button text-white">
+            <Button onClick={submitStaff} className="bg-primary text-primary-foreground hover:bg-primary/90">
               {editing ? "Save" : "Add"}
             </Button>
           </DialogFooter>
@@ -550,7 +550,7 @@ const Staffpage = () => {
             <Button variant="outline" onClick={() => setPayOpen(false)}>
               Cancel
             </Button>
-            <Button onClick={submitPayment} className="bg-gradient-button text-white">
+            <Button onClick={submitPayment} className="bg-primary text-primary-foreground hover:bg-primary/90">
               Save payment
             </Button>
           </DialogFooter>

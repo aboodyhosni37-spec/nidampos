@@ -106,7 +106,7 @@ const ADD_DEBOUNCE_MS = 250;
 type OrderStatus = "Active" | "Held" | "Completed" | "Cancelled";
 
 const statusStyles: Record<OrderStatus, string> = {
-  Active: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30",
+  Active: "bg-primary/10 text-primary border-primary/30",
   Held: "bg-amber-500/15 text-amber-700 dark:text-amber-400 border-amber-500/30",
   Completed: "bg-blue-500/15 text-blue-700 dark:text-blue-400 border-blue-500/30",
   Cancelled: "bg-rose-500/15 text-rose-700 dark:text-rose-400 border-rose-500/30",
@@ -690,7 +690,7 @@ const POS = () => {
           >
             <PlayCircle className="h-4 w-4 mr-1.5" /> Held
             {heldOrders.length > 0 && (
-              <span className="ml-1.5 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-amber-500 text-white text-[10px] font-bold">
+              <span className="ml-1.5 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-amber-500 text-amber-50 text-[10px] font-bold">
                 {heldOrders.length}
               </span>
             )}
@@ -719,7 +719,7 @@ const POS = () => {
               className={cn(
                 "flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-semibold transition-all text-left",
                 activeCat === c.id
-                  ? "bg-gradient-button text-white shadow-soft"
+                  ? "bg-primary text-primary-foreground hover:bg-primary/90 shadow-soft"
                   : "hover:bg-secondary text-foreground"
               )}
             >
@@ -738,7 +738,7 @@ const POS = () => {
               className={cn(
                 "flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-semibold whitespace-nowrap transition-all",
                 activeCat === c.id
-                  ? "bg-gradient-button text-white shadow-soft"
+                  ? "bg-primary text-primary-foreground hover:bg-primary/90 shadow-soft"
                   : "bg-card border border-border"
               )}
             >
@@ -757,7 +757,7 @@ const POS = () => {
               className={cn(
                 "flex-1 sm:flex-none px-4 h-10 rounded-xl text-sm font-semibold transition-all inline-flex items-center justify-center gap-1.5",
                 leftMode === "menu"
-                  ? "bg-gradient-button text-white shadow-soft"
+                  ? "bg-primary text-primary-foreground hover:bg-primary/90 shadow-soft"
                   : "bg-secondary hover:bg-secondary/80 text-foreground"
               )}
             >
@@ -768,13 +768,13 @@ const POS = () => {
               className={cn(
                 "flex-1 sm:flex-none px-4 h-10 rounded-xl text-sm font-semibold transition-all inline-flex items-center justify-center gap-1.5 relative",
                 leftMode === "due"
-                  ? "bg-gradient-button text-white shadow-soft"
+                  ? "bg-primary text-primary-foreground hover:bg-primary/90 shadow-soft"
                   : "bg-secondary hover:bg-secondary/80 text-foreground"
               )}
             >
               <Receipt className="h-4 w-4" /> Due Orders
               {unpaid.length > 0 && (
-                <span className="ml-1 inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-rose-500 text-white text-[10px] font-bold">
+                <span className="ml-1 inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold">
                   {unpaid.length}
                 </span>
               )}
@@ -919,7 +919,7 @@ const POS = () => {
                     className={cn(
                       "h-9 min-w-[3rem] px-3 rounded-lg text-xs font-bold transition-all",
                       table === t
-                        ? "bg-gradient-button text-white shadow-soft"
+                        ? "bg-primary text-primary-foreground hover:bg-primary/90 shadow-soft"
                         : "bg-secondary hover:bg-secondary/80"
                     )}
                   >
@@ -1134,9 +1134,9 @@ const POS = () => {
 
             {/* Customer Loyalty (when a customer is selected) */}
             {selectedCustomer && (
-              <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/5 p-3 space-y-2">
+              <div className="rounded-xl border border-primary/30 bg-primary/5 p-3 space-y-2">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-emerald-500">
+                  <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-primary">
                     <Sparkles className="h-3.5 w-3.5" /> Loyalty
                   </div>
                   <span className="text-[10px] text-muted-foreground">
@@ -1152,7 +1152,7 @@ const POS = () => {
                 {rewardAvailable !== "none" ? (
                   <div className="flex items-center justify-between gap-2">
                     <div className="text-xs">
-                      <div className="font-semibold text-emerald-500">
+                      <div className="font-semibold text-primary">
                         Reward unlocked: {rewardLabel(rewardAvailable)}
                       </div>
                     </div>
@@ -1160,7 +1160,7 @@ const POS = () => {
                       <Button
                         size="sm"
                         onClick={() => setAppliedReward(rewardAvailable as any)}
-                        className="rounded-lg bg-gradient-button text-white h-8"
+                        className="rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 h-8"
                       >
                         <Gift className="h-3.5 w-3.5 mr-1" /> Apply Reward
                       </Button>
@@ -1212,7 +1212,7 @@ const POS = () => {
                       className={cn(
                         "h-9 rounded-lg text-xs font-semibold transition-all border",
                         discountType === t
-                          ? "bg-gradient-button text-white border-transparent shadow-soft"
+                          ? "bg-primary text-primary-foreground hover:bg-primary/90 border-transparent shadow-soft"
                           : "bg-card border-border hover:border-primary/40",
                         appliedReward !== "none" && "opacity-40 cursor-not-allowed"
                       )}
@@ -1238,7 +1238,7 @@ const POS = () => {
                   />
                 )}
                 {appliedReward !== "none" && (
-                  <div className="text-[11px] text-emerald-500">
+                  <div className="text-[11px] text-primary">
                     Reward active — manual discount disabled.
                   </div>
                 )}
@@ -1250,7 +1250,7 @@ const POS = () => {
               <span className="font-medium">{formatMoney(totals.subtotal, sys)}</span>
             </div>
             {totals.discount > 0 && (
-              <div className="flex justify-between text-sm text-emerald-500">
+              <div className="flex justify-between text-sm text-primary">
                 <span className="flex items-center gap-1">
                   <Percent className="h-3 w-3" /> Discount
                   {appliedReward !== "none" && (
@@ -1292,7 +1292,7 @@ const POS = () => {
               <Button
                 onClick={placeOrder}
                 disabled={cart.length === 0 || submitting}
-                className="h-12 rounded-xl bg-gradient-button text-white font-semibold shadow-soft hover:shadow-elegant transition-all disabled:opacity-50"
+                className="h-12 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 font-semibold shadow-soft hover:shadow-elegant transition-all disabled:opacity-50"
               >
                 {submitting ? "Processing…" : "Place Order"}
               </Button>
@@ -1390,7 +1390,7 @@ const POS = () => {
             <Button variant="outline" onClick={() => setNewCustomerOpen(false)}>
               Cancel
             </Button>
-            <Button onClick={handleCreateCustomer} className="bg-gradient-button text-white">
+            <Button onClick={handleCreateCustomer} className="bg-primary text-primary-foreground hover:bg-primary/90">
               Add Customer
             </Button>
           </DialogFooter>
@@ -1533,7 +1533,7 @@ const POS = () => {
                       className={cn(
                         "h-11 rounded-xl border text-sm font-semibold transition-all",
                         payMethodInline === m
-                          ? "bg-gradient-button text-white border-transparent shadow-soft"
+                          ? "bg-primary text-primary-foreground hover:bg-primary/90 border-transparent shadow-soft"
                           : "bg-card border-border hover:border-primary/40"
                       )}
                     >
@@ -1551,7 +1551,7 @@ const POS = () => {
             <Button
               onClick={inlinePayNow}
               disabled={payingInline}
-              className="rounded-xl bg-gradient-button text-white"
+              className="rounded-xl bg-primary text-primary-foreground hover:bg-primary/90"
             >
               {payingInline ? "Processing…" : "Confirm Payment"}
             </Button>
@@ -1608,7 +1608,7 @@ const POS = () => {
             <Button
               onClick={placeOrder}
               disabled={submitting}
-              className="rounded-xl bg-gradient-button text-white"
+              className="rounded-xl bg-primary text-primary-foreground hover:bg-primary/90"
             >
               {submitting ? "Processing…" : "Confirm Payment Received"}
             </Button>
@@ -1642,7 +1642,7 @@ const PayBtn = ({
     className={cn(
       "flex flex-col items-center gap-1 py-2.5 rounded-xl text-[11px] font-semibold transition-all min-h-[60px] justify-center text-center px-1",
       active
-        ? "bg-gradient-button text-white shadow-soft"
+        ? "bg-primary text-primary-foreground hover:bg-primary/90 shadow-soft"
         : "bg-secondary hover:bg-secondary/80 text-foreground"
     )}
   >

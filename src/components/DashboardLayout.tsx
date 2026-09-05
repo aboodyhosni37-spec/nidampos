@@ -176,7 +176,7 @@ export const DashboardLayout = () => {
               <div className="text-sm font-semibold leading-tight">{user?.name || "Cashier"}</div>
               <div className="text-xs text-muted-foreground">{user?.method === "pos" ? "POS Terminal" : "Web"}</div>
             </div>
-            <div className="h-10 w-10 rounded-full bg-gradient-button text-white flex items-center justify-center font-bold shadow-soft">
+            <div className="h-10 w-10 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 flex items-center justify-center font-bold shadow-soft">
               {(user?.name || "U").charAt(0).toUpperCase()}
             </div>
           </div>
@@ -227,7 +227,7 @@ const SidebarContent = ({
             cn(
               "flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all",
               isActive
-                ? "bg-gradient-button text-white shadow-soft"
+                ? "bg-primary text-primary-foreground hover:bg-primary/90 shadow-soft"
                 : "text-muted-foreground hover:bg-secondary hover:text-foreground"
             )
           }
@@ -240,7 +240,7 @@ const SidebarContent = ({
 
     <div className="p-3 border-t border-border space-y-2">
       <div className="flex items-center gap-3 px-3 py-2 rounded-xl bg-secondary/60">
-        <div className="h-9 w-9 rounded-full bg-gradient-button text-white flex items-center justify-center font-bold text-sm">
+        <div className="h-9 w-9 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 flex items-center justify-center font-bold text-sm">
           {userName.charAt(0).toUpperCase()}
         </div>
         <div className="flex-1 min-w-0">

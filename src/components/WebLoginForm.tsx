@@ -93,7 +93,7 @@ export const WebLoginForm = () => {
       <Button
         type="submit"
         disabled={loading}
-        className="group w-full h-14 rounded-xl bg-gradient-button text-white font-semibold text-base shadow-soft hover:shadow-elegant hover:-translate-y-0.5 transition-all duration-300"
+        className="group w-full h-14 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 font-semibold text-base shadow-soft hover:shadow-elegant hover:-translate-y-0.5 transition-all duration-300"
       >
         {loading ? "Signing in..." : (
           <>

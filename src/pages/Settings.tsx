@@ -296,7 +296,7 @@ const Settings = () => {
                 </p>
               </div>
               {canManageUsers && (
-                <Button onClick={openNewUser} className="rounded-xl bg-gradient-button text-white">
+                <Button onClick={openNewUser} className="rounded-xl bg-primary text-primary-foreground hover:bg-primary/90">
                   <UserPlus className="h-4 w-4 mr-2" /> Add user
                 </Button>
               )}
@@ -390,7 +390,7 @@ const Settings = () => {
                 </div>
                 {canManageUsers && (
                   <div className="flex items-center gap-2">
-                    <Button size="sm" onClick={() => saveRole(r)} className="bg-gradient-button text-white">
+                    <Button size="sm" onClick={() => saveRole(r)} className="bg-primary text-primary-foreground hover:bg-primary/90">
                       <Save className="h-4 w-4 mr-1.5" /> Save
                     </Button>
                     {!r.is_system && (
@@ -445,7 +445,7 @@ const Settings = () => {
                 <Button variant="outline" onClick={resetReceipt} className="rounded-xl">
                   Reset
                 </Button>
-                <Button onClick={saveReceipt} className="rounded-xl bg-gradient-button text-white">
+                <Button onClick={saveReceipt} className="rounded-xl bg-primary text-primary-foreground hover:bg-primary/90">
                   <Save className="h-4 w-4 mr-1.5" /> Save
                 </Button>
               </div>
@@ -502,7 +502,7 @@ const Settings = () => {
                 onCheckedChange={(v) => setR("enableKitchenPrint", v)}
               />
             </div>
-            <div className="flex items-center justify-between p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30">
+            <div className="flex items-center justify-between p-3 rounded-xl bg-primary/10 border border-primary/30">
               <div>
                 <div className="font-medium flex items-center gap-2">
                   <span>🖥️ Enable Dual Screen POS</span>
@@ -641,7 +641,7 @@ const Settings = () => {
               />
             </div>
             <div className="flex justify-end pt-2">
-              <Button onClick={saveReceipt} className="rounded-xl bg-gradient-button text-white">
+              <Button onClick={saveReceipt} className="rounded-xl bg-primary text-primary-foreground hover:bg-primary/90">
                 <Save className="h-4 w-4 mr-1.5" /> Save all
               </Button>
             </div>
@@ -664,7 +664,7 @@ const Settings = () => {
                 <Button
                   onClick={saveSystem}
                   disabled={savingSys}
-                  className="rounded-xl bg-gradient-button text-white"
+                  className="rounded-xl bg-primary text-primary-foreground hover:bg-primary/90"
                 >
                   <Save className="h-4 w-4 mr-1.5" /> {savingSys ? "Saving…" : "Save"}
                 </Button>
@@ -753,7 +753,7 @@ const Settings = () => {
                 <Button
                   onClick={saveSystem}
                   disabled={savingSys}
-                  className="rounded-xl bg-gradient-button text-white"
+                  className="rounded-xl bg-primary text-primary-foreground hover:bg-primary/90"
                 >
                   <Save className="h-4 w-4 mr-1.5" /> Save
                 </Button>
@@ -821,7 +821,7 @@ const Settings = () => {
             <Button variant="outline" onClick={() => setUserOpen(false)}>
               Cancel
             </Button>
-            <Button onClick={submitUser} className="bg-gradient-button text-white">
+            <Button onClick={submitUser} className="bg-primary text-primary-foreground hover:bg-primary/90">
               {editingUser ? "Save" : "Create"}
             </Button>
           </DialogFooter>
@@ -846,7 +846,7 @@ const Settings = () => {
             <Button variant="outline" onClick={() => setNewRoleOpen(false)}>
               Cancel
             </Button>
-            <Button onClick={addRole} className="bg-gradient-button text-white">
+            <Button onClick={addRole} className="bg-primary text-primary-foreground hover:bg-primary/90">
               Create
             </Button>
           </DialogFooter>
