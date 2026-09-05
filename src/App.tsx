@@ -19,11 +19,13 @@ import CustomerDisplay from "./pages/CustomerDisplay.tsx";
 import { DashboardLayout } from "./components/DashboardLayout.tsx";
 import { ProtectedRoute } from "./components/ProtectedRoute.tsx";
 import { RequirePermission } from "./components/RequirePermission.tsx";
+import { ThemeProvider } from "./lib/theme.tsx";
 
 const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
+    <ThemeProvider>
     <TooltipProvider>
       <Toaster />
       <Sonner />
@@ -54,6 +56,7 @@ const App = () => (
         </Routes>
       </BrowserRouter>
     </TooltipProvider>
+    </ThemeProvider>
   </QueryClientProvider>
 );
 

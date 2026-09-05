@@ -14,6 +14,7 @@ import {
   Menu,
 } from "lucide-react";
 import { NidamLogo } from "@/components/NidamLogo";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { clearSession, getSession } from "@/lib/auth";
@@ -76,6 +77,7 @@ export const DashboardLayout = () => {
             </span>
           </div>
           <div className="flex items-center gap-2">
+            <ThemeToggle />
             <div className="hidden sm:block text-right">
               <div className="text-sm font-semibold leading-tight">{user?.name || "Cashier"}</div>
               <div className="text-xs text-muted-foreground capitalize">{user?.role}</div>
@@ -172,11 +174,12 @@ export const DashboardLayout = () => {
             </div>
           </div>
           <div className="flex items-center gap-3">
+            <ThemeToggle />
             <div className="hidden sm:block text-right">
               <div className="text-sm font-semibold leading-tight">{user?.name || "Cashier"}</div>
               <div className="text-xs text-muted-foreground">{user?.method === "pos" ? "POS Terminal" : "Web"}</div>
             </div>
-            <div className="h-10 w-10 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 flex items-center justify-center font-bold shadow-soft">
+            <div className="h-10 w-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold shadow-soft">
               {(user?.name || "U").charAt(0).toUpperCase()}
             </div>
           </div>
@@ -240,7 +243,7 @@ const SidebarContent = ({
 
     <div className="p-3 border-t border-border space-y-2">
       <div className="flex items-center gap-3 px-3 py-2 rounded-xl bg-secondary/60">
-        <div className="h-9 w-9 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 flex items-center justify-center font-bold text-sm">
+        <div className="h-9 w-9 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold text-sm">
           {userName.charAt(0).toUpperCase()}
         </div>
         <div className="flex-1 min-w-0">
