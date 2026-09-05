@@ -69,7 +69,7 @@ const CustomerDisplay = () => {
               <span className="tabular-nums">{fmt(state.subtotal, sym)}</span>
             </div>
             {state.discount > 0 && (
-              <div className="flex justify-between text-base text-emerald-500">
+              <div className="flex justify-between text-base text-primary">
                 <span>Discount</span>
                 <span className="tabular-nums">− {fmt(state.discount, sym)}</span>
               </div>
@@ -111,8 +111,8 @@ const CustomerDisplay = () => {
 
       {state?.type === "paid" && (
         <div className="flex-1 flex flex-col items-center justify-center p-10 text-center">
-          <CheckCircle2 className="h-32 w-32 text-emerald-500 mb-6 animate-in zoom-in duration-500" />
-          <div className="text-6xl font-extrabold text-emerald-500 tracking-wider mb-3">
+          <CheckCircle2 className="h-32 w-32 text-primary mb-6 animate-in zoom-in duration-500" />
+          <div className="text-6xl font-extrabold text-primary tracking-wider mb-3">
             PAID
           </div>
           <div className="text-3xl font-semibold mb-1">Thank You!</div>

@@ -128,7 +128,7 @@ const Inventory = () => {
           </Button>
           <Button
             onClick={() => fileRef.current?.click()}
-            className="rounded-xl bg-gradient-button text-white"
+            className="rounded-xl bg-primary text-primary-foreground hover:bg-primary/90"
           >
             <Upload className="h-4 w-4 mr-1.5" /> Import Excel
           </Button>
@@ -222,7 +222,7 @@ const Inventory = () => {
                             "inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold " +
                             (low
                               ? "bg-destructive/10 text-destructive"
-                              : "bg-emerald-500/10 text-emerald-600")
+                              : "bg-primary/10 text-primary")
                           }
                         >
                           <Package className="h-3 w-3" /> {low ? "Low" : "In stock"}
@@ -248,7 +248,7 @@ const Inventory = () => {
           </DialogHeader>
 
           <div className="flex gap-3 text-sm flex-wrap">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-500/10 text-emerald-700">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/10 text-primary">
               <CheckCircle2 className="h-4 w-4" /> {validRows.length} valid
             </div>
             {invalidCount > 0 && (
@@ -300,7 +300,7 @@ const Inventory = () => {
             <Button
               onClick={confirmImport}
               disabled={importing || validRows.length === 0}
-              className="bg-gradient-button text-white"
+              className="bg-primary text-primary-foreground hover:bg-primary/90"
             >
               {importing ? "Importing…" : `Replace menu (${validRows.length})`}
             </Button>

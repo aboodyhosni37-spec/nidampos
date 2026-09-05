@@ -43,7 +43,7 @@ const PAY_METHODS: Exclude<PaymentMethod, "Due" | "Split">[] = [
 const statusStyles: Record<OrderWorkflowStatus, string> = {
   Pending: "bg-amber-500/15 text-amber-700 border-amber-500/30",
   Preparing: "bg-blue-500/15 text-blue-700 border-blue-500/30",
-  Completed: "bg-emerald-500/15 text-emerald-700 border-emerald-500/30",
+  Completed: "bg-primary/10 text-primary border-primary/30",
   Unpaid: "bg-rose-500/15 text-rose-700 border-rose-500/30",
 };
 
@@ -219,7 +219,7 @@ const Orders = () => {
                               setPayOrder(o);
                               setPayMethod("EVC-Plus");
                             }}
-                            className="h-8 rounded-lg bg-gradient-button text-white"
+                            className="h-8 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90"
                           >
                             <CreditCard className="h-3.5 w-3.5 mr-1" /> Pay Now
                           </Button>
@@ -284,7 +284,7 @@ const Orders = () => {
                     className={cn(
                       "h-11 rounded-xl border text-sm font-semibold transition-all",
                       payMethod === m
-                        ? "bg-gradient-button text-white border-transparent shadow-soft"
+                        ? "bg-primary text-primary-foreground hover:bg-primary/90 border-transparent shadow-soft"
                         : "bg-card border-border hover:border-primary/40"
                     )}
                   >
@@ -308,7 +308,7 @@ const Orders = () => {
             <Button
               onClick={handlePayNow}
               disabled={paying}
-              className="rounded-xl bg-gradient-button text-white"
+              className="rounded-xl bg-primary text-primary-foreground hover:bg-primary/90"
             >
               {paying ? "Processing…" : "Confirm Payment"}
             </Button>

@@ -18,7 +18,7 @@ export const NidamLogo = ({ size = "md", className }: NidamLogoProps) => {
   return (
     <div
       className={cn(
-        "relative inline-flex items-center justify-center font-bold text-white shadow-soft",
+        "relative inline-flex items-center justify-center font-bold text-primary-foreground shadow-soft",
         "bg-gradient-to-br from-[hsl(var(--brand-emerald))] via-[hsl(var(--brand-emerald-bright))] to-[hsl(var(--brand-teal))]",
         sizeMap[size],
         className

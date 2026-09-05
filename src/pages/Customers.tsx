@@ -229,7 +229,7 @@ const Customers = () => {
           </p>
         </div>
         <Button
-          className="rounded-xl bg-gradient-button text-white shadow-soft"
+          className="rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 shadow-soft"
           onClick={() => setNewOpen(true)}
         >
           <UserPlus className="h-4 w-4 mr-2" /> Add customer
@@ -290,7 +290,7 @@ const Customers = () => {
                   className="p-4 flex items-center justify-between gap-3 hover:bg-secondary/40 transition-colors"
                 >
                   <div className="flex items-center gap-3 min-w-0">
-                    <div className="h-10 w-10 rounded-full bg-gradient-button text-white flex items-center justify-center font-bold shrink-0">
+                    <div className="h-10 w-10 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 flex items-center justify-center font-bold shrink-0">
                       {c.name.charAt(0).toUpperCase()}
                     </div>
                     <div className="min-w-0">
@@ -322,7 +322,7 @@ const Customers = () => {
                       <div
                         className={cn(
                           "font-bold tabular-nums",
-                          hasDebt ? "text-amber-600" : "text-emerald-600"
+                          hasDebt ? "text-amber-600" : "text-primary"
                         )}
                       >
                         ${debt.toFixed(2)}
@@ -345,7 +345,7 @@ const Customers = () => {
                         setRepayMethod("Cash");
                         setRepayOpen(true);
                       }}
-                      className="rounded-lg bg-gradient-button text-white"
+                      className="rounded-lg bg-primary text-primary-foreground hover:bg-primary/90"
                     >
                       <TrendingDown className="h-3.5 w-3.5 mr-1" /> Pay
                     </Button>
@@ -400,7 +400,7 @@ const Customers = () => {
             <Button variant="outline" onClick={() => setNewOpen(false)}>
               Cancel
             </Button>
-            <Button onClick={handleCreate} className="bg-gradient-button text-white">
+            <Button onClick={handleCreate} className="bg-primary text-primary-foreground hover:bg-primary/90">
               Add Customer
             </Button>
           </DialogFooter>
@@ -436,7 +436,7 @@ const Customers = () => {
                     setRepayMethod("Cash");
                     setRepayOpen(true);
                   }}
-                  className="bg-gradient-button text-white rounded-lg"
+                  className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-lg"
                 >
                   Record payment
                 </Button>
@@ -463,7 +463,7 @@ const Customers = () => {
                     <div
                       className={cn(
                         "font-bold tabular-nums",
-                        t.type === "charge" ? "text-amber-600" : "text-emerald-600"
+                        t.type === "charge" ? "text-amber-600" : "text-primary"
                       )}
                     >
                       {t.type === "charge" ? "+" : "−"}${Number(t.amount).toFixed(2)}
@@ -523,7 +523,7 @@ const Customers = () => {
             <Button
               onClick={handleRepay}
               disabled={repaySubmitting}
-              className="bg-gradient-button text-white"
+              className="bg-primary text-primary-foreground hover:bg-primary/90"
             >
               {repaySubmitting ? "Saving…" : "Confirm payment"}
             </Button>
@@ -552,7 +552,7 @@ const Customers = () => {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setEditTarget(null)}>Cancel</Button>
-            <Button onClick={handleEditSave} className="bg-gradient-button text-white">
+            <Button onClick={handleEditSave} className="bg-primary text-primary-foreground hover:bg-primary/90">
               Save changes
             </Button>
           </DialogFooter>
@@ -606,7 +606,7 @@ const KpiCard = ({
     <div className="flex items-start justify-between">
       <div
         className={cn(
-          "h-11 w-11 rounded-xl bg-gradient-to-br text-white flex items-center justify-center shadow-soft",
+          "h-11 w-11 rounded-xl bg-primary/10 text-primary flex items-center justify-center",
           color
         )}
       >

@@ -16,8 +16,10 @@ import {
 import { NidamLogo } from "@/components/NidamLogo";
 import { PosLoginForm } from "@/components/PosLoginForm";
 import { getSession } from "@/lib/auth";
+import { useForcedDarkTheme } from "@/lib/theme";
 
 const Index = () => {
+  useForcedDarkTheme();
   const navigate = useNavigate();
 
   useEffect(() => {

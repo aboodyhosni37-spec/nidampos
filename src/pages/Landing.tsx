@@ -25,6 +25,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { NidamLogo } from "@/components/NidamLogo";
 import { getSession } from "@/lib/auth";
+import { useForcedDarkTheme } from "@/lib/theme";
 import { cn } from "@/lib/utils";
 
 const navLinks = [
@@ -154,6 +155,7 @@ const StatCard = ({ s }: { s: (typeof stats)[number] }) => {
 };
 
 const Landing = () => {
+  useForcedDarkTheme();
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [openFaq, setOpenFaq] = useState<number | null>(0);

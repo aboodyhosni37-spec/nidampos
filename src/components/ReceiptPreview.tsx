@@ -230,7 +230,7 @@ export const ReceiptPreview = ({ order, onClose, autoPrint }: Props) => {
           <Button
             onClick={handleManualPrint}
             disabled={isPrinting}
-            className="flex-1 rounded-xl bg-gradient-button text-white shadow-soft min-w-[140px]"
+            className="flex-1 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 shadow-soft min-w-[140px]"
           >
             <Printer className="h-4 w-4 mr-2" />
             {isPrinting

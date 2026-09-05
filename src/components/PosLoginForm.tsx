@@ -122,7 +122,7 @@ export const PosLoginForm = () => {
       <Button
         onClick={() => tryLogin(pin)}
         disabled={pin.length !== PIN_LEN || verifying}
-        className="w-full h-14 rounded-2xl bg-gradient-button text-white font-bold text-base disabled:opacity-40"
+        className="w-full h-14 rounded-2xl bg-primary text-primary-foreground hover:bg-primary/90 font-bold text-base disabled:opacity-40"
       >
         {verifying ? "Verifying…" : "Sign In"}
       </Button>
