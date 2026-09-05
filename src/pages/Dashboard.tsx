@@ -93,7 +93,7 @@ const Dashboard = () => {
               <div className="flex items-start justify-between">
                 <div
                   className={cn(
-                    "h-11 w-11 rounded-xl bg-gradient-to-br text-white flex items-center justify-center shadow-soft",
+                    "h-11 w-11 rounded-xl bg-primary/10 text-primary flex items-center justify-center",
                     s.color
                   )}
                 >
