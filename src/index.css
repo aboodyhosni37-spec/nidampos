@@ -1,0 +1,196 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+/* NIDAM POS — White + Olive Green design system. All colors are HSL. */
+
+@layer base {
+  :root {
+    /* LIGHT MODE — white surfaces, olive accents */
+    --background: 0 0% 100%;
+    --foreground: 85 20% 12%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 85 20% 12%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 85 20% 12%;
+
+    /* Primary Olive #6B7A3A */
+    --primary: 74 36% 35%;
+    --primary-foreground: 0 0% 100%;
+    --primary-glow: 76 38% 26%;
+
+    --secondary: 73 33% 95%;
+    --secondary-foreground: 76 38% 26%;
+
+    --muted: 73 33% 95%;
+    --muted-foreground: 220 9% 46%;
+
+    --accent: 73 33% 89%;
+    --accent-foreground: 76 38% 26%;
+
+    --success: 74 36% 35%;
+    --success-foreground: 0 0% 100%;
+
+    --destructive: 0 72% 48%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 74 36% 35%;
+
+    --radius: 0.75rem;
+
+    /* Brand stops — olive spectrum */
+    --brand-emerald: 74 36% 35%;
+    --brand-emerald-bright: 74 34% 42%;
+    --brand-teal: 76 38% 26%;
+
+    --gradient-brand: linear-gradient(135deg, hsl(var(--brand-emerald)) 0%, hsl(var(--brand-emerald-bright)) 55%, hsl(var(--brand-teal)) 100%);
+    --gradient-button: linear-gradient(135deg, hsl(var(--brand-emerald)) 0%, hsl(var(--brand-emerald-bright)) 100%);
+    --gradient-glow: radial-gradient(circle at 30% 20%, hsl(var(--brand-emerald) / 0.12), transparent 60%),
+                     radial-gradient(circle at 70% 80%, hsl(var(--brand-teal) / 0.12), transparent 55%);
+
+    --shadow-soft: 0 1px 2px hsl(85 20% 12% / 0.06), 0 2px 8px -4px hsl(85 20% 12% / 0.08);
+    --shadow-elegant: 0 4px 12px -4px hsl(85 20% 12% / 0.12), 0 12px 32px -12px hsl(85 20% 12% / 0.14);
+    --shadow-glow: 0 0 0 4px hsl(var(--primary) / 0.15);
+
+    --transition-smooth: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-bounce: all 0.35s cubic-bezier(0.34, 1.4, 0.64, 1);
+
+    --sidebar-background: 73 33% 95%;
+    --sidebar-foreground: 85 20% 12%;
+    --sidebar-primary: 74 36% 35%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 73 33% 89%;
+    --sidebar-accent-foreground: 76 38% 26%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 74 36% 35%;
+  }
+
+  .dark {
+    /* DARK / NIGHT MODE — charcoal with olive tint */
+    --background: 96 13% 7%;
+    --foreground: 60 20% 95%;
+
+    --card: 94 13% 11%;
+    --card-foreground: 60 20% 95%;
+
+    --popover: 94 13% 11%;
+    --popover-foreground: 60 20% 95%;
+
+    --primary: 75 35% 42%;
+    --primary-foreground: 96 13% 7%;
+    --primary-glow: 72 35% 57%;
+
+    --secondary: 90 14% 14%;
+    --secondary-foreground: 60 20% 95%;
+
+    --muted: 90 14% 14%;
+    --muted-foreground: 88 8% 65%;
+
+    --accent: 90 14% 18%;
+    --accent-foreground: 72 35% 57%;
+
+    --success: 75 35% 42%;
+    --success-foreground: 96 13% 7%;
+
+    --destructive: 0 65% 52%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 90 10% 20%;
+    --input: 90 10% 20%;
+    --ring: 72 35% 57%;
+
+    --brand-emerald: 75 35% 42%;
+    --brand-emerald-bright: 72 35% 57%;
+    --brand-teal: 76 38% 30%;
+
+    --shadow-soft: 0 1px 2px hsl(0 0% 0% / 0.4), 0 2px 10px -4px hsl(0 0% 0% / 0.5);
+    --shadow-elegant: 0 6px 18px -6px hsl(0 0% 0% / 0.55), 0 16px 40px -16px hsl(0 0% 0% / 0.6);
+    --shadow-glow: 0 0 0 4px hsl(var(--primary) / 0.25);
+
+    --sidebar-background: 94 13% 9%;
+    --sidebar-foreground: 60 20% 92%;
+    --sidebar-primary: 75 35% 42%;
+    --sidebar-primary-foreground: 96 13% 7%;
+    --sidebar-accent: 90 14% 14%;
+    --sidebar-accent-foreground: 60 20% 95%;
+    --sidebar-border: 90 10% 20%;
+    --sidebar-ring: 72 35% 57%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    font-family: 'Inter', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  html.dark {
+    color-scheme: dark;
+  }
+
+  html:not(.dark) {
+    color-scheme: light;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+}
+
+/* Thermal printer-friendly receipt styles */
+.receipt {
+  width: 80mm;
+  max-width: 100%;
+  color: #000;
+  background: #fff;
+}
+
+/* Print portal: the receipt is rendered to a top-level node (never inside a
+   position:fixed overlay, which browsers repeat on every printed page). */
+#print-root {
+  display: none;
+}
+
+@media print {
+  @page {
+    size: 80mm auto;
+    margin: 0;
+  }
+
+  html, body {
+    background: #fff !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    height: auto !important;
+  }
+
+  /* Remove app content from the print flow entirely (display, not visibility). */
+  body > *:not(#print-root) {
+    display: none !important;
+  }
+
+  #print-root {
+    display: block !important;
+    position: static !important;
+  }
+
+  #receipt {
+    width: 80mm;
+    padding: 4mm !important;
+    box-shadow: none !important;
+    break-inside: avoid;
+    page-break-inside: avoid;
+    page-break-after: avoid;
+  }
+}
