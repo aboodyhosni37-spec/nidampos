@@ -195,11 +195,19 @@ const Inventory = () => {
             <Download className="h-4 w-4 mr-1.5" /> Export
           </Button>
           <Button
-            onClick={() => fileRef.current?.click()}
+            onClick={() => setAddOpen(true)}
             className="rounded-xl bg-primary text-primary-foreground hover:bg-primary/90"
+          >
+            <Plus className="h-4 w-4 mr-1.5" /> Add Inventory
+          </Button>
+          <Button
+            variant="outline"
+            onClick={() => fileRef.current?.click()}
+            className="rounded-xl"
           >
             <Upload className="h-4 w-4 mr-1.5" /> Import Excel
           </Button>
+
           <input
             ref={fileRef}
             type="file"
