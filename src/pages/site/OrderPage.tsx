@@ -15,8 +15,10 @@ import { toast } from "sonner";
 import { tables } from "@/lib/posData";
 import { useCustomerCart } from "@/lib/customerCart";
 import {
+  BANADIR_DISTRICTS,
   computeOrderTotals,
   DEFAULT_STORE_SETTINGS,
+  deliveryFeeForDistrict,
   fetchStoreSettings,
   placeCustomerOrder,
   type OrderType,
@@ -37,6 +39,7 @@ const OrderPage = () => {
   const [orderType, setOrderType] = useState<OrderType>("DELIVERY");
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
+  const [district, setDistrict] = useState("");
   const [address, setAddress] = useState("");
   const [notes, setNotes] = useState("");
   const [table, setTable] = useState(tables[0]);
@@ -59,7 +62,9 @@ const OrderPage = () => {
       .catch(() => {});
   }, []);
 
-  const deliveryFee = orderType === "DELIVERY" ? store.delivery_fee : 0;
+  // Delivery fee is fixed by the selected Banadir district — never editable.
+  const deliveryFee =
+    orderType === "DELIVERY" ? deliveryFeeForDistrict(district) : 0;
   const totals = useMemo(() => computeOrderTotals(lines, deliveryFee), [lines, deliveryFee]);
 
   const submit = async () => {
@@ -67,6 +72,8 @@ const OrderPage = () => {
     if (lines.length === 0) return;
     if (!name.trim()) return toast.error("Please enter your name.");
     if (!phone.trim()) return toast.error("Please enter your phone number.");
+    if (orderType === "DELIVERY" && !district)
+      return toast.error("Please select your delivery district in Banadir.");
     if (orderType === "DELIVERY" && !address.trim())
       return toast.error("Please enter your delivery address.");
 
@@ -77,11 +84,12 @@ const OrderPage = () => {
         order_type: orderType,
         customer_name: name,
         phone,
+        district,
         address,
         notes,
         table_label: orderType === "DINE-IN" ? table : undefined,
         items: lines,
-        delivery_fee: store.delivery_fee,
+        delivery_fee: deliveryFee,
         client_ref: clientRef.current,
       });
       setPlaced(res);
@@ -269,15 +277,32 @@ const OrderPage = () => {
                 />
               </label>
               {orderType === "DELIVERY" ? (
-                <label className="space-y-1.5 sm:col-span-2">
-                  <span className="text-sm font-medium">Delivery address</span>
-                  <input
-                    value={address}
-                    onChange={(e) => setAddress(e.target.value)}
-                    className="w-full h-12 px-3.5 rounded-xl border border-input bg-background text-sm outline-none focus:ring-2 focus:ring-ring/40"
-                    placeholder="Street, district, landmark"
-                  />
-                </label>
+                <>
+                  <label className="space-y-1.5 sm:col-span-2">
+                    <span className="text-sm font-medium">Delivery district (Banadir, Mogadishu)</span>
+                    <select
+                      value={district}
+                      onChange={(e) => setDistrict(e.target.value)}
+                      className="w-full h-12 px-3.5 rounded-xl border border-input bg-background text-sm outline-none focus:ring-2 focus:ring-ring/40"
+                    >
+                      <option value="">Select your district…</option>
+                      {BANADIR_DISTRICTS.map((d) => (
+                        <option key={d} value={d}>
+                          {d} — {formatMoney(deliveryFeeForDistrict(d))}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <label className="space-y-1.5 sm:col-span-2">
+                    <span className="text-sm font-medium">Delivery address</span>
+                    <input
+                      value={address}
+                      onChange={(e) => setAddress(e.target.value)}
+                      className="w-full h-12 px-3.5 rounded-xl border border-input bg-background text-sm outline-none focus:ring-2 focus:ring-ring/40"
+                      placeholder="Street, neighborhood, landmark"
+                    />
+                  </label>
+                </>
               ) : (
                 <label className="space-y-1.5 sm:col-span-2">
                   <span className="text-sm font-medium">Table</span>
@@ -331,12 +356,18 @@ const OrderPage = () => {
               </div>
             )}
             {orderType === "DELIVERY" && (
-              <div className="flex justify-between">
-                <dt className="text-muted-foreground">Delivery fee</dt>
-                <dd className="font-semibold tabular-nums">
-                  {totals.deliveryFee > 0 ? formatMoney(totals.deliveryFee) : "Free"}
-                </dd>
-              </div>
+              <>
+                <div className="flex justify-between">
+                  <dt className="text-muted-foreground">Delivery district</dt>
+                  <dd className="font-semibold">{district || "Not selected"}</dd>
+                </div>
+                <div className="flex justify-between">
+                  <dt className="text-muted-foreground">Delivery fee</dt>
+                  <dd className="font-semibold tabular-nums">
+                    {district ? formatMoney(totals.deliveryFee) : "—"}
+                  </dd>
+                </div>
+              </>
             )}
           </dl>
           <div className="border-t border-border pt-4 flex items-end justify-between">
