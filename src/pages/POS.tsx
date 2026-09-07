@@ -123,16 +123,20 @@ const POS = () => {
   const categories = useDb
     ? [{ id: "all", name: "All", emoji: "🍽️" }, ...dbCategories.map((c) => ({ id: c.id, name: c.name, emoji: "🍽️" }))]
     : seedCategories;
-  const products = useDb
-    ? dbProducts.map((p) => ({
-        id: p.id,
-        name: p.name,
-        price: p.price,
-        categoryId: p.category_id ?? "all",
-        emoji: "🍽️",
-        image_url: p.image_url,
-      }))
-    : seedProducts.map((p) => ({ ...p, image_url: null as string | null }));
+  const products = useMemo(
+    () =>
+      useDb
+        ? dbProducts.map((p) => ({
+            id: p.id,
+            name: p.name,
+            price: p.price,
+            categoryId: p.category_id ?? "all",
+            emoji: "🍽️",
+            image_url: p.image_url,
+          }))
+        : seedProducts.map((p) => ({ ...p, image_url: null as string | null })),
+    [useDb, dbProducts]
+  );
 
   // Active order state
   const [orderId, setOrderId] = useState<string>(() => generateOrderId());
@@ -275,7 +279,8 @@ const POS = () => {
       const inSearch = p.name.toLowerCase().includes(search.toLowerCase());
       return inCat && inSearch;
     });
-  }, [activeCat, search]);
+  }, [products, activeCat, search]);
+
 
   const resetActiveOrder = (newId?: string) => {
     setOrderId(newId ?? generateOrderId());
@@ -302,6 +307,7 @@ const POS = () => {
     lastAddRef.current = { id: productId, t: now };
 
     const p = products.find((x) => x.id === productId);
+    
     if (!p) return;
     if (orderStatus !== "Active") {
       toast({
@@ -981,7 +987,7 @@ const POS = () => {
 
 
           {/* Payment - fixed bottom of cart. Bounded so the cart-items area always remains scrollable. */}
-          <div className="border-t border-border bg-card shrink-0 basis-auto max-h-[55%] overflow-y-auto p-4 space-y-3">
+          <div className="border-t border-border bg-card shrink-0 basis-auto max-h-[46%] overflow-y-auto p-4 space-y-3">
             {/* Quick customer picker (for loyalty + due tracking) */}
             <div>
               <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
