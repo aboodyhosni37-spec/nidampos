@@ -383,7 +383,106 @@ const Inventory = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Add inventory dialog */}
+      <Dialog open={addOpen} onOpenChange={(o) => !o && setAddOpen(false)}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Add Inventory</DialogTitle>
+            <DialogDescription>
+              Existing items get their stock increased. New items are created with the same fields
+              as the Excel import.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+            <div className="space-y-1.5 sm:col-span-2">
+              <Label>Category</Label>
+              <Input
+                list="inv-categories"
+                value={form.category}
+                onChange={(e) => setForm({ ...form, category: e.target.value })}
+                placeholder="e.g. Drinks"
+                className="h-11 rounded-xl"
+              />
+              <datalist id="inv-categories">
+                {categoryNames.map((c) => (
+                  <option key={c} value={c} />
+                ))}
+              </datalist>
+            </div>
+            <div className="space-y-1.5 sm:col-span-2">
+              <Label>Product name</Label>
+              <Input
+                list="inv-products"
+                value={form.name}
+                onChange={(e) => setForm({ ...form, name: e.target.value })}
+                placeholder="e.g. Coca Cola"
+                className="h-11 rounded-xl"
+              />
+              <datalist id="inv-products">
+                {products.map((p) => (
+                  <option key={p.id} value={p.name} />
+                ))}
+              </datalist>
+            </div>
+            <div className="space-y-1.5">
+              <Label>Price</Label>
+              <Input
+                type="number"
+                min={0}
+                step="0.01"
+                value={form.price}
+                onChange={(e) => setForm({ ...form, price: e.target.value })}
+                className="h-11 rounded-xl"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Quantity to add</Label>
+              <Input
+                type="number"
+                min={0}
+                value={form.stock}
+                onChange={(e) => setForm({ ...form, stock: e.target.value })}
+                className="h-11 rounded-xl"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Low stock alert</Label>
+              <Input
+                type="number"
+                min={0}
+                value={form.low_stock_threshold}
+                onChange={(e) => setForm({ ...form, low_stock_threshold: e.target.value })}
+                className="h-11 rounded-xl"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Image URL (optional)</Label>
+              <Input
+                value={form.image_url}
+                onChange={(e) => setForm({ ...form, image_url: e.target.value })}
+                className="h-11 rounded-xl"
+              />
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setAddOpen(false)} className="rounded-xl">
+              Cancel
+            </Button>
+            <Button
+              onClick={submitAdd}
+              disabled={saving}
+              className="rounded-xl bg-primary text-primary-foreground hover:bg-primary/90"
+            >
+              {saving ? "Saving…" : "Add to inventory"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
+
   );
 };
 
