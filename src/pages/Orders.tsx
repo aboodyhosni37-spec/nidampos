@@ -283,7 +283,9 @@ const Orders = () => {
           <table className="w-full text-sm">
             <thead className="bg-secondary/60 text-muted-foreground">
               <tr className="text-left">
+                <th className="p-4 w-10"></th>
                 <th className="p-4 font-semibold">Order #</th>
+
                 <th className="p-4 font-semibold">Table</th>
                 <th className="p-4 font-semibold">Items</th>
                 <th className="p-4 font-semibold">Payment</th>
