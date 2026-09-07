@@ -9,6 +9,7 @@ import {
   BarChart3,
   Users as UsersIcon,
   UserCog,
+  Globe,
   Settings as SettingsIcon,
   LogOut,
   Menu,
@@ -41,6 +42,7 @@ const nav: { to: string; label: string; icon: any; perm?: Permission }[] = [
   { to: "/dashboard/expenses", label: "Expenses", icon: Wallet, perm: "access_expenses" },
   { to: "/dashboard/staff", label: "Staff & Salaries", icon: UserCog, perm: "access_staff" },
   { to: "/dashboard/reports", label: "Reports", icon: BarChart3, perm: "view_reports" },
+  { to: "/dashboard/website", label: "Website", icon: Globe, perm: "manage_website" },
   { to: "/dashboard/settings", label: "Settings", icon: SettingsIcon, perm: "access_settings" },
 ];
 
@@ -51,7 +53,9 @@ export const DashboardLayout = () => {
   const [exitConfirm, setExitConfirm] = useState(false);
   const user = getSession();
 
-  const visibleNav = nav.filter((n) => !n.perm || user?.permissions?.[n.perm]);
+  const visibleNav = nav.filter(
+    (n) => !n.perm || user?.permissions?.[n.perm] || (n.perm === "manage_website" && user?.role === "admin")
+  );
 
   const logout = () => {
     clearSession();
