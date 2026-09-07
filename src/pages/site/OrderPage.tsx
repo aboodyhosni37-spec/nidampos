@@ -84,11 +84,12 @@ const OrderPage = () => {
         order_type: orderType,
         customer_name: name,
         phone,
+        district,
         address,
         notes,
         table_label: orderType === "DINE-IN" ? table : undefined,
         items: lines,
-        delivery_fee: store.delivery_fee,
+        delivery_fee: deliveryFee,
         client_ref: clientRef.current,
       });
       setPlaced(res);
