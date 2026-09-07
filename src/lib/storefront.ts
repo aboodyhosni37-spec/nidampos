@@ -84,6 +84,7 @@ export type PlaceOrderInput = {
   order_type: OrderType;
   customer_name: string;
   phone: string;
+  district?: string;
   address?: string;
   notes?: string;
   table_label?: string;
