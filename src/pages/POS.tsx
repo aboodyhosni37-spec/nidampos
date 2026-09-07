@@ -889,7 +889,7 @@ const POS = () => {
           "rounded-2xl border-2 flex flex-col overflow-hidden transition-colors min-h-0",
           orderStatus === "Active" ? "border-primary/40" : "border-border"
         )}>
-          <div className="p-4 border-b border-border flex items-center justify-between">
+          <div className="h-14 shrink-0 px-4 border-b border-border flex items-center justify-between">
             <div className="flex items-center gap-2 font-semibold">
               <ShoppingCart className="h-4 w-4" />
               <span>Order</span>
