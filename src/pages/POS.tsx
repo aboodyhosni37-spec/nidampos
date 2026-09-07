@@ -706,7 +706,7 @@ const POS = () => {
         </div>
       </Card>
 
-      <div className="grid grid-cols-1 lg:grid-cols-[200px_1fr_400px] gap-4 h-[calc(100vh-12rem)] min-h-[560px]">
+      <div className="grid grid-cols-1 lg:grid-cols-[180px_minmax(0,1fr)_minmax(360px,380px)] xl:grid-cols-[200px_minmax(0,1fr)_minmax(380px,400px)] 2xl:grid-cols-[220px_minmax(0,1fr)_420px] gap-4 h-[calc(100vh-12rem)] min-h-[560px]">
         {/* Categories */}
         <Card className="rounded-2xl p-3 border-border overflow-y-auto lg:flex flex-col gap-2 hidden">
           <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground px-2 mb-1">
@@ -805,7 +805,7 @@ const POS = () => {
                 />
               </div>
               <div className="flex-1 overflow-y-auto pr-1">
-                <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-3">
+                <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3">
                   {filtered.map((p) => (
                     <button
                       key={p.id}
@@ -889,7 +889,7 @@ const POS = () => {
           "rounded-2xl border-2 flex flex-col overflow-hidden transition-colors min-h-0",
           orderStatus === "Active" ? "border-primary/40" : "border-border"
         )}>
-          <div className="p-4 border-b border-border flex items-center justify-between">
+          <div className="h-14 shrink-0 px-4 border-b border-border flex items-center justify-between">
             <div className="flex items-center gap-2 font-semibold">
               <ShoppingCart className="h-4 w-4" />
               <span>Order</span>
@@ -931,7 +931,7 @@ const POS = () => {
           </div>
 
           {/* Items - scrollable */}
-          <div className="flex-1 overflow-y-auto p-3 space-y-2 min-h-0">
+          <div className="flex-1 overflow-y-auto p-4 space-y-2 min-h-0">
             {cart.length === 0 ? (
               <div className="h-full flex flex-col items-center justify-center text-center text-muted-foreground py-10">
                 <ShoppingCart className="h-10 w-10 opacity-30 mb-2" />
@@ -940,41 +940,45 @@ const POS = () => {
               </div>
             ) : (
               cart.map((it) => (
-                <div key={it.id} className="bg-secondary/50 rounded-xl p-3">
+                <div key={it.id} className="bg-secondary/50 rounded-xl p-3 min-h-16 flex flex-col justify-center">
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex-1 min-w-0">
-                      <div className="font-semibold text-sm truncate">{it.name}</div>
+                      <div className="font-semibold text-sm leading-snug break-words">{it.name}</div>
                       <div className="text-xs text-muted-foreground">{formatMoney(it.price, sys)}</div>
                     </div>
                     <button
                       onClick={() => removeItem(it.id)}
-                      className="text-muted-foreground hover:text-destructive"
+                      aria-label="Remove item"
+                      className="h-10 w-10 -mr-1.5 -mt-1.5 shrink-0 rounded-lg inline-flex items-center justify-center text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
                     >
                       <Trash2 className="h-4 w-4" />
                     </button>
                   </div>
-                  <div className="flex items-center justify-between mt-2">
+                  <div className="flex items-center justify-between gap-2 mt-2">
                     <div className="flex items-center gap-1 bg-card rounded-lg border border-border">
                       <button
                         onClick={() => updateQty(it.id, -1)}
-                        className="h-8 w-8 flex items-center justify-center hover:text-primary"
+                        aria-label="Decrease quantity"
+                        className="h-10 w-10 flex items-center justify-center rounded-l-lg hover:text-primary hover:bg-secondary transition-colors"
                       >
-                        <Minus className="h-3.5 w-3.5" />
+                        <Minus className="h-4 w-4" />
                       </button>
-                      <span className="w-7 text-center text-sm font-bold">{it.qty}</span>
+                      <span className="w-8 text-center text-sm font-bold tabular-nums">{it.qty}</span>
                       <button
                         onClick={() => updateQty(it.id, 1)}
-                        className="h-8 w-8 flex items-center justify-center hover:text-primary"
+                        aria-label="Increase quantity"
+                        className="h-10 w-10 flex items-center justify-center rounded-r-lg hover:text-primary hover:bg-secondary transition-colors"
                       >
-                        <Plus className="h-3.5 w-3.5" />
+                        <Plus className="h-4 w-4" />
                       </button>
                     </div>
-                    <div className="font-bold text-sm">{formatMoney(it.price * it.qty, sys)}</div>
+                    <div className="font-bold text-sm tabular-nums shrink-0">{formatMoney(it.price * it.qty, sys)}</div>
                   </div>
                 </div>
               ))
             )}
           </div>
+
 
           {/* Payment - fixed bottom of cart. Bounded so the cart-items area always remains scrollable. */}
           <div className="border-t border-border bg-card shrink-0 basis-auto max-h-[55%] overflow-y-auto p-4 space-y-3">
@@ -1274,12 +1278,14 @@ const POS = () => {
                 <span className="font-semibold">{formatMoney(effectiveDue, sys)}</span>
               </div>
             )}
-            <div className="flex justify-between text-lg font-bold pt-2 border-t border-border">
+            <div className="sticky bottom-0 -mx-4 -mb-3 px-4 pb-3 pt-2 bg-card border-t border-border space-y-3">
+            <div className="flex justify-between text-xl font-bold">
               <span>Total</span>
-              <span>{formatMoney(total, sys)}</span>
+              <span className="tabular-nums">{formatMoney(total, sys)}</span>
             </div>
 
             <div className="grid grid-cols-2 gap-2">
+
               <Button
                 type="button"
                 variant="outline"
@@ -1297,7 +1303,9 @@ const POS = () => {
                 {submitting ? "Processing…" : "Place Order"}
               </Button>
             </div>
+            </div>
           </div>
+
         </Card>
       </div>
 

@@ -193,4 +193,29 @@
     page-break-inside: avoid;
     page-break-after: avoid;
   }
+
+  /* FONT / READABILITY ONLY — layout, alignment and paper size unchanged. */
+  #receipt.receipt-print,
+  #receipt .receipt-print {
+    font-family: "Courier New", "DejaVu Sans Mono", "Liberation Mono", monospace;
+  }
+
+  #receipt {
+    color: #000 !important;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    -webkit-font-smoothing: none;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  /* Keep every line solid black and never clipped on thermal paper. */
+  #receipt * {
+    color: #000 !important;
+    opacity: 1 !important;
+    text-overflow: clip !important;
+    overflow-wrap: break-word;
+  }
+
 }
+

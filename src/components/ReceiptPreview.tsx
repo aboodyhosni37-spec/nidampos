@@ -269,41 +269,41 @@ const CustomerReceipt = ({
 }) => (
   <div
     id={idAttr}
-    className={`receipt mx-auto p-4 font-mono text-[12px] leading-snug text-black bg-white w-full ${widthClass}`}
+    className={`receipt mx-auto p-4 receipt-print font-mono text-[13px] font-medium leading-snug text-black bg-white w-full ${widthClass}`}
   >
     <div className="text-center">
       {settings.showLogo && settings.logoUrl ? (
         <img src={settings.logoUrl} alt="logo" className="mx-auto mb-1 max-h-12 object-contain" />
       ) : null}
-      <div className="text-base font-bold tracking-wider">{settings.businessName}</div>
+      <div className="text-[17px] font-bold tracking-wider">{settings.businessName}</div>
       {settings.showAddress && settings.address && (
-        <div className="text-[10px]">{settings.address}</div>
+        <div className="text-[11.5px]">{settings.address}</div>
       )}
       {settings.showPhone && settings.phone && (
-        <div className="text-[10px]">Tel: {settings.phone}</div>
+        <div className="text-[11.5px]">Tel: {settings.phone}</div>
       )}
     </div>
 
     <div className="my-2 border-t border-dashed border-black" />
 
-    <div className="flex justify-between text-[11px]">
+    <div className="flex justify-between text-[12.5px]">
       <span>Order #</span>
       <span className="font-bold">{order.number}</span>
     </div>
-    <div className="flex justify-between text-[11px]">
+    <div className="flex justify-between text-[12.5px]">
       <span>Date</span>
       <span>{date.toLocaleDateString()}</span>
     </div>
-    <div className="flex justify-between text-[11px]">
+    <div className="flex justify-between text-[12.5px]">
       <span>Time</span>
       <span>{date.toLocaleTimeString()}</span>
     </div>
-    <div className="flex justify-between text-[11px]">
+    <div className="flex justify-between text-[12.5px]">
       <span>Table</span>
       <span>{order.table}</span>
     </div>
     {order.customer && (
-      <div className="flex justify-between text-[11px]">
+      <div className="flex justify-between text-[12.5px]">
         <span>Customer</span>
         <span>{order.customer}</span>
       </div>
@@ -312,10 +312,10 @@ const CustomerReceipt = ({
     {settings.showItems && (
       <>
         <div className="my-2 border-t border-dashed border-black" />
-        <div className="flex text-[10px] font-bold uppercase">
+        <div className="flex text-[11.5px] font-bold uppercase">
           <div className="flex-1">Item</div>
-          <div className="w-7 text-center">Qty</div>
-          <div className="w-14 text-right">Price</div>
+          <div className="w-8 text-center">Qty</div>
+          <div className="w-16 text-right">Price</div>
         </div>
         <div className="my-1 border-t border-dashed border-black" />
         {order.items.map((it) => {
@@ -325,11 +325,11 @@ const CustomerReceipt = ({
           return (
             <div key={it.id} className="mb-1">
               <div className="flex">
-                <div className="flex-1 truncate">{it.name}</div>
-                <div className="w-7 text-center">{it.qty}</div>
-                <div className="w-14 text-right">{fmt(it.price * it.qty)}</div>
+                <div className="flex-1 pr-1 font-semibold break-words">{it.name}</div>
+                <div className="w-8 text-center font-semibold">{it.qty}</div>
+                <div className="w-16 text-right font-semibold tabular-nums">{fmt(it.price * it.qty)}</div>
               </div>
-              <div className="text-[9px] opacity-70">  @ {fmt(it.price)}</div>
+              <div className="text-[11px]">  @ {fmt(it.price)}</div>
             </div>
           );
         })}
@@ -347,24 +347,24 @@ const CustomerReceipt = ({
       const tax = order.tax ?? 0;
       return (
         <>
-          <div className="flex justify-between text-[11px]">
+          <div className="flex justify-between text-[12.5px]">
             <span>Subtotal</span>
             <span>{fmt(sub)}</span>
           </div>
           {disc > 0 && (
-            <div className="flex justify-between text-[11px] font-bold">
+            <div className="flex justify-between text-[12.5px] font-bold">
               <span>Discount Applied</span>
               <span>− {fmt(disc)}</span>
             </div>
           )}
           {tax > 0 && (
-            <div className="flex justify-between text-[11px]">
+            <div className="flex justify-between text-[12.5px]">
               <span>Tax{order.taxRate ? ` (${order.taxRate}%${order.taxInclusive ? " incl" : ""})` : ""}</span>
               <span>{fmt(tax)}</span>
             </div>
           )}
           {settings.showTotal && (
-            <div className="flex justify-between text-base font-bold mt-1">
+            <div className="flex justify-between text-[17px] font-bold mt-1">
               <span>TOTAL</span>
               <span>{fmt(order.total)}</span>
             </div>
@@ -372,16 +372,16 @@ const CustomerReceipt = ({
 
           {settings.showPaymentMethod && (
             <>
-              <div className="flex justify-between text-[11px] mt-1">
+              <div className="flex justify-between text-[12.5px] mt-1">
                 <span>Payment</span>
                 <span className="font-semibold">{order.paymentMethod}</span>
               </div>
-              <div className="flex justify-between text-[11px]">
+              <div className="flex justify-between text-[12.5px]">
                 <span>Paid</span>
                 <span className="font-semibold">{fmt(paid)}</span>
               </div>
               {due > 0 && (
-                <div className="flex justify-between text-[11px]">
+                <div className="flex justify-between text-[12.5px]">
                   <span>Due</span>
                   <span className="font-semibold">{fmt(due)}</span>
                 </div>
@@ -390,7 +390,7 @@ const CustomerReceipt = ({
           )}
 
           {order.rewardApplied && order.rewardApplied !== "none" && (
-            <div className="text-center text-[10px] mt-1 font-bold">
+            <div className="text-center text-[11.5px] mt-1 font-bold">
               🎁 Loyalty Reward: {order.rewardApplied === "free_lunch" ? "FREE LUNCH" : "50% OFF"}
             </div>
           )}
@@ -401,16 +401,16 @@ const CustomerReceipt = ({
     <div className="my-2 border-t border-dashed border-black" />
 
     <div className="text-center">
-      <div className="inline-block px-3 py-0.5 text-[11px] font-bold tracking-wider border-2 border-black">
+      <div className="inline-block px-3 py-0.5 text-[12.5px] font-bold tracking-wider border-2 border-black">
         {status}
       </div>
     </div>
 
     {settings.showFooter && (
-      <div className="text-center text-[11px] mt-2">
+      <div className="text-center text-[12.5px] mt-2">
         <div className="font-bold">{settings.footerMessage}</div>
         {settings.showPoweredBy && (
-          <div className="text-[9px] mt-2 opacity-70">Powered by Blue Flag</div>
+          <div className="text-[11px] mt-2">Powered by Blue Flag</div>
         )}
       </div>
     )}
