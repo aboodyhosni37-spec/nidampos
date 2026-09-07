@@ -714,10 +714,10 @@ const POS = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_minmax(320px,360px)] xl:grid-cols-[1fr_minmax(340px,380px)] 2xl:grid-cols-[1fr_minmax(340px,380px)] gap-4 h-[calc(100vh-12rem)] min-h-[560px]">
         {/* Products / Due Orders */}
-        <div className="flex flex-col gap-3 min-h-0">
+        <div className="flex flex-col gap-3 min-h-0 min-w-0">
           {/* Categories */}
           {leftMode === "menu" && (
-            <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1 shrink-0">
+            <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1 shrink-0 min-w-0">
               {categories.map((c) => (
                 <button
                   key={c.id}
