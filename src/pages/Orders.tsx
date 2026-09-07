@@ -145,6 +145,90 @@ const Orders = () => {
     }
   };
 
+  const toggleSelected = (id: string) =>
+    setSelectedIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
+
+  const handleMerge = async () => {
+    setMerging(true);
+    try {
+      const res = await mergeInvoices(selectedIds);
+      toast({
+        title: "Orders merged",
+        description: `Combined into order #${res.number}. Paid $${res.paid.toFixed(
+          2
+        )}, remaining $${res.due.toFixed(2)}.`,
+      });
+      setSelectedIds([]);
+      setMergeOpen(false);
+      refresh();
+    } catch (e: any) {
+      toast({ title: "Merge failed", description: e.message, variant: "destructive" });
+    } finally {
+      setMerging(false);
+    }
+  };
+
+  const openEdit = async (o: Order) => {
+    try {
+      const detail = await fetchInvoiceDetail(o.id);
+      setEditInvoice(detail);
+      setEditItems(detail.items.map((i) => ({ ...i })));
+      setProductQuery("");
+      if (products.length === 0) setProducts(await listProducts());
+    } catch (e: any) {
+      toast({ title: "Could not open order", description: e.message, variant: "destructive" });
+    }
+  };
+
+  const changeQty = (idx: number, delta: number) =>
+    setEditItems((prev) =>
+      prev.map((it, i) => (i === idx ? { ...it, qty: Math.max(0, it.qty + delta) } : it))
+    );
+
+  const removeItem = (idx: number) =>
+    setEditItems((prev) => prev.filter((_, i) => i !== idx));
+
+  const addProduct = (p: DbProduct) =>
+    setEditItems((prev) => {
+      const hit = prev.findIndex((i) => i.name === p.name && i.price === Number(p.price));
+      if (hit >= 0)
+        return prev.map((it, i) => (i === hit ? { ...it, qty: it.qty + 1 } : it));
+      return [
+        ...prev,
+        { product_id: p.id, name: p.name, price: Number(p.price), qty: 1 },
+      ];
+    });
+
+  const editTotal = editItems.reduce((s, i) => s + i.price * i.qty, 0);
+  const editPaid = editInvoice?.paid_amount ?? 0;
+  const editDue = Math.max(0, editTotal - editPaid);
+
+  const productMatches = useMemo(() => {
+    const t = productQuery.trim().toLowerCase();
+    if (!t) return [];
+    return products.filter((p) => p.name.toLowerCase().includes(t)).slice(0, 8);
+  }, [productQuery, products]);
+
+  const handleSaveEdit = async () => {
+    if (!editInvoice) return;
+    setSavingEdit(true);
+    try {
+      const res = await saveInvoiceItems(editInvoice.id, editItems);
+      toast({
+        title: "Order updated",
+        description: `New total $${res.total.toFixed(2)} · paid $${res.paid.toFixed(
+          2
+        )} · due $${res.due.toFixed(2)}.`,
+      });
+      setEditInvoice(null);
+      refresh();
+    } catch (e: any) {
+      toast({ title: "Update failed", description: e.message, variant: "destructive" });
+    } finally {
+      setSavingEdit(false);
+    }
+  };
+
   const filtered = orders
     .filter((o) => (filter === "All" ? true : (o.orderStatus ?? "Completed") === filter))
     .filter(
