@@ -123,16 +123,20 @@ const POS = () => {
   const categories = useDb
     ? [{ id: "all", name: "All", emoji: "🍽️" }, ...dbCategories.map((c) => ({ id: c.id, name: c.name, emoji: "🍽️" }))]
     : seedCategories;
-  const products = useDb
-    ? dbProducts.map((p) => ({
-        id: p.id,
-        name: p.name,
-        price: p.price,
-        categoryId: p.category_id ?? "all",
-        emoji: "🍽️",
-        image_url: p.image_url,
-      }))
-    : seedProducts.map((p) => ({ ...p, image_url: null as string | null }));
+  const products = useMemo(
+    () =>
+      useDb
+        ? dbProducts.map((p) => ({
+            id: p.id,
+            name: p.name,
+            price: p.price,
+            categoryId: p.category_id ?? "all",
+            emoji: "🍽️",
+            image_url: p.image_url,
+          }))
+        : seedProducts.map((p) => ({ ...p, image_url: null as string | null })),
+    [useDb, dbProducts]
+  );
 
   // Active order state
   const [orderId, setOrderId] = useState<string>(() => generateOrderId());
