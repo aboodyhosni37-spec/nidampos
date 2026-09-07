@@ -114,7 +114,55 @@ const Inventory = () => {
     }
   };
 
+  const submitAdd = async () => {
+    const price = parseFloat(form.price);
+    const stock = form.stock === "" ? 0 : parseInt(form.stock, 10);
+    const thr = form.low_stock_threshold === "" ? 5 : parseInt(form.low_stock_threshold, 10);
+    if (!form.category.trim() || !form.name.trim()) {
+      toast({ title: "Category and product name are required", variant: "destructive" });
+      return;
+    }
+    if (!Number.isFinite(price) || price < 0) {
+      toast({ title: "Enter a valid price", variant: "destructive" });
+      return;
+    }
+    if (!Number.isFinite(stock) || stock < 0) {
+      toast({ title: "Enter a valid quantity", variant: "destructive" });
+      return;
+    }
+    setSaving(true);
+    try {
+      const res = await addInventory([
+        {
+          category: form.category,
+          name: form.name,
+          price,
+          stock,
+          low_stock_threshold: Number.isFinite(thr) ? thr : 5,
+          image_url: form.image_url || null,
+        },
+      ]);
+      toast({
+        title: res.updated > 0 ? "Stock added" : "Product added",
+        description:
+          res.updated > 0
+            ? `${form.name.trim()} stock increased by ${stock}.`
+            : `${form.name.trim()} created with ${stock} in stock.`,
+      });
+      setAddOpen(false);
+      setForm(emptyForm);
+      refresh();
+    } catch (e: any) {
+      toast({ title: "Could not add", description: e.message, variant: "destructive" });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const categoryNames = [...new Set(products.map((p) => p.category_name))].sort();
+
   const lowStockCount = products.filter((p) => p.stock <= p.low_stock_threshold).length;
+
 
   return (
     <div className="max-w-7xl mx-auto space-y-6">
