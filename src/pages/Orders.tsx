@@ -351,6 +351,16 @@ const Orders = () => {
                             <CreditCard className="h-3.5 w-3.5 mr-1" /> Pay Now
                           </Button>
                         )}
+                        {isUnpaid && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => openEdit(o)}
+                            className="h-8 rounded-lg"
+                          >
+                            <Pencil className="h-3.5 w-3.5 mr-1" /> Edit
+                          </Button>
+                        )}
                         <button
                           onClick={() => setSelected(o)}
                           className="inline-flex items-center gap-1 text-primary hover:underline text-sm font-medium px-2"
@@ -364,9 +374,10 @@ const Orders = () => {
               })}
               {filtered.length === 0 && (
                 <tr>
-                  <td colSpan={8} className="p-12 text-center text-muted-foreground">
+                  <td colSpan={9} className="p-12 text-center text-muted-foreground">
                     No orders found.
                   </td>
+
                 </tr>
               )}
             </tbody>
