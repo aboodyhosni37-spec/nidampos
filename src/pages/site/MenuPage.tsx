@@ -97,6 +97,8 @@ const MenuPage = () => {
               )}
             >
               {c.name}
+            </button>
+
 
           ))}
         </div>
