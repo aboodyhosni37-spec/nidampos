@@ -8,14 +8,17 @@ export const RequirePermission = ({
   permission,
   children,
   redirect,
+  allowRoles,
 }: {
   permission: Permission;
   children: React.ReactNode;
   redirect?: string;
+  allowRoles?: string[];
 }) => {
   const session = getSession();
   if (!session) return <Navigate to="/login" replace />;
   if (session.permissions?.[permission]) return <>{children}</>;
+  if (allowRoles?.includes(session.role)) return <>{children}</>;
   if (redirect) return <Navigate to={redirect} replace />;
   return (
     <div className="max-w-lg mx-auto pt-16">
