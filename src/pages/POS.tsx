@@ -706,7 +706,7 @@ const POS = () => {
         </div>
       </Card>
 
-      <div className="grid grid-cols-1 lg:grid-cols-[200px_1fr_400px] gap-4 h-[calc(100vh-12rem)] min-h-[560px]">
+      <div className="grid grid-cols-1 lg:grid-cols-[180px_minmax(0,1fr)_minmax(360px,380px)] xl:grid-cols-[200px_minmax(0,1fr)_minmax(380px,400px)] 2xl:grid-cols-[220px_minmax(0,1fr)_420px] gap-4 h-[calc(100vh-12rem)] min-h-[560px]">
         {/* Categories */}
         <Card className="rounded-2xl p-3 border-border overflow-y-auto lg:flex flex-col gap-2 hidden">
           <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground px-2 mb-1">
