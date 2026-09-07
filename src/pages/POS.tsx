@@ -1278,12 +1278,14 @@ const POS = () => {
                 <span className="font-semibold">{formatMoney(effectiveDue, sys)}</span>
               </div>
             )}
-            <div className="flex justify-between text-lg font-bold pt-2 border-t border-border">
+            <div className="sticky bottom-0 -mx-4 -mb-3 px-4 pb-3 pt-2 bg-card border-t border-border space-y-3">
+            <div className="flex justify-between text-xl font-bold">
               <span>Total</span>
-              <span>{formatMoney(total, sys)}</span>
+              <span className="tabular-nums">{formatMoney(total, sys)}</span>
             </div>
 
             <div className="grid grid-cols-2 gap-2">
+
               <Button
                 type="button"
                 variant="outline"
