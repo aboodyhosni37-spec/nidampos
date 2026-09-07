@@ -246,7 +246,16 @@ const Orders = () => {
           <p className="text-muted-foreground mt-1">All orders processed at your restaurant.</p>
         </div>
         <div className="flex items-center gap-2 w-full sm:w-auto">
+          {selectedIds.length >= 2 && (
+            <Button
+              onClick={() => setMergeOpen(true)}
+              className="rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 shrink-0"
+            >
+              <Merge className="h-4 w-4 mr-1.5" /> Merge ({selectedIds.length})
+            </Button>
+          )}
           <Select value={filter} onValueChange={(v) => setFilter(v as any)}>
+
             <SelectTrigger className="w-36 rounded-xl">
               <SelectValue />
             </SelectTrigger>
