@@ -1263,7 +1263,7 @@ const POS = () => {
                 <span className="font-semibold">{formatMoney(effectiveDue, sys)}</span>
               </div>
             )}
-            <div className="sticky bottom-0 -mx-4 -mb-3 px-4 pb-3 pt-2 bg-card border-t border-border space-y-3">
+            <div className="sticky bottom-0 -mx-3 -mb-3 px-3 pb-3 pt-2 bg-card border-t border-border space-y-3">
             <div className="flex justify-between text-xl font-bold">
               <span>Total</span>
               <span className="tabular-nums">{formatMoney(total, sys)}</span>
