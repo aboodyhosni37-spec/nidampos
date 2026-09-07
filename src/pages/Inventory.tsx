@@ -49,6 +49,67 @@ const Inventory = () => {
   const [form, setForm] = useState(emptyForm);
   const [saving, setSaving] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+  const imageRef = useRef<HTMLInputElement>(null);
+  const [editing, setEditing] = useState<DbProduct | null>(null);
+  const [editForm, setEditForm] = useState({ name: "", price: "", image_url: "" as string | null });
+  const [editSaving, setEditSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
+
+  const openEdit = (p: DbProduct) => {
+    setEditing(p);
+    setEditForm({ name: p.name, price: String(p.price), image_url: p.image_url });
+  };
+
+  const onEditImageChosen = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    try {
+      const url = await uploadProductImage(file);
+      setEditForm((f) => ({ ...f, image_url: url }));
+      toast({ title: "Image ready", description: "Save to apply it to this product." });
+    } catch (err: any) {
+      toast({ title: "Upload failed", description: err.message, variant: "destructive" });
+    } finally {
+      setUploading(false);
+      if (imageRef.current) imageRef.current.value = "";
+    }
+  };
+
+  const submitEdit = async () => {
+    if (!editing) return;
+    const name = editForm.name.trim();
+    const price = parseFloat(editForm.price);
+    if (!name) {
+      toast({ title: "Product name is required", variant: "destructive" });
+      return;
+    }
+    if (!Number.isFinite(price) || price < 0) {
+      toast({ title: "Enter a valid price", variant: "destructive" });
+      return;
+    }
+    setEditSaving(true);
+    try {
+      await updateProductDetails(editing.id, {
+        name,
+        price,
+        image_url: editForm.image_url || null,
+      });
+      setProducts((prev) =>
+        prev.map((p) =>
+          p.id === editing.id ? { ...p, name, price, image_url: editForm.image_url || null } : p
+        )
+      );
+      toast({ title: "Product updated", description: `${name} is live on the customer menu.` });
+      setEditing(null);
+    } catch (e: any) {
+      toast({ title: "Update failed", description: e.message, variant: "destructive" });
+    } finally {
+      setEditSaving(false);
+    }
+  };
+
+
 
 
   const refresh = () => {
