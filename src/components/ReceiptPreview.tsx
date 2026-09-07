@@ -329,7 +329,7 @@ const CustomerReceipt = ({
                 <div className="w-8 text-center font-semibold">{it.qty}</div>
                 <div className="w-16 text-right font-semibold tabular-nums">{fmt(it.price * it.qty)}</div>
               </div>
-              <div className="text-[11px] opacity-70">  @ {fmt(it.price)}</div>
+              <div className="text-[11px]">  @ {fmt(it.price)}</div>
             </div>
           );
         })}
@@ -410,7 +410,7 @@ const CustomerReceipt = ({
       <div className="text-center text-[12.5px] mt-2">
         <div className="font-bold">{settings.footerMessage}</div>
         {settings.showPoweredBy && (
-          <div className="text-[11px] mt-2 opacity-70">Powered by Blue Flag</div>
+          <div className="text-[11px] mt-2">Powered by Blue Flag</div>
         )}
       </div>
     )}
