@@ -1,15 +1,17 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { ArrowRight, Clock, Coffee, Leaf, MapPin, Star, Truck } from "lucide-react";
-import heroImg from "@/assets/cafe-hero.jpg";
-import aboutImg from "@/assets/cafe-about.jpg";
 import { ProductCard } from "@/components/site/ProductCard";
 import { useCustomerCart } from "@/lib/customerCart";
+import { useSiteContent } from "@/lib/siteContent";
 import { loadMenu, type DbProduct } from "@/lib/storefront";
 import { fetchSettings } from "@/lib/systemSettings";
 import { toast } from "sonner";
 
+const HIGHLIGHT_ICONS = [Coffee, Truck, Clock];
+
 const Home = () => {
+  const content = useSiteContent();
   const [featured, setFeatured] = useState<DbProduct[]>([]);
   const { add } = useCustomerCart();
 
@@ -29,14 +31,16 @@ const Home = () => {
     toast.success(`${p.name} added to your order`);
   };
 
+  const home = content.home;
+
   return (
     <>
       {/* HERO */}
       <section className="relative">
         <div className="absolute inset-0">
           <img
-            src={heroImg}
-            alt="LamaHamar Cafe interior with coffee and pastries"
+            src={home.hero_image}
+            alt={`${content.brand.name} interior`}
             width={1600}
             height={1100}
             className="h-full w-full object-cover"
@@ -45,71 +49,76 @@ const Home = () => {
         </div>
         <div className="relative mx-auto max-w-6xl px-4 sm:px-6 py-24 sm:py-32 lg:py-40">
           <div className="max-w-2xl space-y-6 text-background">
-            <span className="inline-flex items-center gap-2 rounded-full border border-background/25 bg-background/10 px-3.5 py-1.5 text-xs font-semibold backdrop-blur">
-              <Leaf className="h-3.5 w-3.5" /> Fresh · Local · Roasted daily
-            </span>
+            {home.hero_badge && (
+              <span className="inline-flex items-center gap-2 rounded-full border border-background/25 bg-background/10 px-3.5 py-1.5 text-xs font-semibold backdrop-blur">
+                <Leaf className="h-3.5 w-3.5" /> {home.hero_badge}
+              </span>
+            )}
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight leading-[1.05]">
-              LamaHamar Cafe
+              {home.hero_title}
             </h1>
             <p className="text-lg sm:text-xl text-background/85 leading-relaxed">
-              A warm corner of Mogadishu for great coffee, fresh food and unhurried
-              conversation.
+              {home.hero_subtitle}
             </p>
-            <p className="text-background/70 max-w-xl">
-              Browse the full menu, build your order in seconds, and choose delivery to
-              your door or dine-in at your table.
-            </p>
+            {home.hero_description && (
+              <p className="text-background/70 max-w-xl">{home.hero_description}</p>
+            )}
             <div className="flex flex-wrap gap-3 pt-2">
-              <Link
-                to="/menu"
-                className="inline-flex items-center gap-2 h-12 px-6 rounded-xl bg-primary text-primary-foreground font-semibold hover:bg-primary/90 transition-colors"
-              >
-                Order Now <ArrowRight className="h-4 w-4" />
-              </Link>
-              <Link
-                to="/about"
-                className="inline-flex items-center gap-2 h-12 px-6 rounded-xl border border-background/30 bg-background/10 text-background font-semibold backdrop-blur hover:bg-background/20 transition-colors"
-              >
-                Our story
-              </Link>
+              {home.primary_cta_label && (
+                <Link
+                  to={home.primary_cta_href || "/menu"}
+                  className="inline-flex items-center gap-2 h-12 px-6 rounded-xl bg-primary text-primary-foreground font-semibold hover:bg-primary/90 transition-colors"
+                >
+                  {home.primary_cta_label} <ArrowRight className="h-4 w-4" />
+                </Link>
+              )}
+              {home.secondary_cta_label && (
+                <Link
+                  to={home.secondary_cta_href || "/about"}
+                  className="inline-flex items-center gap-2 h-12 px-6 rounded-xl border border-background/30 bg-background/10 text-background font-semibold backdrop-blur hover:bg-background/20 transition-colors"
+                >
+                  {home.secondary_cta_label}
+                </Link>
+              )}
             </div>
           </div>
         </div>
       </section>
 
-      {/* PERKS */}
-      <section className="mx-auto max-w-6xl px-4 sm:px-6 -mt-10 relative z-10">
-        <div className="grid gap-4 sm:grid-cols-3">
-          {[
-            { icon: Coffee, title: "Freshly brewed", text: "Beans roasted and ground daily." },
-            { icon: Truck, title: "Fast delivery", text: "Hot orders across the city." },
-            { icon: Clock, title: "Open every day", text: "6:00 AM – 10:00 PM." },
-          ].map((p) => (
-            <div
-              key={p.title}
-              className="rounded-2xl border border-border bg-card p-5 shadow-soft flex items-start gap-3"
-            >
-              <span className="h-11 w-11 shrink-0 rounded-xl bg-secondary text-primary flex items-center justify-center">
-                <p.icon className="h-5 w-5" />
-              </span>
-              <div>
-                <h3 className="font-bold">{p.title}</h3>
-                <p className="text-sm text-muted-foreground">{p.text}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
+      {/* HIGHLIGHTS */}
+      {home.highlights.length > 0 && (
+        <section className="mx-auto max-w-6xl px-4 sm:px-6 -mt-10 relative z-10">
+          <div className="grid gap-4 sm:grid-cols-3">
+            {home.highlights.map((p, i) => {
+              const Icon = HIGHLIGHT_ICONS[i % HIGHLIGHT_ICONS.length];
+              return (
+                <div
+                  key={`${p.title}-${i}`}
+                  className="rounded-2xl border border-border bg-card p-5 shadow-soft flex items-start gap-3"
+                >
+                  <span className="h-11 w-11 shrink-0 rounded-xl bg-secondary text-primary flex items-center justify-center">
+                    <Icon className="h-5 w-5" />
+                  </span>
+                  <div>
+                    <h3 className="font-bold">{p.title}</h3>
+                    <p className="text-sm text-muted-foreground">{p.text}</p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      )}
 
       {/* FEATURED */}
       <section className="mx-auto max-w-6xl px-4 sm:px-6 py-16 sm:py-20">
         <div className="flex flex-wrap items-end justify-between gap-4 mb-8">
           <div>
             <span className="text-xs font-bold uppercase tracking-[0.2em] text-primary">
-              Popular right now
+              {home.featured_eyebrow}
             </span>
             <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight mt-2">
-              Featured favourites
+              {home.featured_title}
             </h2>
           </div>
           <Link
@@ -135,7 +144,12 @@ const Home = () => {
         ) : (
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
             {featured.map((p) => (
-              <ProductCard key={p.id} product={p} onAdd={handleAdd} />
+              <ProductCard
+                key={p.id}
+                product={p}
+                onAdd={handleAdd}
+                showImage={content.menu.show_images}
+              />
             ))}
           </div>
         )}
@@ -146,8 +160,8 @@ const Home = () => {
         <div className="mx-auto max-w-6xl px-4 sm:px-6 py-16 sm:py-20 grid gap-10 lg:grid-cols-2 items-center">
           <div className="rounded-3xl overflow-hidden shadow-elegant">
             <img
-              src={aboutImg}
-              alt="Barista pouring latte art at LamaHamar Cafe"
+              src={home.about_image}
+              alt={`Inside ${content.brand.name}`}
               loading="lazy"
               width={1200}
               height={900}
@@ -156,20 +170,17 @@ const Home = () => {
           </div>
           <div className="space-y-5">
             <span className="text-xs font-bold uppercase tracking-[0.2em] text-primary">
-              About us
+              {home.about_eyebrow}
             </span>
             <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight">
-              Made by hand, served with care
+              {home.about_title}
             </h2>
-            <p className="text-muted-foreground leading-relaxed">
-              LamaHamar Cafe started with one espresso machine and a simple idea: good
-              coffee should feel like a small daily luxury. Today our kitchen serves
-              breakfast, light lunches, pastries and cold drinks — all prepared fresh to
-              order.
+            <p className="text-muted-foreground leading-relaxed whitespace-pre-line">
+              {home.about_text}
             </p>
             <div className="flex items-center gap-2 text-sm font-medium">
               <Star className="h-4 w-4 text-primary fill-primary" />
-              Loved by guests across Mogadishu
+              Loved by guests across {content.contact.address}
             </div>
             <Link
               to="/about"
@@ -181,26 +192,23 @@ const Home = () => {
         </div>
       </section>
 
-      {/* CTA / CONTACT */}
+      {/* CTA */}
       <section className="mx-auto max-w-6xl px-4 sm:px-6 py-16 sm:py-20">
         <div className="rounded-3xl bg-primary text-primary-foreground p-8 sm:p-12 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-8">
           <div className="space-y-3 max-w-xl">
             <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight">
-              Hungry? Order in a few taps.
+              {home.cta_title}
             </h2>
-            <p className="text-primary-foreground/80">
-              Delivery across the city or dine-in at your table — pay when your order
-              arrives.
-            </p>
+            <p className="text-primary-foreground/80">{home.cta_text}</p>
             <p className="inline-flex items-center gap-2 text-sm text-primary-foreground/80">
-              <MapPin className="h-4 w-4" /> Mogadishu, Somalia
+              <MapPin className="h-4 w-4" /> {content.contact.address}
             </p>
           </div>
           <Link
             to="/menu"
             className="inline-flex items-center gap-2 h-12 px-7 rounded-xl bg-background text-foreground font-semibold hover:bg-background/90 transition-colors shrink-0"
           >
-            Start your order <ArrowRight className="h-4 w-4" />
+            {home.cta_button_label} <ArrowRight className="h-4 w-4" />
           </Link>
         </div>
       </section>
