@@ -891,7 +891,7 @@ const POS = () => {
           </div>
 
           {/* Table */}
-          <div className="p-4 border-b border-border space-y-3">
+          <div className="p-3 border-b border-border space-y-2">
             <div>
               <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5 mb-1.5">
                 <Users className="h-3 w-3" /> Table
