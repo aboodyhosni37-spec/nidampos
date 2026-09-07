@@ -190,7 +190,10 @@ export const placeCustomerOrder = async (
     customer_id: customerId,
     customer_name: input.customer_name.trim(),
     customer_phone: input.phone.trim() || null,
-    customer_address: input.order_type === "DELIVERY" ? input.address?.trim() || null : null,
+    customer_address:
+      input.order_type === "DELIVERY"
+        ? [input.district?.trim(), input.address?.trim()].filter(Boolean).join(" — ") || null
+        : null,
     notes: input.notes?.trim() || null,
     order_type: input.order_type,
     table_label:
