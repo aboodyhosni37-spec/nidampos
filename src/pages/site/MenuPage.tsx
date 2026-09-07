@@ -96,9 +96,8 @@ const MenuPage = () => {
                   : "bg-card border-border text-muted-foreground hover:text-foreground"
               )}
             >
-              {c.emoji ? `${c.emoji} ` : ""}
               {c.name}
-            </button>
+
           ))}
         </div>
       </div>
