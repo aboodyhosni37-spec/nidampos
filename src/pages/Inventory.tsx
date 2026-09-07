@@ -10,8 +10,15 @@ import {
   DialogFooter,
   DialogDescription,
 } from "@/components/ui/dialog";
-import { Package, Upload, Download, FileSpreadsheet, AlertTriangle, CheckCircle2 } from "lucide-react";
-import { listProducts, replaceMenu, updateProductStock, type DbProduct } from "@/lib/menu";
+import { Package, Upload, Download, FileSpreadsheet, AlertTriangle, CheckCircle2, Plus } from "lucide-react";
+import { Label } from "@/components/ui/label";
+import {
+  listProducts,
+  replaceMenu,
+  updateProductStock,
+  addInventory,
+  type DbProduct,
+} from "@/lib/menu";
 import {
   parseMenuExcel,
   exportMenuExcel,
@@ -20,13 +27,26 @@ import {
 } from "@/lib/excelImport";
 import { toast } from "@/hooks/use-toast";
 
+const emptyForm = {
+  category: "",
+  name: "",
+  price: "",
+  stock: "",
+  low_stock_threshold: "5",
+  image_url: "",
+};
+
 const Inventory = () => {
   const [products, setProducts] = useState<DbProduct[]>([]);
   const [loading, setLoading] = useState(true);
   const [importing, setImporting] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [parsed, setParsed] = useState<ParsedRow[]>([]);
+  const [addOpen, setAddOpen] = useState(false);
+  const [form, setForm] = useState(emptyForm);
+  const [saving, setSaving] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+
 
   const refresh = () => {
     setLoading(true);
