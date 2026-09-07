@@ -15,8 +15,10 @@ import { toast } from "sonner";
 import { tables } from "@/lib/posData";
 import { useCustomerCart } from "@/lib/customerCart";
 import {
+  BANADIR_DISTRICTS,
   computeOrderTotals,
   DEFAULT_STORE_SETTINGS,
+  deliveryFeeForDistrict,
   fetchStoreSettings,
   placeCustomerOrder,
   type OrderType,
@@ -37,6 +39,7 @@ const OrderPage = () => {
   const [orderType, setOrderType] = useState<OrderType>("DELIVERY");
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
+  const [district, setDistrict] = useState("");
   const [address, setAddress] = useState("");
   const [notes, setNotes] = useState("");
   const [table, setTable] = useState(tables[0]);
