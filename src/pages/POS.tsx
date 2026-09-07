@@ -275,7 +275,8 @@ const POS = () => {
       const inSearch = p.name.toLowerCase().includes(search.toLowerCase());
       return inCat && inSearch;
     });
-  }, [activeCat, search]);
+  }, [products, activeCat, search]);
+
 
   const resetActiveOrder = (newId?: string) => {
     setOrderId(newId ?? generateOrderId());
