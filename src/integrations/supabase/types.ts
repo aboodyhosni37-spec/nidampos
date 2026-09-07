@@ -257,45 +257,66 @@ export type Database = {
       }
       invoices: {
         Row: {
+          client_ref: string | null
           created_at: string
+          customer_address: string | null
           customer_id: string | null
           customer_name: string | null
+          customer_phone: string | null
+          delivery_fee: number
           due_amount: number
           id: string
+          notes: string | null
           number: number
           order_status: string
+          order_type: string | null
           paid_amount: number
           payment_method: Database["public"]["Enums"]["payment_method"]
+          source: string
           status: string
           subtotal: number
           table_label: string | null
           total: number
         }
         Insert: {
+          client_ref?: string | null
           created_at?: string
+          customer_address?: string | null
           customer_id?: string | null
           customer_name?: string | null
+          customer_phone?: string | null
+          delivery_fee?: number
           due_amount?: number
           id?: string
+          notes?: string | null
           number?: number
           order_status?: string
+          order_type?: string | null
           paid_amount?: number
           payment_method: Database["public"]["Enums"]["payment_method"]
+          source?: string
           status?: string
           subtotal?: number
           table_label?: string | null
           total?: number
         }
         Update: {
+          client_ref?: string | null
           created_at?: string
+          customer_address?: string | null
           customer_id?: string | null
           customer_name?: string | null
+          customer_phone?: string | null
+          delivery_fee?: number
           due_amount?: number
           id?: string
+          notes?: string | null
           number?: number
           order_status?: string
+          order_type?: string | null
           paid_amount?: number
           payment_method?: Database["public"]["Enums"]["payment_method"]
+          source?: string
           status?: string
           subtotal?: number
           table_label?: string | null
@@ -492,6 +513,8 @@ export type Database = {
         Row: {
           currency_code: string
           currency_symbol: string
+          delivery_enabled: boolean
+          delivery_fee: number
           id: string
           tax_enabled: boolean
           tax_inclusive: boolean
@@ -501,6 +524,8 @@ export type Database = {
         Insert: {
           currency_code?: string
           currency_symbol?: string
+          delivery_enabled?: boolean
+          delivery_fee?: number
           id?: string
           tax_enabled?: boolean
           tax_inclusive?: boolean
@@ -510,6 +535,8 @@ export type Database = {
         Update: {
           currency_code?: string
           currency_symbol?: string
+          delivery_enabled?: boolean
+          delivery_fee?: number
           id?: string
           tax_enabled?: boolean
           tax_inclusive?: boolean
