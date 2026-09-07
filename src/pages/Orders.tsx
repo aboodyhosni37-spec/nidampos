@@ -453,7 +453,164 @@ const Orders = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Merge confirmation */}
+      <Dialog open={mergeOpen} onOpenChange={(o) => !o && setMergeOpen(false)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Merge {selectedIds.length} orders?</DialogTitle>
+            <DialogDescription>
+              The items will be combined into the oldest order, matching products added together.
+              Payments already taken are kept and never charged twice.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="rounded-xl bg-secondary p-3 text-sm space-y-1">
+            {orders
+              .filter((o) => selectedIds.includes(o.id))
+              .map((o) => (
+                <div key={o.id} className="flex justify-between">
+                  <span>#{o.number} · {o.table}</span>
+                  <span className="font-semibold tabular-nums">${o.total.toFixed(2)}</span>
+                </div>
+              ))}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setMergeOpen(false)} className="rounded-xl">
+              No, cancel
+            </Button>
+            <Button
+              onClick={handleMerge}
+              disabled={merging}
+              className="rounded-xl bg-primary text-primary-foreground hover:bg-primary/90"
+            >
+              {merging ? "Merging…" : "Yes, merge"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit unpaid / partially paid order */}
+      <Dialog open={!!editInvoice} onOpenChange={(o) => !o && setEditInvoice(null)}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Edit Order #{editInvoice?.number}</DialogTitle>
+            <DialogDescription>
+              Change items and quantities. Money already paid stays as it is — only the remaining
+              balance is recalculated.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-3">
+            <div className="max-h-64 overflow-y-auto space-y-2 pr-1">
+              {editItems.map((it, idx) => (
+                <div
+                  key={`${it.name}-${idx}`}
+                  className="flex items-center gap-2 rounded-xl bg-secondary/50 p-3 min-h-16"
+                >
+                  <div className="flex-1 min-w-0">
+                    <div className="font-semibold text-sm break-words">{it.name}</div>
+                    <div className="text-xs text-muted-foreground tabular-nums">
+                      ${it.price.toFixed(2)} each
+                    </div>
+                  </div>
+                  <Button
+                    size="icon"
+                    variant="outline"
+                    className="h-10 w-10 rounded-lg"
+                    onClick={() => changeQty(idx, -1)}
+                  >
+                    <Minus className="h-4 w-4" />
+                  </Button>
+                  <span className="w-8 text-center font-bold tabular-nums">{it.qty}</span>
+                  <Button
+                    size="icon"
+                    variant="outline"
+                    className="h-10 w-10 rounded-lg"
+                    onClick={() => changeQty(idx, 1)}
+                  >
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                  <div className="w-16 text-right font-bold text-sm tabular-nums">
+                    ${(it.price * it.qty).toFixed(2)}
+                  </div>
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="h-10 w-10 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                    onClick={() => removeItem(idx)}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              ))}
+              {editItems.length === 0 && (
+                <p className="text-sm text-muted-foreground py-4 text-center">
+                  No items — add at least one below.
+                </p>
+              )}
+            </div>
+
+            <div className="space-y-1.5">
+              <Label>Add item</Label>
+              <Input
+                value={productQuery}
+                onChange={(e) => setProductQuery(e.target.value)}
+                placeholder="Search products…"
+                className="h-11 rounded-xl"
+              />
+              {productMatches.length > 0 && (
+                <div className="rounded-xl border border-border divide-y divide-border overflow-hidden">
+                  {productMatches.map((p) => (
+                    <button
+                      key={p.id}
+                      onClick={() => {
+                        addProduct(p);
+                        setProductQuery("");
+                      }}
+                      className="w-full flex items-center justify-between px-3 py-2.5 text-sm hover:bg-secondary/60 text-left"
+                    >
+                      <span className="truncate">{p.name}</span>
+                      <span className="font-semibold tabular-nums">
+                        ${Number(p.price).toFixed(2)}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="rounded-xl bg-secondary p-3 space-y-1 text-sm">
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">New total</span>
+                <span className="font-semibold tabular-nums">${editTotal.toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Already paid</span>
+                <span className="font-semibold tabular-nums">${editPaid.toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between text-base pt-1 border-t border-border">
+                <span className="font-semibold">Remaining due</span>
+                <span className="font-bold tabular-nums">${editDue.toFixed(2)}</span>
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditInvoice(null)} className="rounded-xl">
+              Cancel
+            </Button>
+            <Button
+              onClick={handleSaveEdit}
+              disabled={savingEdit || editItems.filter((i) => i.qty > 0).length === 0}
+              className="rounded-xl bg-primary text-primary-foreground hover:bg-primary/90"
+            >
+              {savingEdit ? "Saving…" : "Save changes"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
+
   );
 };
 
