@@ -301,7 +301,15 @@ const Orders = () => {
                 const isUnpaid = st === "Unpaid" || (o.dueAmount ?? 0) > 0;
                 return (
                   <tr key={o.id} className="hover:bg-secondary/40 transition-colors">
+                    <td className="p-4">
+                      <Checkbox
+                        checked={selectedIds.includes(o.id)}
+                        onCheckedChange={() => toggleSelected(o.id)}
+                        aria-label={`Select order ${o.number}`}
+                      />
+                    </td>
                     <td className="p-4 font-semibold">#{o.number}</td>
+
                     <td className="p-4">{o.table}</td>
                     <td className="p-4">{o.items.length}</td>
                     <td className="p-4">{o.paymentMethod}</td>
