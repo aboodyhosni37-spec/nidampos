@@ -62,7 +62,9 @@ const OrderPage = () => {
       .catch(() => {});
   }, []);
 
-  const deliveryFee = orderType === "DELIVERY" ? store.delivery_fee : 0;
+  // Delivery fee is fixed by the selected Banadir district — never editable.
+  const deliveryFee =
+    orderType === "DELIVERY" ? deliveryFeeForDistrict(district) : 0;
   const totals = useMemo(() => computeOrderTotals(lines, deliveryFee), [lines, deliveryFee]);
 
   const submit = async () => {
@@ -70,6 +72,8 @@ const OrderPage = () => {
     if (lines.length === 0) return;
     if (!name.trim()) return toast.error("Please enter your name.");
     if (!phone.trim()) return toast.error("Please enter your phone number.");
+    if (orderType === "DELIVERY" && !district)
+      return toast.error("Please select your delivery district in Banadir.");
     if (orderType === "DELIVERY" && !address.trim())
       return toast.error("Please enter your delivery address.");
 
