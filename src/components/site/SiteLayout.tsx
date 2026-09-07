@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, NavLink, Outlet, useLocation } from "react-router-dom";
 import {
   Coffee,
@@ -65,6 +65,18 @@ const SiteLayout = () => {
   const { count } = useCustomerCart();
   const [open, setOpen] = useState(false);
   const { pathname } = useLocation();
+
+  // Branding set in the Website Editor applies to the browser tab too.
+  useEffect(() => {
+    if (!content.brand.favicon_url) return;
+    let link = document.querySelector<HTMLLinkElement>("link[rel='icon']");
+    if (!link) {
+      link = document.createElement("link");
+      link.rel = "icon";
+      document.head.appendChild(link);
+    }
+    link.href = content.brand.favicon_url;
+  }, [content.brand.favicon_url]);
 
   const socials = [
     { url: content.contact.facebook, icon: Facebook, label: "Facebook" },
