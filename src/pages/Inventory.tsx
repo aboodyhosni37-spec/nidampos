@@ -559,7 +559,99 @@ const Inventory = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Edit product dialog */}
+      <Dialog open={!!editing} onOpenChange={(o) => !o && setEditing(null)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Edit product</DialogTitle>
+            <DialogDescription>
+              Name, price and photo update on the customer menu right after saving. Stock and
+              category are not affected.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 pt-1">
+            <div className="flex items-center gap-4">
+              {editForm.image_url ? (
+                <img
+                  src={editForm.image_url}
+                  alt={editForm.name}
+                  className="h-20 w-20 rounded-xl object-cover border border-border"
+                />
+              ) : (
+                <div className="h-20 w-20 rounded-xl bg-secondary flex items-center justify-center text-muted-foreground border border-border">
+                  <Package className="h-6 w-6" />
+                </div>
+              )}
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => imageRef.current?.click()}
+                  disabled={uploading}
+                  className="rounded-lg"
+                >
+                  <ImagePlus className="h-3.5 w-3.5 mr-1.5" />
+                  {uploading ? "Uploading…" : editForm.image_url ? "Replace photo" : "Add photo"}
+                </Button>
+                {editForm.image_url && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setEditForm((f) => ({ ...f, image_url: null }))}
+                    className="rounded-lg"
+                  >
+                    <Trash2 className="h-3.5 w-3.5 mr-1.5" /> Remove
+                  </Button>
+                )}
+                <input
+                  ref={imageRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={onEditImageChosen}
+                />
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label>Product name</Label>
+              <Input
+                value={editForm.name}
+                onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                className="h-11 rounded-xl"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Selling price</Label>
+              <Input
+                type="number"
+                min={0}
+                step="0.01"
+                value={editForm.price}
+                onChange={(e) => setEditForm({ ...editForm, price: e.target.value })}
+                className="h-11 rounded-xl"
+              />
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditing(null)} className="rounded-xl">
+              Cancel
+            </Button>
+            <Button
+              onClick={submitEdit}
+              disabled={editSaving || uploading}
+              className="rounded-xl bg-primary text-primary-foreground hover:bg-primary/90"
+            >
+              {editSaving ? "Saving…" : "Save changes"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
+
 
   );
 };
