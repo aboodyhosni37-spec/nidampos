@@ -209,13 +209,13 @@
     -webkit-print-color-adjust: exact;
   }
 
-  /* Prevent tiny, faint or clipped thermal text. */
+  /* Keep every line solid black and never clipped on thermal paper. */
   #receipt * {
     color: #000 !important;
     opacity: 1 !important;
-    font-size: max(1em, 11.5px);
     text-overflow: clip !important;
     overflow-wrap: break-word;
   }
+
 }
 
