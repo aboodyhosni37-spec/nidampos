@@ -111,6 +111,31 @@ export const updateProductStock = async (id: string, stock: number) => {
   if (error) throw error;
 };
 
+/** Updates only the product's display details (name, price, image). */
+export const updateProductDetails = async (
+  id: string,
+  patch: { name?: string; price?: number; image_url?: string | null }
+) => {
+  const { error } = await supabase
+    .from("products")
+    .update({ ...patch, updated_at: new Date().toISOString() })
+    .eq("id", id);
+  if (error) throw error;
+};
+
+/** Product images live in the existing public storage bucket, products/ folder. */
+export const uploadProductImage = async (file: File): Promise<string> => {
+  const ext = file.name.split(".").pop() || "jpg";
+  const path = `products/${crypto.randomUUID()}.${ext}`;
+  const { error } = await supabase.storage
+    .from("staff-photos")
+    .upload(path, file, { cacheControl: "3600", upsert: false });
+  if (error) throw error;
+  const { data } = supabase.storage.from("staff-photos").getPublicUrl(path);
+  return data.publicUrl;
+};
+
+
 export type AddInventoryResult = {
   created: number;
   updated: number;
