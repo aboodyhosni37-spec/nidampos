@@ -931,7 +931,7 @@ const POS = () => {
           </div>
 
           {/* Items - scrollable */}
-          <div className="flex-1 overflow-y-auto p-3 space-y-2 min-h-0">
+          <div className="flex-1 overflow-y-auto p-4 space-y-2 min-h-0">
             {cart.length === 0 ? (
               <div className="h-full flex flex-col items-center justify-center text-center text-muted-foreground py-10">
                 <ShoppingCart className="h-10 w-10 opacity-30 mb-2" />
@@ -940,41 +940,45 @@ const POS = () => {
               </div>
             ) : (
               cart.map((it) => (
-                <div key={it.id} className="bg-secondary/50 rounded-xl p-3">
+                <div key={it.id} className="bg-secondary/50 rounded-xl p-3 min-h-16 flex flex-col justify-center">
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex-1 min-w-0">
-                      <div className="font-semibold text-sm truncate">{it.name}</div>
+                      <div className="font-semibold text-sm leading-snug break-words">{it.name}</div>
                       <div className="text-xs text-muted-foreground">{formatMoney(it.price, sys)}</div>
                     </div>
                     <button
                       onClick={() => removeItem(it.id)}
-                      className="text-muted-foreground hover:text-destructive"
+                      aria-label="Remove item"
+                      className="h-10 w-10 -mr-1.5 -mt-1.5 shrink-0 rounded-lg inline-flex items-center justify-center text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
                     >
                       <Trash2 className="h-4 w-4" />
                     </button>
                   </div>
-                  <div className="flex items-center justify-between mt-2">
+                  <div className="flex items-center justify-between gap-2 mt-2">
                     <div className="flex items-center gap-1 bg-card rounded-lg border border-border">
                       <button
                         onClick={() => updateQty(it.id, -1)}
-                        className="h-8 w-8 flex items-center justify-center hover:text-primary"
+                        aria-label="Decrease quantity"
+                        className="h-10 w-10 flex items-center justify-center rounded-l-lg hover:text-primary hover:bg-secondary transition-colors"
                       >
-                        <Minus className="h-3.5 w-3.5" />
+                        <Minus className="h-4 w-4" />
                       </button>
-                      <span className="w-7 text-center text-sm font-bold">{it.qty}</span>
+                      <span className="w-8 text-center text-sm font-bold tabular-nums">{it.qty}</span>
                       <button
                         onClick={() => updateQty(it.id, 1)}
-                        className="h-8 w-8 flex items-center justify-center hover:text-primary"
+                        aria-label="Increase quantity"
+                        className="h-10 w-10 flex items-center justify-center rounded-r-lg hover:text-primary hover:bg-secondary transition-colors"
                       >
-                        <Plus className="h-3.5 w-3.5" />
+                        <Plus className="h-4 w-4" />
                       </button>
                     </div>
-                    <div className="font-bold text-sm">{formatMoney(it.price * it.qty, sys)}</div>
+                    <div className="font-bold text-sm tabular-nums shrink-0">{formatMoney(it.price * it.qty, sys)}</div>
                   </div>
                 </div>
               ))
             )}
           </div>
+
 
           {/* Payment - fixed bottom of cart. Bounded so the cart-items area always remains scrollable. */}
           <div className="border-t border-border bg-card shrink-0 basis-auto max-h-[55%] overflow-y-auto p-4 space-y-3">
