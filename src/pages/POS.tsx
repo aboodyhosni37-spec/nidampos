@@ -1303,7 +1303,9 @@ const POS = () => {
                 {submitting ? "Processing…" : "Place Order"}
               </Button>
             </div>
+            </div>
           </div>
+
         </Card>
       </div>
 
