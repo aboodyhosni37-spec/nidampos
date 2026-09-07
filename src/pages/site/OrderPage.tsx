@@ -356,12 +356,18 @@ const OrderPage = () => {
               </div>
             )}
             {orderType === "DELIVERY" && (
-              <div className="flex justify-between">
-                <dt className="text-muted-foreground">Delivery fee</dt>
-                <dd className="font-semibold tabular-nums">
-                  {totals.deliveryFee > 0 ? formatMoney(totals.deliveryFee) : "Free"}
-                </dd>
-              </div>
+              <>
+                <div className="flex justify-between">
+                  <dt className="text-muted-foreground">Delivery district</dt>
+                  <dd className="font-semibold">{district || "Not selected"}</dd>
+                </div>
+                <div className="flex justify-between">
+                  <dt className="text-muted-foreground">Delivery fee</dt>
+                  <dd className="font-semibold tabular-nums">
+                    {district ? formatMoney(totals.deliveryFee) : "—"}
+                  </dd>
+                </div>
+              </>
             )}
           </dl>
           <div className="border-t border-border pt-4 flex items-end justify-between">
