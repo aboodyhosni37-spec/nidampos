@@ -48,7 +48,6 @@ export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
     theme === "system" ? (systemDark ? "dark" : "light") : theme;
 
   useEffect(() => {
-    if (document.documentElement.dataset.forcedTheme) return;
     applyClass(resolved === "dark");
   }, [resolved]);
 
@@ -67,38 +66,9 @@ export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
 export const useTheme = () => useContext(ThemeContext);
 
 /**
- * Pages that are designed dark-only (landing / login) force the dark palette
- * while mounted, then restore the user's chosen theme on unmount.
+ * Kept for backwards compatibility: pages no longer force a palette, so the
+ * user's Light/Dark selection applies across every page.
  */
-export const useForcedDarkTheme = () => {
-  useEffect(() => {
-    const root = document.documentElement;
-    root.dataset.forcedTheme = "dark";
-    const had = root.classList.contains("dark");
-    root.classList.add("dark");
-    return () => {
-      delete root.dataset.forcedTheme;
-      root.classList.toggle("dark", had ? true : readStoredTheme() === "dark" || (readStoredTheme() === "system" && systemPrefersDark()));
-      const t = readStoredTheme();
-      const dark = t === "dark" || (t === "system" && systemPrefersDark());
-      root.classList.toggle("dark", dark);
-    };
-  }, []);
-};
+export const useForcedDarkTheme = () => {};
+export const useForcedLightTheme = () => {};
 
-/**
- * The customer website is designed light-only (white + olive). It forces the
- * light palette while mounted and restores the user's choice on unmount.
- */
-export const useForcedLightTheme = () => {
-  useEffect(() => {
-    const root = document.documentElement;
-    root.dataset.forcedTheme = "light";
-    root.classList.remove("dark");
-    return () => {
-      delete root.dataset.forcedTheme;
-      const t = readStoredTheme();
-      root.classList.toggle("dark", t === "dark" || (t === "system" && systemPrefersDark()));
-    };
-  }, []);
-};
