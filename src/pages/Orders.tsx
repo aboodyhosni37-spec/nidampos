@@ -1,9 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { Search, Eye, CreditCard, Printer } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Search, Eye, CreditCard, Printer, Merge, Pencil, Plus, Minus, Trash2 } from "lucide-react";
+
 import {
   fetchOrders,
   updateOrderStatus,
@@ -27,9 +29,18 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { payUnpaidInvoice, type PaymentMethod } from "@/lib/db";
+import {
+  fetchInvoiceDetail,
+  saveInvoiceItems,
+  mergeInvoices,
+  type EditableItem,
+  type InvoiceDetail,
+} from "@/lib/invoiceEdit";
+import { listProducts, type DbProduct } from "@/lib/menu";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+
 
 const STATUSES: OrderWorkflowStatus[] = ["Pending", "Preparing", "Completed", "Unpaid"];
 const PAY_METHODS: Exclude<PaymentMethod, "Due" | "Split">[] = [
@@ -57,6 +68,19 @@ const Orders = () => {
   const [payOrder, setPayOrder] = useState<Order | null>(null);
   const [payMethod, setPayMethod] = useState<typeof PAY_METHODS[number]>("EVC-Plus");
   const [paying, setPaying] = useState(false);
+
+  // Merge state
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [mergeOpen, setMergeOpen] = useState(false);
+  const [merging, setMerging] = useState(false);
+
+  // Edit state
+  const [editInvoice, setEditInvoice] = useState<InvoiceDetail | null>(null);
+  const [editItems, setEditItems] = useState<EditableItem[]>([]);
+  const [savingEdit, setSavingEdit] = useState(false);
+  const [products, setProducts] = useState<DbProduct[]>([]);
+  const [productQuery, setProductQuery] = useState("");
+
 
   const refresh = async () => {
     try {
