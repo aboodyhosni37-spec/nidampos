@@ -1,9 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { Search, Eye, CreditCard, Printer } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Search, Eye, CreditCard, Printer, Merge, Pencil, Plus, Minus, Trash2 } from "lucide-react";
+
 import {
   fetchOrders,
   updateOrderStatus,
@@ -27,9 +29,18 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { payUnpaidInvoice, type PaymentMethod } from "@/lib/db";
+import {
+  fetchInvoiceDetail,
+  saveInvoiceItems,
+  mergeInvoices,
+  type EditableItem,
+  type InvoiceDetail,
+} from "@/lib/invoiceEdit";
+import { listProducts, type DbProduct } from "@/lib/menu";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+
 
 const STATUSES: OrderWorkflowStatus[] = ["Pending", "Preparing", "Completed", "Unpaid"];
 const PAY_METHODS: Exclude<PaymentMethod, "Due" | "Split">[] = [
@@ -57,6 +68,19 @@ const Orders = () => {
   const [payOrder, setPayOrder] = useState<Order | null>(null);
   const [payMethod, setPayMethod] = useState<typeof PAY_METHODS[number]>("EVC-Plus");
   const [paying, setPaying] = useState(false);
+
+  // Merge state
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [mergeOpen, setMergeOpen] = useState(false);
+  const [merging, setMerging] = useState(false);
+
+  // Edit state
+  const [editInvoice, setEditInvoice] = useState<InvoiceDetail | null>(null);
+  const [editItems, setEditItems] = useState<EditableItem[]>([]);
+  const [savingEdit, setSavingEdit] = useState(false);
+  const [products, setProducts] = useState<DbProduct[]>([]);
+  const [productQuery, setProductQuery] = useState("");
+
 
   const refresh = async () => {
     try {
@@ -121,6 +145,90 @@ const Orders = () => {
     }
   };
 
+  const toggleSelected = (id: string) =>
+    setSelectedIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
+
+  const handleMerge = async () => {
+    setMerging(true);
+    try {
+      const res = await mergeInvoices(selectedIds);
+      toast({
+        title: "Orders merged",
+        description: `Combined into order #${res.number}. Paid $${res.paid.toFixed(
+          2
+        )}, remaining $${res.due.toFixed(2)}.`,
+      });
+      setSelectedIds([]);
+      setMergeOpen(false);
+      refresh();
+    } catch (e: any) {
+      toast({ title: "Merge failed", description: e.message, variant: "destructive" });
+    } finally {
+      setMerging(false);
+    }
+  };
+
+  const openEdit = async (o: Order) => {
+    try {
+      const detail = await fetchInvoiceDetail(o.id);
+      setEditInvoice(detail);
+      setEditItems(detail.items.map((i) => ({ ...i })));
+      setProductQuery("");
+      if (products.length === 0) setProducts(await listProducts());
+    } catch (e: any) {
+      toast({ title: "Could not open order", description: e.message, variant: "destructive" });
+    }
+  };
+
+  const changeQty = (idx: number, delta: number) =>
+    setEditItems((prev) =>
+      prev.map((it, i) => (i === idx ? { ...it, qty: Math.max(0, it.qty + delta) } : it))
+    );
+
+  const removeItem = (idx: number) =>
+    setEditItems((prev) => prev.filter((_, i) => i !== idx));
+
+  const addProduct = (p: DbProduct) =>
+    setEditItems((prev) => {
+      const hit = prev.findIndex((i) => i.name === p.name && i.price === Number(p.price));
+      if (hit >= 0)
+        return prev.map((it, i) => (i === hit ? { ...it, qty: it.qty + 1 } : it));
+      return [
+        ...prev,
+        { product_id: p.id, name: p.name, price: Number(p.price), qty: 1 },
+      ];
+    });
+
+  const editTotal = editItems.reduce((s, i) => s + i.price * i.qty, 0);
+  const editPaid = editInvoice?.paid_amount ?? 0;
+  const editDue = Math.max(0, editTotal - editPaid);
+
+  const productMatches = useMemo(() => {
+    const t = productQuery.trim().toLowerCase();
+    if (!t) return [];
+    return products.filter((p) => p.name.toLowerCase().includes(t)).slice(0, 8);
+  }, [productQuery, products]);
+
+  const handleSaveEdit = async () => {
+    if (!editInvoice) return;
+    setSavingEdit(true);
+    try {
+      const res = await saveInvoiceItems(editInvoice.id, editItems);
+      toast({
+        title: "Order updated",
+        description: `New total $${res.total.toFixed(2)} · paid $${res.paid.toFixed(
+          2
+        )} · due $${res.due.toFixed(2)}.`,
+      });
+      setEditInvoice(null);
+      refresh();
+    } catch (e: any) {
+      toast({ title: "Update failed", description: e.message, variant: "destructive" });
+    } finally {
+      setSavingEdit(false);
+    }
+  };
+
   const filtered = orders
     .filter((o) => (filter === "All" ? true : (o.orderStatus ?? "Completed") === filter))
     .filter(
@@ -138,7 +246,16 @@ const Orders = () => {
           <p className="text-muted-foreground mt-1">All orders processed at your restaurant.</p>
         </div>
         <div className="flex items-center gap-2 w-full sm:w-auto">
+          {selectedIds.length >= 2 && (
+            <Button
+              onClick={() => setMergeOpen(true)}
+              className="rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 shrink-0"
+            >
+              <Merge className="h-4 w-4 mr-1.5" /> Merge ({selectedIds.length})
+            </Button>
+          )}
           <Select value={filter} onValueChange={(v) => setFilter(v as any)}>
+
             <SelectTrigger className="w-36 rounded-xl">
               <SelectValue />
             </SelectTrigger>
@@ -166,7 +283,9 @@ const Orders = () => {
           <table className="w-full text-sm">
             <thead className="bg-secondary/60 text-muted-foreground">
               <tr className="text-left">
+                <th className="p-4 w-10"></th>
                 <th className="p-4 font-semibold">Order #</th>
+
                 <th className="p-4 font-semibold">Table</th>
                 <th className="p-4 font-semibold">Items</th>
                 <th className="p-4 font-semibold">Payment</th>
@@ -182,7 +301,15 @@ const Orders = () => {
                 const isUnpaid = st === "Unpaid" || (o.dueAmount ?? 0) > 0;
                 return (
                   <tr key={o.id} className="hover:bg-secondary/40 transition-colors">
+                    <td className="p-4">
+                      <Checkbox
+                        checked={selectedIds.includes(o.id)}
+                        onCheckedChange={() => toggleSelected(o.id)}
+                        aria-label={`Select order ${o.number}`}
+                      />
+                    </td>
                     <td className="p-4 font-semibold">#{o.number}</td>
+
                     <td className="p-4">{o.table}</td>
                     <td className="p-4">{o.items.length}</td>
                     <td className="p-4">{o.paymentMethod}</td>
@@ -224,6 +351,16 @@ const Orders = () => {
                             <CreditCard className="h-3.5 w-3.5 mr-1" /> Pay Now
                           </Button>
                         )}
+                        {isUnpaid && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => openEdit(o)}
+                            className="h-8 rounded-lg"
+                          >
+                            <Pencil className="h-3.5 w-3.5 mr-1" /> Edit
+                          </Button>
+                        )}
                         <button
                           onClick={() => setSelected(o)}
                           className="inline-flex items-center gap-1 text-primary hover:underline text-sm font-medium px-2"
@@ -237,9 +374,10 @@ const Orders = () => {
               })}
               {filtered.length === 0 && (
                 <tr>
-                  <td colSpan={8} className="p-12 text-center text-muted-foreground">
+                  <td colSpan={9} className="p-12 text-center text-muted-foreground">
                     No orders found.
                   </td>
+
                 </tr>
               )}
             </tbody>
@@ -315,7 +453,164 @@ const Orders = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Merge confirmation */}
+      <Dialog open={mergeOpen} onOpenChange={(o) => !o && setMergeOpen(false)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Merge {selectedIds.length} orders?</DialogTitle>
+            <DialogDescription>
+              The items will be combined into the oldest order, matching products added together.
+              Payments already taken are kept and never charged twice.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="rounded-xl bg-secondary p-3 text-sm space-y-1">
+            {orders
+              .filter((o) => selectedIds.includes(o.id))
+              .map((o) => (
+                <div key={o.id} className="flex justify-between">
+                  <span>#{o.number} · {o.table}</span>
+                  <span className="font-semibold tabular-nums">${o.total.toFixed(2)}</span>
+                </div>
+              ))}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setMergeOpen(false)} className="rounded-xl">
+              No, cancel
+            </Button>
+            <Button
+              onClick={handleMerge}
+              disabled={merging}
+              className="rounded-xl bg-primary text-primary-foreground hover:bg-primary/90"
+            >
+              {merging ? "Merging…" : "Yes, merge"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit unpaid / partially paid order */}
+      <Dialog open={!!editInvoice} onOpenChange={(o) => !o && setEditInvoice(null)}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Edit Order #{editInvoice?.number}</DialogTitle>
+            <DialogDescription>
+              Change items and quantities. Money already paid stays as it is — only the remaining
+              balance is recalculated.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-3">
+            <div className="max-h-64 overflow-y-auto space-y-2 pr-1">
+              {editItems.map((it, idx) => (
+                <div
+                  key={`${it.name}-${idx}`}
+                  className="flex items-center gap-2 rounded-xl bg-secondary/50 p-3 min-h-16"
+                >
+                  <div className="flex-1 min-w-0">
+                    <div className="font-semibold text-sm break-words">{it.name}</div>
+                    <div className="text-xs text-muted-foreground tabular-nums">
+                      ${it.price.toFixed(2)} each
+                    </div>
+                  </div>
+                  <Button
+                    size="icon"
+                    variant="outline"
+                    className="h-10 w-10 rounded-lg"
+                    onClick={() => changeQty(idx, -1)}
+                  >
+                    <Minus className="h-4 w-4" />
+                  </Button>
+                  <span className="w-8 text-center font-bold tabular-nums">{it.qty}</span>
+                  <Button
+                    size="icon"
+                    variant="outline"
+                    className="h-10 w-10 rounded-lg"
+                    onClick={() => changeQty(idx, 1)}
+                  >
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                  <div className="w-16 text-right font-bold text-sm tabular-nums">
+                    ${(it.price * it.qty).toFixed(2)}
+                  </div>
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="h-10 w-10 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                    onClick={() => removeItem(idx)}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              ))}
+              {editItems.length === 0 && (
+                <p className="text-sm text-muted-foreground py-4 text-center">
+                  No items — add at least one below.
+                </p>
+              )}
+            </div>
+
+            <div className="space-y-1.5">
+              <Label>Add item</Label>
+              <Input
+                value={productQuery}
+                onChange={(e) => setProductQuery(e.target.value)}
+                placeholder="Search products…"
+                className="h-11 rounded-xl"
+              />
+              {productMatches.length > 0 && (
+                <div className="rounded-xl border border-border divide-y divide-border overflow-hidden">
+                  {productMatches.map((p) => (
+                    <button
+                      key={p.id}
+                      onClick={() => {
+                        addProduct(p);
+                        setProductQuery("");
+                      }}
+                      className="w-full flex items-center justify-between px-3 py-2.5 text-sm hover:bg-secondary/60 text-left"
+                    >
+                      <span className="truncate">{p.name}</span>
+                      <span className="font-semibold tabular-nums">
+                        ${Number(p.price).toFixed(2)}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="rounded-xl bg-secondary p-3 space-y-1 text-sm">
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">New total</span>
+                <span className="font-semibold tabular-nums">${editTotal.toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Already paid</span>
+                <span className="font-semibold tabular-nums">${editPaid.toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between text-base pt-1 border-t border-border">
+                <span className="font-semibold">Remaining due</span>
+                <span className="font-bold tabular-nums">${editDue.toFixed(2)}</span>
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditInvoice(null)} className="rounded-xl">
+              Cancel
+            </Button>
+            <Button
+              onClick={handleSaveEdit}
+              disabled={savingEdit || editItems.filter((i) => i.qty > 0).length === 0}
+              className="rounded-xl bg-primary text-primary-foreground hover:bg-primary/90"
+            >
+              {savingEdit ? "Saving…" : "Save changes"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
+
   );
 };
 

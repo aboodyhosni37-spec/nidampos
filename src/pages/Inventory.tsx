@@ -10,8 +10,15 @@ import {
   DialogFooter,
   DialogDescription,
 } from "@/components/ui/dialog";
-import { Package, Upload, Download, FileSpreadsheet, AlertTriangle, CheckCircle2 } from "lucide-react";
-import { listProducts, replaceMenu, updateProductStock, type DbProduct } from "@/lib/menu";
+import { Package, Upload, Download, FileSpreadsheet, AlertTriangle, CheckCircle2, Plus } from "lucide-react";
+import { Label } from "@/components/ui/label";
+import {
+  listProducts,
+  replaceMenu,
+  updateProductStock,
+  addInventory,
+  type DbProduct,
+} from "@/lib/menu";
 import {
   parseMenuExcel,
   exportMenuExcel,
@@ -20,13 +27,26 @@ import {
 } from "@/lib/excelImport";
 import { toast } from "@/hooks/use-toast";
 
+const emptyForm = {
+  category: "",
+  name: "",
+  price: "",
+  stock: "",
+  low_stock_threshold: "5",
+  image_url: "",
+};
+
 const Inventory = () => {
   const [products, setProducts] = useState<DbProduct[]>([]);
   const [loading, setLoading] = useState(true);
   const [importing, setImporting] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [parsed, setParsed] = useState<ParsedRow[]>([]);
+  const [addOpen, setAddOpen] = useState(false);
+  const [form, setForm] = useState(emptyForm);
+  const [saving, setSaving] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+
 
   const refresh = () => {
     setLoading(true);
@@ -94,7 +114,55 @@ const Inventory = () => {
     }
   };
 
+  const submitAdd = async () => {
+    const price = parseFloat(form.price);
+    const stock = form.stock === "" ? 0 : parseInt(form.stock, 10);
+    const thr = form.low_stock_threshold === "" ? 5 : parseInt(form.low_stock_threshold, 10);
+    if (!form.category.trim() || !form.name.trim()) {
+      toast({ title: "Category and product name are required", variant: "destructive" });
+      return;
+    }
+    if (!Number.isFinite(price) || price < 0) {
+      toast({ title: "Enter a valid price", variant: "destructive" });
+      return;
+    }
+    if (!Number.isFinite(stock) || stock < 0) {
+      toast({ title: "Enter a valid quantity", variant: "destructive" });
+      return;
+    }
+    setSaving(true);
+    try {
+      const res = await addInventory([
+        {
+          category: form.category,
+          name: form.name,
+          price,
+          stock,
+          low_stock_threshold: Number.isFinite(thr) ? thr : 5,
+          image_url: form.image_url || null,
+        },
+      ]);
+      toast({
+        title: res.updated > 0 ? "Stock added" : "Product added",
+        description:
+          res.updated > 0
+            ? `${form.name.trim()} stock increased by ${stock}.`
+            : `${form.name.trim()} created with ${stock} in stock.`,
+      });
+      setAddOpen(false);
+      setForm(emptyForm);
+      refresh();
+    } catch (e: any) {
+      toast({ title: "Could not add", description: e.message, variant: "destructive" });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const categoryNames = [...new Set(products.map((p) => p.category_name))].sort();
+
   const lowStockCount = products.filter((p) => p.stock <= p.low_stock_threshold).length;
+
 
   return (
     <div className="max-w-7xl mx-auto space-y-6">
@@ -127,11 +195,19 @@ const Inventory = () => {
             <Download className="h-4 w-4 mr-1.5" /> Export
           </Button>
           <Button
-            onClick={() => fileRef.current?.click()}
+            onClick={() => setAddOpen(true)}
             className="rounded-xl bg-primary text-primary-foreground hover:bg-primary/90"
+          >
+            <Plus className="h-4 w-4 mr-1.5" /> Add Inventory
+          </Button>
+          <Button
+            variant="outline"
+            onClick={() => fileRef.current?.click()}
+            className="rounded-xl"
           >
             <Upload className="h-4 w-4 mr-1.5" /> Import Excel
           </Button>
+
           <input
             ref={fileRef}
             type="file"
@@ -307,7 +383,106 @@ const Inventory = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Add inventory dialog */}
+      <Dialog open={addOpen} onOpenChange={(o) => !o && setAddOpen(false)}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Add Inventory</DialogTitle>
+            <DialogDescription>
+              Existing items get their stock increased. New items are created with the same fields
+              as the Excel import.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+            <div className="space-y-1.5 sm:col-span-2">
+              <Label>Category</Label>
+              <Input
+                list="inv-categories"
+                value={form.category}
+                onChange={(e) => setForm({ ...form, category: e.target.value })}
+                placeholder="e.g. Drinks"
+                className="h-11 rounded-xl"
+              />
+              <datalist id="inv-categories">
+                {categoryNames.map((c) => (
+                  <option key={c} value={c} />
+                ))}
+              </datalist>
+            </div>
+            <div className="space-y-1.5 sm:col-span-2">
+              <Label>Product name</Label>
+              <Input
+                list="inv-products"
+                value={form.name}
+                onChange={(e) => setForm({ ...form, name: e.target.value })}
+                placeholder="e.g. Coca Cola"
+                className="h-11 rounded-xl"
+              />
+              <datalist id="inv-products">
+                {products.map((p) => (
+                  <option key={p.id} value={p.name} />
+                ))}
+              </datalist>
+            </div>
+            <div className="space-y-1.5">
+              <Label>Price</Label>
+              <Input
+                type="number"
+                min={0}
+                step="0.01"
+                value={form.price}
+                onChange={(e) => setForm({ ...form, price: e.target.value })}
+                className="h-11 rounded-xl"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Quantity to add</Label>
+              <Input
+                type="number"
+                min={0}
+                value={form.stock}
+                onChange={(e) => setForm({ ...form, stock: e.target.value })}
+                className="h-11 rounded-xl"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Low stock alert</Label>
+              <Input
+                type="number"
+                min={0}
+                value={form.low_stock_threshold}
+                onChange={(e) => setForm({ ...form, low_stock_threshold: e.target.value })}
+                className="h-11 rounded-xl"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Image URL (optional)</Label>
+              <Input
+                value={form.image_url}
+                onChange={(e) => setForm({ ...form, image_url: e.target.value })}
+                className="h-11 rounded-xl"
+              />
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setAddOpen(false)} className="rounded-xl">
+              Cancel
+            </Button>
+            <Button
+              onClick={submitAdd}
+              disabled={saving}
+              className="rounded-xl bg-primary text-primary-foreground hover:bg-primary/90"
+            >
+              {saving ? "Saving…" : "Add to inventory"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
+
   );
 };
 
