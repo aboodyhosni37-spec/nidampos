@@ -651,7 +651,7 @@ const Settings = () => {
         {/* SYSTEM */}
         <TabsContent value="system" className="space-y-4">
           {!canManageSystem && (
-            <Card className="p-4 rounded-xl border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-400 text-sm">
+            <Card className="p-4 rounded-xl border-border bg-secondary text-foreground text-sm">
               <Lock className="h-4 w-4 inline mr-2" />
               Only administrators can modify system settings.
             </Card>

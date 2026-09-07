@@ -107,9 +107,9 @@ type OrderStatus = "Active" | "Held" | "Completed" | "Cancelled";
 
 const statusStyles: Record<OrderStatus, string> = {
   Active: "bg-primary/10 text-primary border-primary/30",
-  Held: "bg-amber-500/15 text-amber-700 dark:text-amber-400 border-amber-500/30",
-  Completed: "bg-blue-500/15 text-blue-700 dark:text-blue-400 border-blue-500/30",
-  Cancelled: "bg-rose-500/15 text-rose-700 dark:text-rose-400 border-rose-500/30",
+  Held: "bg-secondary text-foreground border-border",
+  Completed: "bg-accent text-accent-foreground border-border",
+  Cancelled: "bg-foreground text-background border-foreground",
 };
 
 const POS = () => {
@@ -696,7 +696,7 @@ const POS = () => {
           >
             <PlayCircle className="h-4 w-4 mr-1.5" /> Held
             {heldOrders.length > 0 && (
-              <span className="ml-1.5 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-amber-500 text-amber-50 text-[10px] font-bold">
+              <span className="ml-1.5 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-primary text-primary-foreground text-[10px] font-bold">
                 {heldOrders.length}
               </span>
             )}
@@ -818,7 +818,7 @@ const POS = () => {
             <Card className="flex-1 rounded-2xl border-border overflow-hidden flex flex-col min-h-0">
               <div className="px-4 py-3 border-b border-border flex items-center justify-between">
                 <div className="font-semibold text-sm flex items-center gap-2">
-                  <Receipt className="h-4 w-4 text-rose-500" /> Unpaid / Due Orders
+                  <Receipt className="h-4 w-4 text-foreground" /> Unpaid / Due Orders
                 </div>
                 <span className="text-xs text-muted-foreground">
                   {unpaid.length} order{unpaid.length === 1 ? "" : "s"}
@@ -838,13 +838,13 @@ const POS = () => {
                       setPayOrder(u);
                       setPayMethodInline("EVC-Plus");
                     }}
-                    className="w-full text-left rounded-xl border border-border bg-card hover:border-rose-500/40 hover:shadow-soft transition-all p-3"
+                    className="w-full text-left rounded-xl border border-border bg-card hover:border-foreground/40 hover:shadow-soft transition-all p-3"
                   >
                     <div className="flex items-start justify-between gap-2">
                       <div className="min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
                           <span className="font-bold text-sm">#{u.number}</span>
-                          <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-rose-500/15 text-rose-600 border border-rose-500/30">
+                          <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-foreground text-background border border-foreground">
                             UNPAID
                           </span>
                           {u.table_label && (
@@ -1066,7 +1066,7 @@ const POS = () => {
 
             {effectiveDue > 0 && (
               <>
-              <div className="rounded-lg bg-amber-500/10 text-amber-700 dark:text-amber-400 px-3 py-2 text-[11px] font-medium">
+              <div className="rounded-lg bg-secondary text-foreground px-3 py-2 text-[11px] font-medium">
                 Walk-in customer is OK. Optionally select a customer to track this credit by name.
               </div>
               <div className="rounded-xl border border-border p-3 space-y-2 bg-secondary/30">
@@ -1105,7 +1105,7 @@ const POS = () => {
                   </Button>
                 </div>
                 {selectedCustomer && selectedCustomer.due_balance >= HIGH_DEBT_THRESHOLD && (
-                  <div className="flex items-start gap-2 rounded-lg bg-amber-500/10 text-amber-700 dark:text-amber-400 p-2 text-xs">
+                  <div className="flex items-start gap-2 rounded-lg bg-secondary text-foreground p-2 text-xs">
                     <AlertTriangle className="h-3.5 w-3.5 mt-0.5 shrink-0" />
                     <span>
                       High outstanding debt: <b>${selectedCustomer.due_balance.toFixed(2)}</b>
@@ -1258,7 +1258,7 @@ const POS = () => {
               </div>
             )}
             {effectiveDue > 0 && (
-              <div className="flex justify-between text-sm text-amber-600">
+              <div className="flex justify-between text-sm text-foreground">
                 <span>On Credit (Due)</span>
                 <span className="font-semibold">{formatMoney(effectiveDue, sys)}</span>
               </div>
@@ -1511,7 +1511,7 @@ const POS = () => {
                     {payOrder.customer_name || "Walk-in"} · {payOrder.table_label || "—"}
                   </div>
                 </div>
-                <span className="text-[10px] uppercase tracking-wider font-bold px-2 py-1 rounded-full bg-rose-500/15 text-rose-600">
+                <span className="text-[10px] uppercase tracking-wider font-bold px-2 py-1 rounded-full bg-foreground text-background">
                   UNPAID
                 </span>
               </div>

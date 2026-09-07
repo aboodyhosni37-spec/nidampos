@@ -52,10 +52,10 @@ const PAY_METHODS: Exclude<PaymentMethod, "Due" | "Split">[] = [
 ];
 
 const statusStyles: Record<OrderWorkflowStatus, string> = {
-  Pending: "bg-amber-500/15 text-amber-700 border-amber-500/30",
-  Preparing: "bg-blue-500/15 text-blue-700 border-blue-500/30",
+  Pending: "bg-secondary text-foreground border-border",
+  Preparing: "bg-accent text-accent-foreground border-border",
   Completed: "bg-primary/10 text-primary border-primary/30",
-  Unpaid: "bg-rose-500/15 text-rose-700 border-rose-500/30",
+  Unpaid: "bg-foreground text-background border-foreground",
 };
 
 const Orders = () => {
@@ -407,7 +407,7 @@ const Orders = () => {
                   ${(payOrder?.dueAmount ?? payOrder?.total ?? 0).toFixed(2)}
                 </div>
               </div>
-              <span className="text-xs font-bold uppercase tracking-wider px-2 py-1 rounded-full bg-rose-500/15 text-rose-600">
+              <span className="text-xs font-bold uppercase tracking-wider px-2 py-1 rounded-full bg-foreground text-background">
                 Unpaid
               </span>
             </div>

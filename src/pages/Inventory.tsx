@@ -225,7 +225,7 @@ const Inventory = () => {
         </Card>
         <Card className="p-4 rounded-2xl border-border">
           <div className="text-xs text-muted-foreground uppercase tracking-wider">Low Stock</div>
-          <div className="text-2xl font-bold mt-1 text-amber-600">{lowStockCount}</div>
+          <div className="text-2xl font-bold mt-1 text-foreground">{lowStockCount}</div>
         </Card>
         <Card className="p-4 rounded-2xl border-border">
           <div className="text-xs text-muted-foreground uppercase tracking-wider">Inventory Value</div>

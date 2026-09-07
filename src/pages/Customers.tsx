@@ -242,19 +242,19 @@ const Customers = () => {
           icon={<Wallet className="h-5 w-5" />}
           label="Total Outstanding"
           value={`$${totalOutstanding.toFixed(2)}`}
-          color="from-amber-500 to-orange-500"
+          color="from-primary to-primary/80"
         />
         <KpiCard
           icon={<Users className="h-5 w-5" />}
           label="Customers with Debt"
           value={`${withDebt} / ${customers.length}`}
-          color="from-blue-500 to-indigo-500"
+          color="from-primary to-primary/80"
         />
         <KpiCard
           icon={<AlertTriangle className="h-5 w-5" />}
           label="High Debt Alerts"
           value={highDebt.toString()}
-          color="from-red-500 to-rose-500"
+          color="from-primary to-primary/80"
         />
       </div>
 
@@ -297,7 +297,7 @@ const Customers = () => {
                       <div className="font-semibold truncate flex items-center gap-2">
                         {c.name}
                         {isHigh && (
-                          <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider bg-red-500/10 text-red-600 px-1.5 py-0.5 rounded">
+                          <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider bg-secondary text-foreground px-1.5 py-0.5 rounded">
                             <AlertTriangle className="h-3 w-3" /> High debt
                           </span>
                         )}
@@ -322,7 +322,7 @@ const Customers = () => {
                       <div
                         className={cn(
                           "font-bold tabular-nums",
-                          hasDebt ? "text-amber-600" : "text-primary"
+                          hasDebt ? "text-foreground" : "text-primary"
                         )}
                       >
                         ${debt.toFixed(2)}
@@ -463,7 +463,7 @@ const Customers = () => {
                     <div
                       className={cn(
                         "font-bold tabular-nums",
-                        t.type === "charge" ? "text-amber-600" : "text-primary"
+                        t.type === "charge" ? "text-foreground" : "text-primary"
                       )}
                     >
                       {t.type === "charge" ? "+" : "−"}${Number(t.amount).toFixed(2)}

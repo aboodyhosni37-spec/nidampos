@@ -1,126 +1,122 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 
-/* NIDAM POS — White + Olive Green design system. All colors are HSL. */
+/* LamaHamar Cafe — Black + White design system. All colors are HSL. */
 
 @layer base {
   :root {
-    /* LIGHT MODE — white surfaces, olive accents */
+    /* LIGHT MODE — white surfaces, black actions, neutral gray support */
     --background: 0 0% 100%;
-    --foreground: 85 20% 12%;
+    --foreground: 0 0% 4%;
 
     --card: 0 0% 100%;
-    --card-foreground: 85 20% 12%;
+    --card-foreground: 0 0% 4%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 85 20% 12%;
+    --popover-foreground: 0 0% 4%;
 
-    /* Primary Olive #6B7A3A */
-    --primary: 74 36% 35%;
+    --primary: 0 0% 4%;
     --primary-foreground: 0 0% 100%;
-    --primary-glow: 76 38% 26%;
+    --primary-glow: 0 0% 18%;
 
-    --secondary: 73 33% 95%;
-    --secondary-foreground: 76 38% 26%;
+    --secondary: 0 0% 96%;
+    --secondary-foreground: 0 0% 4%;
 
-    --muted: 73 33% 95%;
-    --muted-foreground: 220 9% 46%;
+    --muted: 0 0% 96%;
+    --muted-foreground: 0 0% 40%;
 
-    --accent: 73 33% 89%;
-    --accent-foreground: 76 38% 26%;
+    --accent: 0 0% 91%;
+    --accent-foreground: 0 0% 4%;
 
-    --success: 74 36% 35%;
+    --success: 0 0% 4%;
     --success-foreground: 0 0% 100%;
 
-    --destructive: 0 72% 48%;
+    --destructive: 0 0% 4%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 220 13% 91%;
-    --input: 220 13% 91%;
-    --ring: 74 36% 35%;
+    --border: 0 0% 86%;
+    --input: 0 0% 86%;
+    --ring: 0 0% 4%;
 
     --radius: 0.75rem;
 
-    /* Brand stops — olive spectrum */
-    --brand-emerald: 74 36% 35%;
-    --brand-emerald-bright: 74 34% 42%;
-    --brand-teal: 76 38% 26%;
+    --brand-emerald: 0 0% 4%;
+    --brand-emerald-bright: 0 0% 12%;
+    --brand-teal: 0 0% 22%;
 
     --gradient-brand: linear-gradient(135deg, hsl(var(--brand-emerald)) 0%, hsl(var(--brand-emerald-bright)) 55%, hsl(var(--brand-teal)) 100%);
     --gradient-button: linear-gradient(135deg, hsl(var(--brand-emerald)) 0%, hsl(var(--brand-emerald-bright)) 100%);
-    --gradient-glow: radial-gradient(circle at 30% 20%, hsl(var(--brand-emerald) / 0.12), transparent 60%),
-                     radial-gradient(circle at 70% 80%, hsl(var(--brand-teal) / 0.12), transparent 55%);
+    --gradient-glow: linear-gradient(135deg, hsl(0 0% 100% / 0.08), transparent);
 
-    --shadow-soft: 0 1px 2px hsl(85 20% 12% / 0.06), 0 2px 8px -4px hsl(85 20% 12% / 0.08);
-    --shadow-elegant: 0 4px 12px -4px hsl(85 20% 12% / 0.12), 0 12px 32px -12px hsl(85 20% 12% / 0.14);
+    --shadow-soft: 0 1px 2px hsl(0 0% 0% / 0.06), 0 2px 8px -4px hsl(0 0% 0% / 0.08);
+    --shadow-elegant: 0 4px 12px -4px hsl(0 0% 0% / 0.12), 0 12px 32px -12px hsl(0 0% 0% / 0.14);
     --shadow-glow: 0 0 0 4px hsl(var(--primary) / 0.15);
 
     --transition-smooth: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     --transition-bounce: all 0.35s cubic-bezier(0.34, 1.4, 0.64, 1);
 
-    --sidebar-background: 73 33% 95%;
-    --sidebar-foreground: 85 20% 12%;
-    --sidebar-primary: 74 36% 35%;
+    --sidebar-background: 0 0% 97%;
+    --sidebar-foreground: 0 0% 4%;
+    --sidebar-primary: 0 0% 4%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 73 33% 89%;
-    --sidebar-accent-foreground: 76 38% 26%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 74 36% 35%;
+    --sidebar-accent: 0 0% 90%;
+    --sidebar-accent-foreground: 0 0% 4%;
+    --sidebar-border: 0 0% 86%;
+    --sidebar-ring: 0 0% 4%;
   }
 
   .dark {
-    /* DARK / NIGHT MODE — charcoal with olive tint */
-    --background: 96 13% 7%;
-    --foreground: 60 20% 95%;
+    /* Dark preference remains monochrome with white as the main surface. */
+    --background: 0 0% 100%;
+    --foreground: 0 0% 4%;
 
-    --card: 94 13% 11%;
-    --card-foreground: 60 20% 95%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 4%;
 
-    --popover: 94 13% 11%;
-    --popover-foreground: 60 20% 95%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 4%;
 
-    --primary: 75 35% 42%;
-    --primary-foreground: 96 13% 7%;
-    --primary-glow: 72 35% 57%;
+    --primary: 0 0% 4%;
+    --primary-foreground: 0 0% 100%;
+    --primary-glow: 0 0% 18%;
 
-    --secondary: 90 14% 14%;
-    --secondary-foreground: 60 20% 95%;
+    --secondary: 0 0% 96%;
+    --secondary-foreground: 0 0% 4%;
 
-    --muted: 90 14% 14%;
-    --muted-foreground: 88 8% 65%;
+    --muted: 0 0% 96%;
+    --muted-foreground: 0 0% 40%;
 
-    --accent: 90 14% 18%;
-    --accent-foreground: 72 35% 57%;
+    --accent: 0 0% 91%;
+    --accent-foreground: 0 0% 4%;
 
-    --success: 75 35% 42%;
-    --success-foreground: 96 13% 7%;
+    --success: 0 0% 4%;
+    --success-foreground: 0 0% 100%;
 
-    --destructive: 0 65% 52%;
+    --destructive: 0 0% 4%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 90 10% 20%;
-    --input: 90 10% 20%;
-    --ring: 72 35% 57%;
+    --border: 0 0% 86%;
+    --input: 0 0% 86%;
+    --ring: 0 0% 4%;
 
-    --brand-emerald: 75 35% 42%;
-    --brand-emerald-bright: 72 35% 57%;
-    --brand-teal: 76 38% 30%;
+    --brand-emerald: 0 0% 4%;
+    --brand-emerald-bright: 0 0% 12%;
+    --brand-teal: 0 0% 22%;
 
-    --shadow-soft: 0 1px 2px hsl(0 0% 0% / 0.4), 0 2px 10px -4px hsl(0 0% 0% / 0.5);
-    --shadow-elegant: 0 6px 18px -6px hsl(0 0% 0% / 0.55), 0 16px 40px -16px hsl(0 0% 0% / 0.6);
-    --shadow-glow: 0 0 0 4px hsl(var(--primary) / 0.25);
+    --shadow-soft: 0 1px 2px hsl(0 0% 0% / 0.06), 0 2px 8px -4px hsl(0 0% 0% / 0.08);
+    --shadow-elegant: 0 4px 12px -4px hsl(0 0% 0% / 0.12), 0 12px 32px -12px hsl(0 0% 0% / 0.14);
+    --shadow-glow: 0 0 0 4px hsl(var(--primary) / 0.15);
 
-    --sidebar-background: 94 13% 9%;
-    --sidebar-foreground: 60 20% 92%;
-    --sidebar-primary: 75 35% 42%;
-    --sidebar-primary-foreground: 96 13% 7%;
-    --sidebar-accent: 90 14% 14%;
-    --sidebar-accent-foreground: 60 20% 95%;
-    --sidebar-border: 90 10% 20%;
-    --sidebar-ring: 72 35% 57%;
+    --sidebar-background: 0 0% 97%;
+    --sidebar-foreground: 0 0% 4%;
+    --sidebar-primary: 0 0% 4%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 0 0% 90%;
+    --sidebar-accent-foreground: 0 0% 4%;
+    --sidebar-border: 0 0% 86%;
+    --sidebar-ring: 0 0% 4%;
   }
 }
 
