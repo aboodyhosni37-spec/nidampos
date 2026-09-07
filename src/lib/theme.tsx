@@ -85,3 +85,20 @@ export const useForcedDarkTheme = () => {
     };
   }, []);
 };
+
+/**
+ * The customer website is designed light-only (white + olive). It forces the
+ * light palette while mounted and restores the user's choice on unmount.
+ */
+export const useForcedLightTheme = () => {
+  useEffect(() => {
+    const root = document.documentElement;
+    root.dataset.forcedTheme = "light";
+    root.classList.remove("dark");
+    return () => {
+      delete root.dataset.forcedTheme;
+      const t = readStoredTheme();
+      root.classList.toggle("dark", t === "dark" || (t === "system" && systemPrefersDark()));
+    };
+  }, []);
+};
