@@ -476,6 +476,27 @@ export type Database = {
           },
         ]
       }
+      site_content: {
+        Row: {
+          content: Json
+          created_at: string
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          content?: Json
+          created_at?: string
+          id?: string
+          updated_at?: string
+        }
+        Update: {
+          content?: Json
+          created_at?: string
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       staff: {
         Row: {
           created_at: string
