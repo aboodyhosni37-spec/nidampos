@@ -712,50 +712,29 @@ const POS = () => {
         </div>
       </Card>
 
-      <div className="grid grid-cols-1 lg:grid-cols-[180px_minmax(0,1fr)_minmax(360px,380px)] xl:grid-cols-[200px_minmax(0,1fr)_minmax(380px,400px)] 2xl:grid-cols-[220px_minmax(0,1fr)_420px] gap-4 h-[calc(100vh-12rem)] min-h-[560px]">
-        {/* Categories */}
-        <Card className="rounded-2xl p-3 border-border overflow-y-auto lg:flex flex-col gap-2 hidden">
-          <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground px-2 mb-1">
-            Categories
-          </div>
-          {categories.map((c) => (
-            <button
-              key={c.id}
-              onClick={() => setActiveCat(c.id)}
-              className={cn(
-                "flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-semibold transition-all text-left",
-                activeCat === c.id
-                  ? "bg-primary text-primary-foreground hover:bg-primary/90 shadow-soft"
-                  : "hover:bg-secondary text-foreground"
-              )}
-            >
-              <span className="text-xl">{c.emoji}</span>
-              {c.name}
-            </button>
-          ))}
-        </Card>
-
-        {/* Mobile category chips */}
-        <div className="lg:hidden flex gap-2 overflow-x-auto pb-2 -mx-1 px-1">
-          {categories.map((c) => (
-            <button
-              key={c.id}
-              onClick={() => setActiveCat(c.id)}
-              className={cn(
-                "flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-semibold whitespace-nowrap transition-all",
-                activeCat === c.id
-                  ? "bg-primary text-primary-foreground hover:bg-primary/90 shadow-soft"
-                  : "bg-card border border-border"
-              )}
-            >
-              <span>{c.emoji}</span>
-              {c.name}
-            </button>
-          ))}
-        </div>
-
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_minmax(320px,360px)] xl:grid-cols-[1fr_minmax(340px,380px)] 2xl:grid-cols-[1fr_minmax(340px,380px)] gap-4 h-[calc(100vh-12rem)] min-h-[560px]">
         {/* Products / Due Orders */}
         <div className="flex flex-col gap-3 min-h-0">
+          {/* Categories */}
+          {leftMode === "menu" && (
+            <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1 shrink-0">
+              {categories.map((c) => (
+                <button
+                  key={c.id}
+                  onClick={() => setActiveCat(c.id)}
+                  className={cn(
+                    "flex items-center gap-1.5 px-4 h-10 rounded-full text-sm font-semibold whitespace-nowrap transition-all",
+                    activeCat === c.id
+                      ? "bg-primary text-primary-foreground hover:bg-primary/90 shadow-soft"
+                      : "bg-card border border-border"
+                  )}
+                >
+                  <span>{c.emoji}</span>
+                  {c.name}
+                </button>
+              ))}
+            </div>
+          )}
           {/* Quick-tabs */}
           <div className="flex items-center gap-2">
             <button
@@ -937,7 +916,7 @@ const POS = () => {
           </div>
 
           {/* Items - scrollable */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-2 min-h-0">
+          <div className="flex-1 overflow-y-auto p-3 space-y-3 min-h-0">
             {cart.length === 0 ? (
               <div className="h-full flex flex-col items-center justify-center text-center text-muted-foreground py-10">
                 <ShoppingCart className="h-10 w-10 opacity-30 mb-2" />
@@ -946,7 +925,7 @@ const POS = () => {
               </div>
             ) : (
               cart.map((it) => (
-                <div key={it.id} className="bg-secondary/50 rounded-xl p-3 min-h-16 flex flex-col justify-center">
+                <div key={it.id} className="bg-secondary/50 rounded-xl p-3 min-h-[68px] flex flex-col justify-center">
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex-1 min-w-0">
                       <div className="font-semibold text-sm leading-snug break-words">{it.name}</div>
@@ -955,7 +934,7 @@ const POS = () => {
                     <button
                       onClick={() => removeItem(it.id)}
                       aria-label="Remove item"
-                      className="h-10 w-10 -mr-1.5 -mt-1.5 shrink-0 rounded-lg inline-flex items-center justify-center text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+                      className="h-10 w-10 shrink-0 rounded-lg inline-flex items-center justify-center text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
                     >
                       <Trash2 className="h-4 w-4" />
                     </button>
@@ -978,7 +957,7 @@ const POS = () => {
                         <Plus className="h-4 w-4" />
                       </button>
                     </div>
-                    <div className="font-bold text-sm tabular-nums shrink-0">{formatMoney(it.price * it.qty, sys)}</div>
+                    <div className="font-bold text-base tabular-nums shrink-0">{formatMoney(it.price * it.qty, sys)}</div>
                   </div>
                 </div>
               ))
@@ -987,7 +966,7 @@ const POS = () => {
 
 
           {/* Payment - fixed bottom of cart. Bounded so the cart-items area always remains scrollable. */}
-          <div className="border-t border-border bg-card shrink-0 basis-auto max-h-[46%] overflow-y-auto p-4 space-y-3">
+          <div className="border-t border-border bg-card shrink-0 basis-auto max-h-[46%] overflow-y-auto p-3 space-y-3">
             {/* Quick customer picker (for loyalty + due tracking) */}
             <div>
               <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
