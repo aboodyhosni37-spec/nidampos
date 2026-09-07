@@ -307,7 +307,7 @@ const POS = () => {
     lastAddRef.current = { id: productId, t: now };
 
     const p = products.find((x) => x.id === productId);
-    console.log("DBG-ADD", productId, !!p, orderStatus, products.length);
+    
     if (!p) return;
     if (orderStatus !== "Active") {
       toast({
