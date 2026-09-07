@@ -5,10 +5,12 @@ import { toast } from "sonner";
 import { ProductCard } from "@/components/site/ProductCard";
 import { useCustomerCart } from "@/lib/customerCart";
 import { loadMenu, type DbCategory, type DbProduct } from "@/lib/storefront";
+import { useSiteContent } from "@/lib/siteContent";
 import { fetchSettings, formatMoney } from "@/lib/systemSettings";
 import { cn } from "@/lib/utils";
 
 const MenuPage = () => {
+  const content = useSiteContent();
   const [categories, setCategories] = useState<DbCategory[]>([]);
   const [products, setProducts] = useState<DbProduct[]>([]);
   const [loading, setLoading] = useState(true);
@@ -48,15 +50,12 @@ const MenuPage = () => {
     <div className="mx-auto max-w-6xl px-4 sm:px-6 py-10 sm:py-14 pb-28">
       <header className="space-y-3">
         <span className="text-xs font-bold uppercase tracking-[0.22em] text-primary">
-          Our menu
+          {content.menu.eyebrow}
         </span>
         <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight">
-          Everything we serve
+          {content.menu.title}
         </h1>
-        <p className="text-muted-foreground max-w-2xl">
-          Browse by category or search for what you are craving, then add it straight to
-          your order.
-        </p>
+        <p className="text-muted-foreground max-w-2xl">{content.menu.description}</p>
       </header>
 
       <div className="mt-8 space-y-4">
@@ -71,6 +70,7 @@ const MenuPage = () => {
           />
         </div>
 
+        {content.menu.show_categories && (
         <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1">
           <button
             type="button"
@@ -102,6 +102,7 @@ const MenuPage = () => {
 
           ))}
         </div>
+        )}
       </div>
 
       <div className="mt-8">
@@ -128,7 +129,12 @@ const MenuPage = () => {
             </p>
             <div className="grid gap-5 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {filtered.map((p) => (
-                <ProductCard key={p.id} product={p} onAdd={handleAdd} />
+                <ProductCard
+                  key={p.id}
+                  product={p}
+                  onAdd={handleAdd}
+                  showImage={content.menu.show_images}
+                />
               ))}
             </div>
           </>
