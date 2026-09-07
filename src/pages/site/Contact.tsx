@@ -27,8 +27,8 @@ const Contact = () => (
           <Phone className="h-5 w-5" />
         </span>
         <h2 className="font-bold pt-2">Call</h2>
-        <a href="tel:+252610000000" className="text-sm text-muted-foreground hover:text-primary">
-          +252 61 000 0000
+        <a href="tel:+252619105454" className="text-sm text-muted-foreground hover:text-primary">
+          +252 619105454
         </a>
       </div>
       <div className="rounded-2xl border border-border bg-card p-6 shadow-soft space-y-2">
@@ -37,10 +37,10 @@ const Contact = () => (
         </span>
         <h2 className="font-bold pt-2">Email</h2>
         <a
-          href="mailto:hello@lamahamarcafe.so"
+          href="mailto:lamahamar@gmail.com"
           className="text-sm text-muted-foreground hover:text-primary break-all"
         >
-          hello@lamahamarcafe.so
+          lamahamar@gmail.com
         </a>
       </div>
     </div>
@@ -51,20 +51,13 @@ const Contact = () => (
           <Clock className="h-4 w-4 text-primary" /> Opening hours
         </h2>
         <ul className="mt-4 space-y-3 text-sm">
-          <li className="flex justify-between border-b border-border pb-3">
-            <span className="text-muted-foreground">Monday – Friday</span>
-            <span className="font-semibold">7:00 – 23:00</span>
-          </li>
-          <li className="flex justify-between border-b border-border pb-3">
-            <span className="text-muted-foreground">Saturday</span>
-            <span className="font-semibold">8:00 – 23:30</span>
-          </li>
           <li className="flex justify-between">
-            <span className="text-muted-foreground">Sunday</span>
-            <span className="font-semibold">8:00 – 23:30</span>
+            <span className="text-muted-foreground">Every day</span>
+            <span className="font-semibold">6:00 AM – 10:00 PM</span>
           </li>
         </ul>
       </div>
+
 
       <div className="rounded-2xl bg-primary text-primary-foreground p-8 flex flex-col justify-center gap-4">
         <h2 className="text-2xl font-extrabold tracking-tight">
