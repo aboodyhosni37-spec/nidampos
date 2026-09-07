@@ -165,14 +165,17 @@ export const addInventory = async (rows: ImportRow[]): Promise<AddInventoryResul
     const hit = prodMap.get(key);
     const addQty = Number(r.stock ?? 0);
     if (hit) {
-      const patch: Record<string, any> = {
+      const patch = {
         stock: hit.stock + addQty,
         updated_at: new Date().toISOString(),
+        ...(Number.isFinite(r.price) && r.price > 0 ? { price: r.price } : {}),
+        ...(r.image_url ? { image_url: r.image_url } : {}),
+        ...(r.low_stock_threshold != null
+          ? { low_stock_threshold: r.low_stock_threshold }
+          : {}),
       };
-      if (Number.isFinite(r.price) && r.price > 0) patch.price = r.price;
-      if (r.image_url) patch.image_url = r.image_url;
-      if (r.low_stock_threshold != null) patch.low_stock_threshold = r.low_stock_threshold;
       const { error } = await supabase.from("products").update(patch).eq("id", hit.id);
+
       if (error) throw error;
       hit.stock += addQty;
       updated += 1;
