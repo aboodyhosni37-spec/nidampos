@@ -1633,7 +1633,7 @@ const PayBtn = ({
   <button
     onClick={onClick}
     className={cn(
-      "flex flex-col items-center gap-1 py-2.5 rounded-xl text-[11px] font-semibold transition-all min-h-[60px] justify-center text-center px-1",
+      "flex flex-col items-center gap-1 py-2 rounded-xl text-[11px] font-semibold transition-all min-h-[52px] justify-center text-center px-1",
       active
         ? "bg-primary text-primary-foreground hover:bg-primary/90 shadow-soft"
         : "bg-secondary hover:bg-secondary/80 text-foreground"
