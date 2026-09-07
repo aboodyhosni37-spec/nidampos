@@ -10,15 +10,18 @@ import {
   DialogFooter,
   DialogDescription,
 } from "@/components/ui/dialog";
-import { Package, Upload, Download, FileSpreadsheet, AlertTriangle, CheckCircle2, Plus } from "lucide-react";
+import { Package, Upload, Download, FileSpreadsheet, AlertTriangle, CheckCircle2, Plus, Pencil, ImagePlus, Trash2 } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import {
   listProducts,
   replaceMenu,
   updateProductStock,
+  updateProductDetails,
+  uploadProductImage,
   addInventory,
   type DbProduct,
 } from "@/lib/menu";
+
 import {
   parseMenuExcel,
   exportMenuExcel,
