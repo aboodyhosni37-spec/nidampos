@@ -143,11 +143,11 @@ const SiteLayout = () => {
               </li>
               <li className="flex items-start gap-2">
                 <Phone className="h-4 w-4 mt-0.5 text-primary shrink-0" />
-                +252 61 000 0000
+                +252 619105454
               </li>
               <li className="flex items-start gap-2">
                 <Mail className="h-4 w-4 mt-0.5 text-primary shrink-0" />
-                hello@lamahamarcafe.so
+                lamahamar@gmail.com
               </li>
             </ul>
           </div>
@@ -155,15 +155,12 @@ const SiteLayout = () => {
             <h3 className="text-sm font-bold mb-3">Opening hours</h3>
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li className="flex justify-between gap-4">
-                <span>Mon – Fri</span>
-                <span className="font-medium text-foreground">7:00 – 23:00</span>
-              </li>
-              <li className="flex justify-between gap-4">
-                <span>Sat – Sun</span>
-                <span className="font-medium text-foreground">8:00 – 23:30</span>
+                <span>Every day</span>
+                <span className="font-medium text-foreground">6:00 AM – 10:00 PM</span>
               </li>
             </ul>
           </div>
+
         </div>
         <div className="border-t border-border">
           <div className="mx-auto max-w-6xl px-4 sm:px-6 py-5 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-muted-foreground">

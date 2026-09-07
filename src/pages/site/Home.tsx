@@ -83,7 +83,7 @@ const Home = () => {
           {[
             { icon: Coffee, title: "Freshly brewed", text: "Beans roasted and ground daily." },
             { icon: Truck, title: "Fast delivery", text: "Hot orders across the city." },
-            { icon: Clock, title: "Open early & late", text: "From 7:00 until 23:00." },
+            { icon: Clock, title: "Open every day", text: "6:00 AM – 10:00 PM." },
           ].map((p) => (
             <div
               key={p.title}
