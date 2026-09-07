@@ -310,19 +310,22 @@ const Inventory = () => {
                 <th className="p-4 font-semibold text-right">Stock</th>
                 <th className="p-4 font-semibold text-right">Threshold</th>
                 <th className="p-4 font-semibold">Status</th>
+                <th className="p-4 font-semibold text-right">Edit</th>
+
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
               {loading ? (
                 <tr>
-                  <td colSpan={6} className="p-12 text-center text-muted-foreground">Loading…</td>
+                  <td colSpan={7} className="p-12 text-center text-muted-foreground">Loading…</td>
                 </tr>
               ) : products.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="p-12 text-center text-muted-foreground">
+                  <td colSpan={7} className="p-12 text-center text-muted-foreground">
                     No products yet. Import your menu from Excel to get started.
                   </td>
                 </tr>
+
               ) : (
                 products.map((p) => {
                   const low = p.stock <= p.low_stock_threshold;
@@ -368,7 +371,18 @@ const Inventory = () => {
                           <Package className="h-3 w-3" /> {low ? "Low" : "In stock"}
                         </span>
                       </td>
+                      <td className="p-4 text-right">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => openEdit(p)}
+                          className="rounded-lg"
+                        >
+                          <Pencil className="h-3.5 w-3.5 mr-1.5" /> Edit
+                        </Button>
+                      </td>
                     </tr>
+
                   );
                 })
               )}
