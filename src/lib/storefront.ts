@@ -42,6 +42,37 @@ export const fetchStoreSettings = async (): Promise<StoreSettings> => {
 
 export type OrderType = "DELIVERY" | "DINE-IN";
 
+// Banadir (Mogadishu) delivery districts. $1.00 in the four oldest core
+// districts, $1.50 everywhere else in Banadir. The fee is derived from the
+// selected district — customers can never edit it.
+export const BANADIR_DISTRICTS = [
+  "Xamar Weyne",
+  "Shangani",
+  "Xamar Jajab",
+  "Waberi",
+  "Abdulaziz",
+  "Bondhere",
+  "Daynile",
+  "Dharkenley",
+  "Hawl Wadag",
+  "Hodan",
+  "Karan",
+  "Shibis",
+  "Wadajir",
+  "Wardhigley",
+  "Yaqshid",
+  "Gubadley",
+  "Darusalam",
+  "Kaxda",
+] as const;
+
+export const CORE_FEE_DISTRICTS = ["Xamar Weyne", "Shangani", "Xamar Jajab", "Waberi"];
+
+export const deliveryFeeForDistrict = (district: string | undefined): number => {
+  if (!district) return 0;
+  return CORE_FEE_DISTRICTS.includes(district) ? 1.0 : 1.5;
+};
+
 export type CustomerCartLine = {
   product_id: string;
   name: string;
