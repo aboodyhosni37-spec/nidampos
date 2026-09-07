@@ -277,15 +277,32 @@ const OrderPage = () => {
                 />
               </label>
               {orderType === "DELIVERY" ? (
-                <label className="space-y-1.5 sm:col-span-2">
-                  <span className="text-sm font-medium">Delivery address</span>
-                  <input
-                    value={address}
-                    onChange={(e) => setAddress(e.target.value)}
-                    className="w-full h-12 px-3.5 rounded-xl border border-input bg-background text-sm outline-none focus:ring-2 focus:ring-ring/40"
-                    placeholder="Street, district, landmark"
-                  />
-                </label>
+                <>
+                  <label className="space-y-1.5 sm:col-span-2">
+                    <span className="text-sm font-medium">Delivery district (Banadir, Mogadishu)</span>
+                    <select
+                      value={district}
+                      onChange={(e) => setDistrict(e.target.value)}
+                      className="w-full h-12 px-3.5 rounded-xl border border-input bg-background text-sm outline-none focus:ring-2 focus:ring-ring/40"
+                    >
+                      <option value="">Select your district…</option>
+                      {BANADIR_DISTRICTS.map((d) => (
+                        <option key={d} value={d}>
+                          {d} — {formatMoney(deliveryFeeForDistrict(d))}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <label className="space-y-1.5 sm:col-span-2">
+                    <span className="text-sm font-medium">Delivery address</span>
+                    <input
+                      value={address}
+                      onChange={(e) => setAddress(e.target.value)}
+                      className="w-full h-12 px-3.5 rounded-xl border border-input bg-background text-sm outline-none focus:ring-2 focus:ring-ring/40"
+                      placeholder="Street, neighborhood, landmark"
+                    />
+                  </label>
+                </>
               ) : (
                 <label className="space-y-1.5 sm:col-span-2">
                   <span className="text-sm font-medium">Table</span>
