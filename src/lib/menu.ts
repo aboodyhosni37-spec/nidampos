@@ -110,3 +110,91 @@ export const updateProductStock = async (id: string, stock: number) => {
     .eq("id", id);
   if (error) throw error;
 };
+
+export type AddInventoryResult = {
+  created: number;
+  updated: number;
+  categoriesCreated: number;
+};
+
+/**
+ * Adds stock without replacing the menu. Uses exactly the same product,
+ * category and stock fields as the Excel import. Existing products get their
+ * stock INCREASED (never overwritten); unknown products are created.
+ */
+export const addInventory = async (rows: ImportRow[]): Promise<AddInventoryResult> => {
+  const cleaned = rows
+    .map((r) => ({ ...r, category: r.category.trim(), name: r.name.trim() }))
+    .filter((r) => r.category && r.name);
+  if (cleaned.length === 0) throw new Error("Nothing to add.");
+
+  const existingCats = await listCategories();
+  const catMap = new Map<string, string>();
+  existingCats.forEach((c) => catMap.set(c.name.toLowerCase(), c.id));
+
+  const newCatNames = [
+    ...new Set(cleaned.map((r) => r.category).filter((n) => !catMap.has(n.toLowerCase()))),
+  ];
+  if (newCatNames.length > 0) {
+    const base = existingCats.length;
+    const { data: created, error } = await supabase
+      .from("categories")
+      .insert(newCatNames.map((name, i) => ({ name, sort_order: base + i })))
+      .select("*");
+    if (error) throw error;
+    (created ?? []).forEach((c: any) => catMap.set(String(c.name).toLowerCase(), c.id));
+  }
+
+  const { data: allProducts, error: prodErr } = await supabase
+    .from("products")
+    .select("id, name, category_name, stock");
+  if (prodErr) throw prodErr;
+  const prodMap = new Map<string, { id: string; stock: number }>();
+  (allProducts ?? []).forEach((p: any) =>
+    prodMap.set(`${String(p.category_name).toLowerCase()}|${String(p.name).toLowerCase()}`, {
+      id: p.id,
+      stock: Number(p.stock || 0),
+    })
+  );
+
+  let updated = 0;
+  const toCreate: any[] = [];
+
+  for (const r of cleaned) {
+    const key = `${r.category.toLowerCase()}|${r.name.toLowerCase()}`;
+    const hit = prodMap.get(key);
+    const addQty = Number(r.stock ?? 0);
+    if (hit) {
+      const patch: Record<string, any> = {
+        stock: hit.stock + addQty,
+        updated_at: new Date().toISOString(),
+      };
+      if (Number.isFinite(r.price) && r.price > 0) patch.price = r.price;
+      if (r.image_url) patch.image_url = r.image_url;
+      if (r.low_stock_threshold != null) patch.low_stock_threshold = r.low_stock_threshold;
+      const { error } = await supabase.from("products").update(patch).eq("id", hit.id);
+      if (error) throw error;
+      hit.stock += addQty;
+      updated += 1;
+    } else {
+      toCreate.push({
+        category_id: catMap.get(r.category.toLowerCase()) ?? null,
+        category_name: r.category,
+        name: r.name,
+        price: r.price,
+        image_url: r.image_url?.trim() || null,
+        stock: addQty,
+        low_stock_threshold: r.low_stock_threshold ?? 5,
+        is_active: true,
+      });
+    }
+  }
+
+  if (toCreate.length > 0) {
+    const { error } = await supabase.from("products").insert(toCreate);
+    if (error) throw error;
+  }
+
+  return { created: toCreate.length, updated, categoriesCreated: newCatNames.length };
+};
+
