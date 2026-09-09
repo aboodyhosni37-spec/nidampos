@@ -519,22 +519,54 @@ const Orders = () => {
                       No unpaid orders — everything is settled.
                     </div>
                   )}
-                  {dueOrders.map((o) => (
-                    <div key={o.id} className="p-3 flex items-center justify-between text-sm">
-                      <div>
-                        <div className="font-semibold">Order #{o.number}</div>
-                        <div className="text-xs text-muted-foreground">
-                          {new Date(o.createdAt).toLocaleString()} · {o.items.length} items
+                  {dueOrders.map((o) => {
+                    const paid = o.paidAmount ?? 0;
+                    const due = o.dueAmount ?? 0;
+                    const status = paid > 0 ? "Partially paid" : "Unpaid";
+                    return (
+                      <div key={o.id} className="p-3 flex items-center justify-between text-sm gap-3">
+                        <div>
+                          <div className="font-semibold">
+                            Order #{o.number}
+                            <span className="ml-2 text-xs font-normal text-muted-foreground">
+                              {record?.name}
+                            </span>
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            {new Date(o.createdAt).toLocaleString()} · {o.items.length} items
+                          </div>
+                          <div className="text-xs font-medium mt-0.5">{status}</div>
+                        </div>
+                        <div className="text-right shrink-0">
+                          <div className="font-bold">${due.toFixed(2)} due</div>
+                          <div className="text-xs text-muted-foreground">
+                            ${o.total.toFixed(2)} total · ${paid.toFixed(2)} paid
+                          </div>
+                          <div className="mt-1 flex justify-end gap-1.5">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="h-7 rounded-lg text-xs"
+                              onClick={() => setSelected(o)}
+                            >
+                              View
+                            </Button>
+                            <Button
+                              size="sm"
+                              className="h-7 rounded-lg text-xs bg-primary text-primary-foreground hover:bg-primary/90"
+                              onClick={() => {
+                                setDueCustomer(null);
+                                setPayOrder(o);
+                                setPayMethod("EVC-Plus");
+                              }}
+                            >
+                              Pay
+                            </Button>
+                          </div>
                         </div>
                       </div>
-                      <div className="text-right">
-                        <div className="font-bold">${(o.dueAmount ?? 0).toFixed(2)} due</div>
-                        <div className="text-xs text-muted-foreground">
-                          ${o.total.toFixed(2)} total · ${(o.paidAmount ?? 0).toFixed(2)} paid
-                        </div>
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             );
