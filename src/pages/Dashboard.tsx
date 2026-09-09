@@ -9,40 +9,61 @@ import {
   TrendingDown,
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
-import { loadOrders, type Order } from "@/lib/orders";
+import { fetchOrders, type Order } from "@/lib/orders";
+import { fetchReport, type ReportTotals } from "@/lib/reports";
 import { getDashboardStats, type DashboardStats } from "@/lib/db";
 import { listProducts, type DbProduct } from "@/lib/menu";
-import { sumExpensesInRange } from "@/lib/expenses";
+import { getCachedSettings, subscribeSettings } from "@/lib/systemSettings";
 import { cn } from "@/lib/utils";
 import { Link } from "react-router-dom";
+
+const startOfToday = () => {
+  const d = new Date();
+  d.setHours(0, 0, 0, 0);
+  return d;
+};
 
 const Dashboard = () => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [today, setToday] = useState<ReportTotals | null>(null);
   const [lowStock, setLowStock] = useState<DbProduct[]>([]);
-  const [todayExpenses, setTodayExpenses] = useState(0);
+  const [symbol, setSymbol] = useState(getCachedSettings().currency_symbol);
 
   useEffect(() => {
-    setOrders(loadOrders());
+    const unsub = subscribeSettings((s) => setSymbol(s.currency_symbol));
+    return () => {
+      unsub();
+    };
+  }, []);
+
+  useEffect(() => {
+    fetchOrders()
+      .then((all) => setOrders(all.slice(0, 20)))
+      .catch(() => {});
     getDashboardStats().then(setStats).catch(() => {});
+    // Same engine as the Reports page, so the numbers always agree.
+    fetchReport(startOfToday(), new Date())
+      .then((r) => setToday(r.totals))
+      .catch(() => {});
     listProducts()
       .then((all) => setLowStock(all.filter((p) => p.stock <= p.low_stock_threshold)))
       .catch(() => {});
-    const today = new Date().toISOString().slice(0, 10);
-    sumExpensesInRange(today, today).then(setTodayExpenses).catch(() => {});
   }, []);
+
+  const money = (n: number) => `${symbol}${n.toFixed(2)}`;
 
   const widgets = [
     {
       label: "Total Sales (Today)",
-      value: `$${(stats?.totalSalesToday ?? 0).toFixed(2)}`,
+      value: money(today?.totalSales ?? 0),
       icon: DollarSign,
       color: "from-primary to-primary/80",
       to: "/dashboard/reports",
     },
     {
       label: "Orders Today",
-      value: (stats?.ordersToday ?? 0).toString(),
+      value: (today?.orders ?? 0).toString(),
       icon: ShoppingBag,
       color: "from-primary to-primary/80",
       to: "/dashboard/orders",
@@ -55,8 +76,8 @@ const Dashboard = () => {
       to: "/dashboard/orders",
     },
     {
-      label: "Total Due",
-      value: `$${(stats?.totalDue ?? 0).toFixed(2)}`,
+      label: "Total Due (Outstanding)",
+      value: money(stats?.totalDue ?? 0),
       icon: Wallet,
       color: "from-primary to-primary/80",
       to: "/dashboard/customers",
@@ -70,7 +91,7 @@ const Dashboard = () => {
     },
     {
       label: "Expenses Today",
-      value: `$${todayExpenses.toFixed(2)}`,
+      value: money(today?.expenses ?? 0),
       icon: TrendingDown,
       color: "from-primary to-primary/80",
       to: "/dashboard/expenses",
@@ -112,7 +133,9 @@ const Dashboard = () => {
         <Card className="rounded-2xl border-border lg:col-span-2">
           <div className="p-5 border-b border-border flex items-center justify-between">
             <h2 className="font-semibold text-lg">Recent Orders</h2>
-            <span className="text-sm text-muted-foreground">{orders.length} total</span>
+            <span className="text-sm text-muted-foreground">
+              {today?.orders ?? 0} today
+            </span>
           </div>
           <div className="divide-y divide-border">
             {orders.slice(0, 6).map((o) => (
@@ -128,7 +151,7 @@ const Dashboard = () => {
                   </div>
                 </div>
                 <div className="text-right">
-                  <div className="font-bold">${o.total.toFixed(2)}</div>
+                  <div className="font-bold">{money(o.total)}</div>
                   <div className="text-xs text-muted-foreground">
                     {o.paymentMethod}
                     {o.orderStatus ? ` · ${o.orderStatus}` : ""}
