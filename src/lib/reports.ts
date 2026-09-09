@@ -67,15 +67,17 @@ export type ReportData = {
   taxInclusive: boolean;
 };
 
-// Tax for one order, from the stored order amounts and the saved tax settings.
+// Tax for one order. Prices already include tax, so the tax portion is
+// extracted from the charged amount: total x rate / (1 + rate).
+// Sales totals are never increased by tax.
 export const invoiceTax = (
   inv: { total: number; delivery_fee: number },
   rate: number,
-  inclusive: boolean
+  _inclusive?: boolean
 ) => {
   if (rate <= 0) return 0;
   const base = Math.max(0, inv.total - inv.delivery_fee);
-  const t = inclusive ? base - base / (1 + rate) : base * rate;
+  const t = base - base / (1 + rate);
   return Math.round(t * 100) / 100;
 };
 
