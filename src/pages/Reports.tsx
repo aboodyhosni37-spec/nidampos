@@ -53,7 +53,12 @@ const Reports = () => {
   const [loading, setLoading] = useState(true);
   const [symbol, setSymbol] = useState(getCachedSettings().currency_symbol);
 
-  useEffect(() => subscribeSettings((s) => setSymbol(s.currency_symbol)), []);
+  useEffect(() => {
+    const unsub = subscribeSettings((s) => setSymbol(s.currency_symbol));
+    return () => {
+      unsub();
+    };
+  }, []);
 
   useEffect(() => {
     let active = true;

@@ -30,7 +30,12 @@ const Dashboard = () => {
   const [lowStock, setLowStock] = useState<DbProduct[]>([]);
   const [symbol, setSymbol] = useState(getCachedSettings().currency_symbol);
 
-  useEffect(() => subscribeSettings((s) => setSymbol(s.currency_symbol)), []);
+  useEffect(() => {
+    const unsub = subscribeSettings((s) => setSymbol(s.currency_symbol));
+    return () => {
+      unsub();
+    };
+  }, []);
 
   useEffect(() => {
     fetchOrders()
