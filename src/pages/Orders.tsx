@@ -153,7 +153,7 @@ const Orders = () => {
         invoice_id: payOrder.id,
         amount: due,
         method: payMethod,
-        customer_id: undefined,
+        customer_id: payOrder.customerId ?? undefined,
       });
       toast({
         title: "Payment received",
@@ -161,12 +161,35 @@ const Orders = () => {
       });
       setPayOrder(null);
       refresh();
+      listCustomers().then(setCustomers).catch(() => {});
     } catch (e: any) {
       toast({ title: "Failed", description: e.message, variant: "destructive" });
     } finally {
       setPaying(false);
     }
   };
+
+  const handleAssign = async () => {
+    if (!assignOrder || !assignCustomerId) return;
+    setAssigning(true);
+    try {
+      const res = await assignInvoiceToCustomer(assignOrder.id, assignCustomerId);
+      toast({
+        title: "Order assigned",
+        description: `Order #${assignOrder.number} now sits under ${res.customer_name}'s due.`,
+      });
+      setAssignOrder(null);
+      setAssignCustomerId("");
+      await refresh();
+      listCustomers().then(setCustomers).catch(() => {});
+      setDueCustomer(res.customer_id);
+    } catch (e: any) {
+      toast({ title: "Failed to assign", description: e.message, variant: "destructive" });
+    } finally {
+      setAssigning(false);
+    }
+  };
+
 
   const toggleSelected = (id: string) =>
     setSelectedIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
