@@ -84,6 +84,7 @@ import {
   listCustomers,
   listUnpaidInvoices,
   payUnpaidInvoice,
+  assignInvoiceToCustomer,
   type Customer,
   type PaymentMethod,
   type UnpaidInvoice,
