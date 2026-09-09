@@ -282,6 +282,30 @@ const POS = () => {
     }
   };
 
+  // Assign an existing due order to an existing customer. The order then leaves
+  // this list and shows under that customer's Customer Due.
+  const assignDueToCustomer = async () => {
+    if (!payOrder || !assignCustomerId) return;
+    setAssigning(true);
+    try {
+      const res = await assignInvoiceToCustomer(payOrder.id, assignCustomerId);
+      toast({
+        title: "Customer assigned",
+        description: `Order #${payOrder.number} moved to ${res.customer_name}'s due.`,
+      });
+      setPayOrder(null);
+      setAssignCustomerId("");
+      refreshUnpaid();
+      listCustomers().then(setCustomers).catch(() => {});
+    } catch (e: any) {
+      toast({ title: "Failed to assign", description: e.message, variant: "destructive" });
+    } finally {
+      setAssigning(false);
+    }
+  };
+
+
+
   const filtered = useMemo(() => {
     return products.filter((p) => {
       const inCat = activeCat === "all" || p.categoryId === activeCat;
