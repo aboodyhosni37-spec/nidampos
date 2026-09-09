@@ -309,7 +309,9 @@ const Inventory = () => {
                 <th className="p-4 font-semibold text-right">Price</th>
                 <th className="p-4 font-semibold text-right">Stock</th>
                 <th className="p-4 font-semibold text-right">Threshold</th>
+                <th className="p-4 font-semibold">Visibility</th>
                 <th className="p-4 font-semibold">Status</th>
+
                 <th className="p-4 font-semibold text-right">Edit</th>
 
               </tr>
