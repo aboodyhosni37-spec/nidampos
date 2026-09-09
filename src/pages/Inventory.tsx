@@ -108,6 +108,21 @@ const Inventory = () => {
       setEditSaving(false);
     }
   };
+  const toggleVisibility = async (
+    p: DbProduct,
+    patch: { show_on_web?: boolean; show_in_pos?: boolean }
+  ) => {
+    setProducts((prev) => prev.map((x) => (x.id === p.id ? { ...x, ...patch } : x)));
+    try {
+      await updateProductVisibility(p.id, patch);
+      const where = "show_on_web" in patch ? "Customer website" : "POS";
+      const on = "show_on_web" in patch ? patch.show_on_web : patch.show_in_pos;
+      toast({ title: `${where}: ${on ? "visible" : "hidden"}`, description: p.name });
+    } catch (e: any) {
+      setProducts((prev) => prev.map((x) => (x.id === p.id ? p : x)));
+      toast({ title: "Update failed", description: e.message, variant: "destructive" });
+    }
+  };
 
 
 
