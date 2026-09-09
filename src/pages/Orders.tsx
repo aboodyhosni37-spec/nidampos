@@ -574,7 +574,46 @@ const Orders = () => {
         </DialogContent>
       </Dialog>
 
-
+      {/* Assign a due order to an existing customer */}
+      <Dialog open={!!assignOrder} onOpenChange={(o) => !o && setAssignOrder(null)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Assign order #{assignOrder?.number} to a customer</DialogTitle>
+            <DialogDescription>
+              The remaining ${(assignOrder?.dueAmount ?? 0).toFixed(2)} moves to this customer's
+              due and leaves the Due Orders list.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2">
+            <Label>Customer</Label>
+            <Select value={assignCustomerId} onValueChange={setAssignCustomerId}>
+              <SelectTrigger className="rounded-xl">
+                <SelectValue placeholder="Select a customer" />
+              </SelectTrigger>
+              <SelectContent>
+                {customers.map((c) => (
+                  <SelectItem key={c.id} value={c.id}>
+                    {c.name}
+                    {c.phone ? ` · ${c.phone}` : ""}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" className="rounded-xl" onClick={() => setAssignOrder(null)}>
+              Cancel
+            </Button>
+            <Button
+              className="rounded-xl bg-primary text-primary-foreground hover:bg-primary/90"
+              disabled={!assignCustomerId || assigning}
+              onClick={handleAssign}
+            >
+              {assigning ? "Assigning…" : "Assign order"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={!!payOrder} onOpenChange={(o) => !o && setPayOrder(null)}>
         <DialogContent className="sm:max-w-md">
