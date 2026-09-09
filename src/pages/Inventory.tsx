@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/dialog";
 import { Package, Upload, Download, FileSpreadsheet, AlertTriangle, CheckCircle2, Plus, Pencil, ImagePlus, Trash2 } from "lucide-react";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import {
   listProducts,
   replaceMenu,
@@ -19,6 +20,7 @@ import {
   updateProductDetails,
   uploadProductImage,
   addInventory,
+  updateProductVisibility,
   type DbProduct,
 } from "@/lib/menu";
 
@@ -334,11 +336,11 @@ const Inventory = () => {
             <tbody className="divide-y divide-border">
               {loading ? (
                 <tr>
-                  <td colSpan={7} className="p-12 text-center text-muted-foreground">Loading…</td>
+                  <td colSpan={8} className="p-12 text-center text-muted-foreground">Loading…</td>
                 </tr>
               ) : products.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="p-12 text-center text-muted-foreground">
+                  <td colSpan={8} className="p-12 text-center text-muted-foreground">
                     No products yet. Import your menu from Excel to get started.
                   </td>
                 </tr>
