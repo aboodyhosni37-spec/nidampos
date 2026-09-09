@@ -86,7 +86,7 @@ const Reports = () => {
     const totalSales = invoices.reduce((s, i) => s + i.total, 0);
     const tax = round2(invoices.reduce((s, i) => s + i.tax, 0));
     const deliveryFees = round2(invoices.reduce((s, i) => s + i.delivery_fee, 0));
-    const expenses = payment === "all" ? data.totals.expenses : 0;
+    const expenses = 0; // expenses are not tied to a payment method
     const byMethod: Record<string, number> = {};
     payments.forEach((p) => {
       if (p.method === "Due" || p.amount <= 0) return;
