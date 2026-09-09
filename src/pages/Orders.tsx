@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Search, Eye, CreditCard, Printer, Merge, Pencil, Plus, Minus, Trash2, Wallet } from "lucide-react";
+import { Search, Eye, CreditCard, Printer, Merge, Pencil, Plus, Minus, Trash2, Wallet, UserPlus } from "lucide-react";
 
 import {
   fetchOrders,
@@ -28,7 +28,13 @@ import {
   DialogFooter,
   DialogDescription,
 } from "@/components/ui/dialog";
-import { payUnpaidInvoice, listCustomers, type Customer, type PaymentMethod } from "@/lib/db";
+import {
+  payUnpaidInvoice,
+  listCustomers,
+  assignInvoiceToCustomer,
+  type Customer,
+  type PaymentMethod,
+} from "@/lib/db";
 import { useSearchParams } from "react-router-dom";
 
 import {
@@ -72,6 +78,11 @@ const Orders = () => {
   // Customer due drawer
   const [dueCustomer, setDueCustomer] = useState<string | null>(null);
   const [customers, setCustomers] = useState<Customer[]>([]);
+
+  // Assign a due order to a customer
+  const [assignOrder, setAssignOrder] = useState<Order | null>(null);
+  const [assignCustomerId, setAssignCustomerId] = useState<string>("");
+  const [assigning, setAssigning] = useState(false);
 
 
   // Pay-now dialog state
@@ -142,7 +153,7 @@ const Orders = () => {
         invoice_id: payOrder.id,
         amount: due,
         method: payMethod,
-        customer_id: undefined,
+        customer_id: payOrder.customerId ?? undefined,
       });
       toast({
         title: "Payment received",
@@ -150,12 +161,35 @@ const Orders = () => {
       });
       setPayOrder(null);
       refresh();
+      listCustomers().then(setCustomers).catch(() => {});
     } catch (e: any) {
       toast({ title: "Failed", description: e.message, variant: "destructive" });
     } finally {
       setPaying(false);
     }
   };
+
+  const handleAssign = async () => {
+    if (!assignOrder || !assignCustomerId) return;
+    setAssigning(true);
+    try {
+      const res = await assignInvoiceToCustomer(assignOrder.id, assignCustomerId);
+      toast({
+        title: "Order assigned",
+        description: `Order #${assignOrder.number} now sits under ${res.customer_name}'s due.`,
+      });
+      setAssignOrder(null);
+      setAssignCustomerId("");
+      await refresh();
+      listCustomers().then(setCustomers).catch(() => {});
+      setDueCustomer(res.customer_id);
+    } catch (e: any) {
+      toast({ title: "Failed to assign", description: e.message, variant: "destructive" });
+    } finally {
+      setAssigning(false);
+    }
+  };
+
 
   const toggleSelected = (id: string) =>
     setSelectedIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
@@ -246,7 +280,9 @@ const Orders = () => {
       filter === "All"
         ? true
         : filter === "Due"
-        ? (o.dueAmount ?? 0) > 0
+        ? // Main Due Orders list holds only unassigned dues — once an order is
+          // linked to a customer it lives in that customer's due instead.
+          (o.dueAmount ?? 0) > 0 && !o.customerId
         : (o.orderStatus ?? "Completed") === filter
     )
     .filter(
@@ -396,11 +432,24 @@ const Orders = () => {
                             <Pencil className="h-3.5 w-3.5 mr-1" /> Edit
                           </Button>
                         )}
-                        {isUnpaid && o.customer && (
+                        {isUnpaid && !o.customerId && (
                           <Button
                             size="sm"
                             variant="outline"
-                            onClick={() => setDueCustomer(o.customer!)}
+                            onClick={() => {
+                              setAssignOrder(o);
+                              setAssignCustomerId("");
+                            }}
+                            className="h-8 rounded-lg"
+                          >
+                            <UserPlus className="h-3.5 w-3.5 mr-1" /> Assign
+                          </Button>
+                        )}
+                        {isUnpaid && o.customerId && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => setDueCustomer(o.customerId!)}
                             className="h-8 rounded-lg"
                           >
                             <Wallet className="h-3.5 w-3.5 mr-1" /> Customer Due
@@ -438,24 +487,20 @@ const Orders = () => {
       {/* Customer due — outstanding balance + unpaid / partially-paid orders */}
       <Dialog open={!!dueCustomer} onOpenChange={(o) => !o && setDueCustomer(null)}>
         <DialogContent className="sm:max-w-lg">
-          <DialogHeader>
-            <DialogTitle>{dueCustomer} · Customer due</DialogTitle>
-            <DialogDescription>
-              Outstanding balance and the orders that are still unpaid.
-            </DialogDescription>
-          </DialogHeader>
           {dueCustomer && (() => {
-            const record = customers.find(
-              (c) => c.name.toLowerCase() === dueCustomer.toLowerCase()
-            );
+            const record = customers.find((c) => c.id === dueCustomer);
             const dueOrders = orders.filter(
-              (o) =>
-                (o.customer || "").toLowerCase() === dueCustomer.toLowerCase() &&
-                (o.dueAmount ?? 0) > 0
+              (o) => o.customerId === dueCustomer && (o.dueAmount ?? 0) > 0
             );
             const orderDue = dueOrders.reduce((s, o) => s + (o.dueAmount ?? 0), 0);
             return (
               <div className="space-y-3">
+                <DialogHeader>
+                  <DialogTitle>{record?.name ?? "Customer"} · Customer due</DialogTitle>
+                  <DialogDescription>
+                    Outstanding balance and the orders that are still unpaid.
+                  </DialogDescription>
+                </DialogHeader>
                 <div className="grid grid-cols-2 gap-3">
                   <div className="p-3 rounded-xl bg-secondary">
                     <div className="text-xs text-muted-foreground">Customer balance</div>
@@ -474,22 +519,54 @@ const Orders = () => {
                       No unpaid orders — everything is settled.
                     </div>
                   )}
-                  {dueOrders.map((o) => (
-                    <div key={o.id} className="p-3 flex items-center justify-between text-sm">
-                      <div>
-                        <div className="font-semibold">Order #{o.number}</div>
-                        <div className="text-xs text-muted-foreground">
-                          {new Date(o.createdAt).toLocaleString()} · {o.items.length} items
+                  {dueOrders.map((o) => {
+                    const paid = o.paidAmount ?? 0;
+                    const due = o.dueAmount ?? 0;
+                    const status = paid > 0 ? "Partially paid" : "Unpaid";
+                    return (
+                      <div key={o.id} className="p-3 flex items-center justify-between text-sm gap-3">
+                        <div>
+                          <div className="font-semibold">
+                            Order #{o.number}
+                            <span className="ml-2 text-xs font-normal text-muted-foreground">
+                              {record?.name}
+                            </span>
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            {new Date(o.createdAt).toLocaleString()} · {o.items.length} items
+                          </div>
+                          <div className="text-xs font-medium mt-0.5">{status}</div>
+                        </div>
+                        <div className="text-right shrink-0">
+                          <div className="font-bold">${due.toFixed(2)} due</div>
+                          <div className="text-xs text-muted-foreground">
+                            ${o.total.toFixed(2)} total · ${paid.toFixed(2)} paid
+                          </div>
+                          <div className="mt-1 flex justify-end gap-1.5">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="h-7 rounded-lg text-xs"
+                              onClick={() => setSelected(o)}
+                            >
+                              View
+                            </Button>
+                            <Button
+                              size="sm"
+                              className="h-7 rounded-lg text-xs bg-primary text-primary-foreground hover:bg-primary/90"
+                              onClick={() => {
+                                setDueCustomer(null);
+                                setPayOrder(o);
+                                setPayMethod("EVC-Plus");
+                              }}
+                            >
+                              Pay
+                            </Button>
+                          </div>
                         </div>
                       </div>
-                      <div className="text-right">
-                        <div className="font-bold">${(o.dueAmount ?? 0).toFixed(2)} due</div>
-                        <div className="text-xs text-muted-foreground">
-                          ${o.total.toFixed(2)} total · ${(o.paidAmount ?? 0).toFixed(2)} paid
-                        </div>
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             );
@@ -497,7 +574,46 @@ const Orders = () => {
         </DialogContent>
       </Dialog>
 
-
+      {/* Assign a due order to an existing customer */}
+      <Dialog open={!!assignOrder} onOpenChange={(o) => !o && setAssignOrder(null)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Assign order #{assignOrder?.number} to a customer</DialogTitle>
+            <DialogDescription>
+              The remaining ${(assignOrder?.dueAmount ?? 0).toFixed(2)} moves to this customer's
+              due and leaves the Due Orders list.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2">
+            <Label>Customer</Label>
+            <Select value={assignCustomerId} onValueChange={setAssignCustomerId}>
+              <SelectTrigger className="rounded-xl">
+                <SelectValue placeholder="Select a customer" />
+              </SelectTrigger>
+              <SelectContent>
+                {customers.map((c) => (
+                  <SelectItem key={c.id} value={c.id}>
+                    {c.name}
+                    {c.phone ? ` · ${c.phone}` : ""}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" className="rounded-xl" onClick={() => setAssignOrder(null)}>
+              Cancel
+            </Button>
+            <Button
+              className="rounded-xl bg-primary text-primary-foreground hover:bg-primary/90"
+              disabled={!assignCustomerId || assigning}
+              onClick={handleAssign}
+            >
+              {assigning ? "Assigning…" : "Assign order"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={!!payOrder} onOpenChange={(o) => !o && setPayOrder(null)}>
         <DialogContent className="sm:max-w-md">

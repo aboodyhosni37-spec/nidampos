@@ -35,6 +35,7 @@ export type Order = {
   total: number;
   table: string;
   customer?: string;
+  customerId?: string | null;
   paymentMethod: OrderPaymentMethod;
   paidAmount?: number;
   dueAmount?: number;
@@ -50,7 +51,7 @@ export const fetchOrders = async (): Promise<Order[]> => {
   const { data: invoices, error } = await supabase
     .from("invoices")
     .select(
-      "id, number, total, paid_amount, due_amount, table_label, customer_name, payment_method, status, order_status, created_at, invoice_items(id, name, price, qty, product_id)"
+      "id, number, total, paid_amount, due_amount, table_label, customer_id, customer_name, payment_method, status, order_status, created_at, invoice_items(id, name, price, qty, product_id)"
     )
     .order("created_at", { ascending: false })
     .limit(500);
@@ -67,6 +68,7 @@ export const fetchOrders = async (): Promise<Order[]> => {
     total: Number(inv.total),
     table: inv.table_label || "—",
     customer: inv.customer_name || undefined,
+    customerId: inv.customer_id || null,
     paymentMethod: inv.payment_method,
     paidAmount: Number(inv.paid_amount || 0),
     dueAmount: Number(inv.due_amount || 0),

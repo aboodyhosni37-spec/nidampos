@@ -360,6 +360,69 @@ export const deleteCustomer = async (id: string) => {
   if (delErr) throw delErr;
 };
 
+// Link an existing unpaid/partially-paid invoice to a customer so its outstanding
+// balance is tracked under that customer's due. Never creates a customer or an
+// invoice, and never adds a second charge for the same invoice.
+export const assignInvoiceToCustomer = async (
+  invoiceId: string,
+  customerId: string
+) => {
+  const { data: customer, error: cErr } = await supabase
+    .from("customers")
+    .select("id, name")
+    .eq("id", customerId)
+    .single();
+  if (cErr) throw cErr;
+
+  const { data: inv, error: iErr } = await supabase
+    .from("invoices")
+    .select("id, number, total, paid_amount, due_amount, customer_id")
+    .eq("id", invoiceId)
+    .single();
+  if (iErr) throw iErr;
+
+  const outstanding = Math.max(
+    0,
+    Number(inv.due_amount || 0) > 0
+      ? Number(inv.due_amount)
+      : Number(inv.total || 0) - Number(inv.paid_amount || 0)
+  );
+  if (outstanding <= 0) throw new Error("This order has no outstanding balance.");
+
+  const { error: updErr } = await supabase
+    .from("invoices")
+    .update({
+      customer_id: customer.id,
+      customer_name: customer.name,
+      due_amount: outstanding,
+      order_status: "Unpaid",
+    })
+    .eq("id", invoiceId);
+  if (updErr) throw updErr;
+
+  // Only add the due charge if this invoice was not already charged to someone.
+  const { data: existing, error: exErr } = await supabase
+    .from("due_transactions")
+    .select("id, customer_id, type")
+    .eq("invoice_id", invoiceId)
+    .eq("type", "charge");
+  if (exErr) throw exErr;
+
+  if (!existing || existing.length === 0) {
+    const { error: dueErr } = await supabase.from("due_transactions").insert({
+      customer_id: customer.id,
+      invoice_id: invoiceId,
+      type: "charge",
+      amount: outstanding,
+      method: "Due",
+      note: `Invoice #${inv.number} assigned to customer`,
+    });
+    if (dueErr) throw dueErr;
+  }
+
+  return { customer_id: customer.id, customer_name: customer.name, due: outstanding };
+};
+
 // Update name/phone (NOT financial history).
 export const updateCustomer = async (
   id: string,
