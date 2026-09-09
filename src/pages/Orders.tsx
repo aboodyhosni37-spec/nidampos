@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Search, Eye, CreditCard, Printer, Merge, Pencil, Plus, Minus, Trash2 } from "lucide-react";
+import { Search, Eye, CreditCard, Printer, Merge, Pencil, Plus, Minus, Trash2, Wallet } from "lucide-react";
 
 import {
   fetchOrders,
@@ -28,7 +28,9 @@ import {
   DialogFooter,
   DialogDescription,
 } from "@/components/ui/dialog";
-import { payUnpaidInvoice, type PaymentMethod } from "@/lib/db";
+import { payUnpaidInvoice, listCustomers, type Customer, type PaymentMethod } from "@/lib/db";
+import { useSearchParams } from "react-router-dom";
+
 import {
   fetchInvoiceDetail,
   saveInvoiceItems,
@@ -59,10 +61,18 @@ const statusStyles: Record<OrderWorkflowStatus, string> = {
 };
 
 const Orders = () => {
+  const [searchParams] = useSearchParams();
   const [orders, setOrders] = useState<Order[]>([]);
   const [q, setQ] = useState("");
-  const [filter, setFilter] = useState<"All" | OrderWorkflowStatus>("All");
+  const [filter, setFilter] = useState<"All" | "Due" | OrderWorkflowStatus>(
+    searchParams.get("filter") === "due" ? "Due" : "All"
+  );
   const [selected, setSelected] = useState<Order | null>(null);
+
+  // Customer due drawer
+  const [dueCustomer, setDueCustomer] = useState<string | null>(null);
+  const [customers, setCustomers] = useState<Customer[]>([]);
+
 
   // Pay-now dialog state
   const [payOrder, setPayOrder] = useState<Order | null>(null);
@@ -92,6 +102,8 @@ const Orders = () => {
 
   useEffect(() => {
     refresh();
+    listCustomers().then(setCustomers).catch(() => {});
+
     const channel = supabase
       .channel("orders-page")
       .on(
@@ -230,13 +242,21 @@ const Orders = () => {
   };
 
   const filtered = orders
-    .filter((o) => (filter === "All" ? true : (o.orderStatus ?? "Completed") === filter))
+    .filter((o) =>
+      filter === "All"
+        ? true
+        : filter === "Due"
+        ? (o.dueAmount ?? 0) > 0
+        : (o.orderStatus ?? "Completed") === filter
+    )
     .filter(
       (o) =>
         o.number.toString().includes(q) ||
         o.table.toLowerCase().includes(q.toLowerCase()) ||
+        (o.customer || "").toLowerCase().includes(q.toLowerCase()) ||
         o.paymentMethod.toLowerCase().includes(q.toLowerCase())
     );
+
 
   return (
     <div className="max-w-6xl mx-auto space-y-6">
@@ -261,6 +281,8 @@ const Orders = () => {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="All">All statuses</SelectItem>
+              <SelectItem value="Due">Due orders</SelectItem>
+
               {STATUSES.map((s) => (
                 <SelectItem key={s} value={s}>{s}</SelectItem>
               ))}
@@ -308,7 +330,20 @@ const Orders = () => {
                         aria-label={`Select order ${o.number}`}
                       />
                     </td>
-                    <td className="p-4 font-semibold">#{o.number}</td>
+                    <td className="p-4 font-semibold">
+                      #{o.number}
+                      {o.customer && (
+                        <div className="text-xs font-normal text-muted-foreground">
+                          {o.customer}
+                        </div>
+                      )}
+                      {isUnpaid && (
+                        <div className="text-xs font-normal text-muted-foreground">
+                          Due ${(o.dueAmount ?? o.total).toFixed(2)}
+                        </div>
+                      )}
+                    </td>
+
 
                     <td className="p-4">{o.table}</td>
                     <td className="p-4">{o.items.length}</td>
@@ -361,6 +396,17 @@ const Orders = () => {
                             <Pencil className="h-3.5 w-3.5 mr-1" /> Edit
                           </Button>
                         )}
+                        {isUnpaid && o.customer && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => setDueCustomer(o.customer!)}
+                            className="h-8 rounded-lg"
+                          >
+                            <Wallet className="h-3.5 w-3.5 mr-1" /> Customer Due
+                          </Button>
+                        )}
+
                         <button
                           onClick={() => setSelected(o)}
                           className="inline-flex items-center gap-1 text-primary hover:underline text-sm font-medium px-2"
@@ -388,6 +434,70 @@ const Orders = () => {
       {selected && (
         <ReceiptPreview order={selected} onClose={() => setSelected(null)} autoPrint={false} />
       )}
+
+      {/* Customer due — outstanding balance + unpaid / partially-paid orders */}
+      <Dialog open={!!dueCustomer} onOpenChange={(o) => !o && setDueCustomer(null)}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>{dueCustomer} · Customer due</DialogTitle>
+            <DialogDescription>
+              Outstanding balance and the orders that are still unpaid.
+            </DialogDescription>
+          </DialogHeader>
+          {dueCustomer && (() => {
+            const record = customers.find(
+              (c) => c.name.toLowerCase() === dueCustomer.toLowerCase()
+            );
+            const dueOrders = orders.filter(
+              (o) =>
+                (o.customer || "").toLowerCase() === dueCustomer.toLowerCase() &&
+                (o.dueAmount ?? 0) > 0
+            );
+            const orderDue = dueOrders.reduce((s, o) => s + (o.dueAmount ?? 0), 0);
+            return (
+              <div className="space-y-3">
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="p-3 rounded-xl bg-secondary">
+                    <div className="text-xs text-muted-foreground">Customer balance</div>
+                    <div className="text-xl font-bold">
+                      ${Number(record?.due_balance ?? 0).toFixed(2)}
+                    </div>
+                  </div>
+                  <div className="p-3 rounded-xl bg-secondary">
+                    <div className="text-xs text-muted-foreground">Due on orders</div>
+                    <div className="text-xl font-bold">${orderDue.toFixed(2)}</div>
+                  </div>
+                </div>
+                <div className="max-h-72 overflow-y-auto rounded-xl border border-border divide-y divide-border">
+                  {dueOrders.length === 0 && (
+                    <div className="p-6 text-center text-sm text-muted-foreground">
+                      No unpaid orders — everything is settled.
+                    </div>
+                  )}
+                  {dueOrders.map((o) => (
+                    <div key={o.id} className="p-3 flex items-center justify-between text-sm">
+                      <div>
+                        <div className="font-semibold">Order #{o.number}</div>
+                        <div className="text-xs text-muted-foreground">
+                          {new Date(o.createdAt).toLocaleString()} · {o.items.length} items
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className="font-bold">${(o.dueAmount ?? 0).toFixed(2)} due</div>
+                        <div className="text-xs text-muted-foreground">
+                          ${o.total.toFixed(2)} total · ${(o.paidAmount ?? 0).toFixed(2)} paid
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            );
+          })()}
+        </DialogContent>
+      </Dialog>
+
+
 
       <Dialog open={!!payOrder} onOpenChange={(o) => !o && setPayOrder(null)}>
         <DialogContent className="sm:max-w-md">

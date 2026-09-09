@@ -11,7 +11,10 @@ import {
   History,
   Pencil,
   Trash2,
+  Receipt,
 } from "lucide-react";
+import { fetchOrders, type Order } from "@/lib/orders";
+import { ReceiptPreview } from "@/components/ReceiptPreview";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -87,6 +90,31 @@ const Customers = () => {
   const [editName, setEditName] = useState("");
   const [editPhone, setEditPhone] = useState("");
   const [deleteTarget, setDeleteTarget] = useState<Customer | null>(null);
+
+  // Order review + invoice printing (uses the existing receipt system)
+  const [reviewCustomer, setReviewCustomer] = useState<Customer | null>(null);
+  const [reviewOrders, setReviewOrders] = useState<Order[]>([]);
+  const [reviewLoading, setReviewLoading] = useState(false);
+  const [receiptOrder, setReceiptOrder] = useState<Order | null>(null);
+  const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
+
+  const openReview = async (c: Customer) => {
+    setReviewCustomer(c);
+    setReviewOrders([]);
+    setExpandedOrder(null);
+    setReviewLoading(true);
+    try {
+      const all = await fetchOrders();
+      setReviewOrders(
+        all.filter((o) => (o.customer || "").toLowerCase() === c.name.toLowerCase())
+      );
+    } catch (e: any) {
+      toast({ title: "Failed to load orders", description: e.message, variant: "destructive" });
+    } finally {
+      setReviewLoading(false);
+    }
+  };
+
 
   const startEdit = (c: Customer) => {
     setEditTarget(c);
@@ -331,11 +359,20 @@ const Customers = () => {
                     <Button
                       size="sm"
                       variant="outline"
+                      onClick={() => openReview(c)}
+                      className="rounded-lg"
+                    >
+                      <Receipt className="h-3.5 w-3.5 mr-1" /> Orders
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
                       onClick={() => openHistory(c)}
                       className="rounded-lg"
                     >
                       <History className="h-3.5 w-3.5 mr-1" /> History
                     </Button>
+
                     <Button
                       size="sm"
                       disabled={!hasDebt}
@@ -559,7 +596,92 @@ const Customers = () => {
         </DialogContent>
       </Dialog>
 
+      {/* Customer order review */}
+      <Dialog open={!!reviewCustomer} onOpenChange={(o) => !o && setReviewCustomer(null)}>
+        <DialogContent className="sm:max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>{reviewCustomer?.name} · Order review</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3 pt-1">
+            {reviewLoading ? (
+              <div className="p-8 text-center text-sm text-muted-foreground">Loading…</div>
+            ) : reviewOrders.length === 0 ? (
+              <div className="p-8 text-center text-sm text-muted-foreground">
+                No orders recorded for this customer yet.
+              </div>
+            ) : (
+              <div className="max-h-[65vh] overflow-y-auto rounded-xl border border-border divide-y divide-border">
+                {reviewOrders.map((o) => {
+                  const due = Math.max(0, o.total - (o.paidAmount ?? 0));
+                  const paid = o.paidAmount ?? 0;
+                  const status = due <= 0 ? "Paid" : paid > 0 ? "Partially paid" : "Unpaid";
+                  const open = expandedOrder === o.id;
+                  return (
+                    <div key={o.id} className="p-3 text-sm">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <div className="font-semibold">Order #{o.number}</div>
+                          <div className="text-xs text-muted-foreground">
+                            {new Date(o.createdAt).toLocaleString()} · {o.items.length} items ·{" "}
+                            {o.paymentMethod}
+                          </div>
+                          <div className="text-xs mt-1">
+                            <span className="font-semibold">{status}</span>
+                            {" · "}total ${o.total.toFixed(2)} · paid ${paid.toFixed(2)} · due $
+                            {due.toFixed(2)}
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="rounded-lg h-8"
+                            onClick={() => setExpandedOrder(open ? null : o.id)}
+                          >
+                            {open ? "Hide" : "Details"}
+                          </Button>
+                          <Button
+                            size="sm"
+                            className="rounded-lg h-8 bg-primary text-primary-foreground hover:bg-primary/90"
+                            onClick={() => setReceiptOrder(o)}
+                          >
+                            <Receipt className="h-3.5 w-3.5 mr-1" /> Print Invoice
+                          </Button>
+                        </div>
+                      </div>
+                      {open && (
+                        <div className="mt-2 rounded-lg bg-secondary/60 p-2 space-y-1">
+                          {o.items.map((it, i) => (
+                            <div key={`${o.id}-${i}`} className="flex justify-between text-xs">
+                              <span>
+                                {it.qty} × {it.name}
+                              </span>
+                              <span className="tabular-nums">
+                                ${(it.price * it.qty).toFixed(2)}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {receiptOrder && (
+        <ReceiptPreview
+          order={receiptOrder}
+          onClose={() => setReceiptOrder(null)}
+          autoPrint={false}
+        />
+      )}
+
       {/* Delete confirm — blocked if due > 0 */}
+
       <AlertDialog open={!!deleteTarget} onOpenChange={(o) => !o && setDeleteTarget(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
