@@ -79,7 +79,7 @@ export const DEFAULT_SITE_CONTENT: SiteContent = {
     name: "LamaHamar Cafe",
     tagline: "Cafe",
     logo_url: "",
-    favicon_url: "",
+    favicon_url: "/favicon.png",
   },
   contact: {
     phone: "+252 619105454",
