@@ -338,7 +338,7 @@ const Reports = () => {
           <h2 className="font-semibold text-lg mb-4">Money Received by Method</h2>
           <div className="space-y-3">
             {methods.map((m) => {
-              const pct = (t?.totalPaid ?? 0) ? (m.value / (t!.totalPaid || 1)) * 100 : 0;
+              const pct = methodsTotal ? (m.value / methodsTotal) * 100 : 0;
               return (
                 <div key={m.label}>
                   <div className="flex justify-between text-sm mb-1">
@@ -356,7 +356,7 @@ const Reports = () => {
             })}
             <div className="pt-2 flex justify-between text-sm font-semibold border-t border-border">
               <span>Total received</span>
-              <span>{money(t?.totalPaid ?? 0)}</span>
+              <span>{money(methodsTotal)}</span>
             </div>
             <div className="flex justify-between text-sm text-muted-foreground">
               <span>Outstanding due</span>
