@@ -102,6 +102,8 @@ const Orders = () => {
 
   useEffect(() => {
     refresh();
+    listCustomers().then(setCustomers).catch(() => {});
+
     const channel = supabase
       .channel("orders-page")
       .on(
@@ -279,6 +281,8 @@ const Orders = () => {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="All">All statuses</SelectItem>
+              <SelectItem value="Due">Due orders</SelectItem>
+
               {STATUSES.map((s) => (
                 <SelectItem key={s} value={s}>{s}</SelectItem>
               ))}
@@ -326,7 +330,20 @@ const Orders = () => {
                         aria-label={`Select order ${o.number}`}
                       />
                     </td>
-                    <td className="p-4 font-semibold">#{o.number}</td>
+                    <td className="p-4 font-semibold">
+                      #{o.number}
+                      {o.customer && (
+                        <div className="text-xs font-normal text-muted-foreground">
+                          {o.customer}
+                        </div>
+                      )}
+                      {isUnpaid && (
+                        <div className="text-xs font-normal text-muted-foreground">
+                          Due ${(o.dueAmount ?? o.total).toFixed(2)}
+                        </div>
+                      )}
+                    </td>
+
 
                     <td className="p-4">{o.table}</td>
                     <td className="p-4">{o.items.length}</td>
@@ -379,6 +396,17 @@ const Orders = () => {
                             <Pencil className="h-3.5 w-3.5 mr-1" /> Edit
                           </Button>
                         )}
+                        {isUnpaid && o.customer && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => setDueCustomer(o.customer!)}
+                            className="h-8 rounded-lg"
+                          >
+                            <Wallet className="h-3.5 w-3.5 mr-1" /> Customer Due
+                          </Button>
+                        )}
+
                         <button
                           onClick={() => setSelected(o)}
                           className="inline-flex items-center gap-1 text-primary hover:underline text-sm font-medium px-2"
