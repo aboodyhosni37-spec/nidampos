@@ -79,6 +79,11 @@ const Orders = () => {
   const [dueCustomer, setDueCustomer] = useState<string | null>(null);
   const [customers, setCustomers] = useState<Customer[]>([]);
 
+  // Assign a due order to a customer
+  const [assignOrder, setAssignOrder] = useState<Order | null>(null);
+  const [assignCustomerId, setAssignCustomerId] = useState<string>("");
+  const [assigning, setAssigning] = useState(false);
+
 
   // Pay-now dialog state
   const [payOrder, setPayOrder] = useState<Order | null>(null);
