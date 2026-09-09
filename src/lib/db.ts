@@ -179,33 +179,50 @@ export const getDashboardStats = async (): Promise<DashboardStats> => {
   const startOfDay = new Date();
   startOfDay.setHours(0, 0, 0, 0);
 
+  const VOID = ["cancelled", "canceled", "void", "voided", "refunded"];
+  const live = (i: any) =>
+    !VOID.includes(String(i.status ?? "").toLowerCase()) &&
+    !VOID.includes(String(i.order_status ?? "").toLowerCase());
+
   const { data: today, error: e1 } = await supabase
     .from("invoices")
-    .select("paid_amount, total, order_status, created_at")
+    .select("id, paid_amount, total, status, order_status, created_at")
     .gte("created_at", startOfDay.toISOString());
   if (e1) throw e1;
 
-  const totalSalesToday = (today ?? []).reduce((s: number, i: any) => s + Number(i.paid_amount || 0), 0);
-  const ordersToday = today?.length ?? 0;
+  const todayLive = (today ?? []).filter(live);
+  // Sales = value of the orders placed today (not just the cash collected).
+  const totalSalesToday = todayLive.reduce((s: number, i: any) => s + Number(i.total || 0), 0);
+  const ordersToday = todayLive.length;
 
   const { data: pending, error: e2 } = await supabase
     .from("invoices")
-    .select("id")
+    .select("id, status, order_status")
     .in("order_status", ["Pending", "Preparing"]);
   if (e2) throw e2;
 
-  const { data: dueAgg, error: e3 } = await supabase
-    .from("customers")
-    .select("due_balance");
+  // Outstanding due across all open invoices: total - paid, never negative.
+  const { data: dueRows, error: e3 } = await supabase
+    .from("invoices")
+    .select("total, paid_amount, status, order_status")
+    .gt("due_amount", 0);
   if (e3) throw e3;
+
+  const totalDue = (dueRows ?? [])
+    .filter(live)
+    .reduce(
+      (s: number, i: any) => s + Math.max(0, Number(i.total || 0) - Number(i.paid_amount || 0)),
+      0
+    );
 
   return {
     totalSalesToday,
     ordersToday,
-    pendingOrders: pending?.length ?? 0,
-    totalDue: (dueAgg ?? []).reduce((s: number, c: any) => s + Number(c.due_balance || 0), 0),
+    pendingOrders: (pending ?? []).filter(live).length,
+    totalDue,
   };
 };
+
 
 export type DueTransaction = {
   id: string;
