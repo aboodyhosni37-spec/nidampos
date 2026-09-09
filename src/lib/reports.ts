@@ -21,6 +21,7 @@ export type ReportInvoice = {
   customer_name: string | null;
   table_label: string | null;
   source: string;
+  tax: number;
   items: { name: string; price: number; qty: number }[];
 };
 
@@ -61,7 +62,21 @@ export type ReportData = {
   payments: ReportPayment[];
   totals: ReportTotals;
   topItems: { name: string; qty: number; revenue: number }[];
-  daily: { date: string; sales: number; paid: number; due: number; orders: number }[];
+  daily: { date: string; sales: number; paid: number; due: number; tax: number; orders: number }[];
+  taxRate: number;
+  taxInclusive: boolean;
+};
+
+// Tax for one order, from the stored order amounts and the saved tax settings.
+export const invoiceTax = (
+  inv: { total: number; delivery_fee: number },
+  rate: number,
+  inclusive: boolean
+) => {
+  if (rate <= 0) return 0;
+  const base = Math.max(0, inv.total - inv.delivery_fee);
+  const t = inclusive ? base - base / (1 + rate) : base * rate;
+  return Math.round(t * 100) / 100;
 };
 
 const VOID_STATES = ["cancelled", "canceled", "void", "voided", "refunded"];
@@ -125,6 +140,7 @@ const fetchAllInvoices = async (range: ReportRange): Promise<ReportInvoice[]> =>
       customer_name: inv.customer_name ?? null,
       table_label: inv.table_label ?? null,
       source: inv.source || "pos",
+      tax: 0,
       items: (inv.invoice_items ?? []).map((it: any) => ({
         name: it.name,
         price: Number(it.price || 0),
@@ -193,14 +209,11 @@ export const fetchReport = async (from?: Date, to?: Date): Promise<ReportData> =
   );
 
   const taxEnabled = !!settings?.tax_enabled && Number(settings?.tax_rate || 0) > 0;
-  const rate = Number(settings?.tax_rate || 0) / 100;
-  let tax = 0;
-  if (taxEnabled) {
-    tax = invoices.reduce((s, i) => {
-      const base = Math.max(0, i.total - i.delivery_fee);
-      return s + (settings?.tax_inclusive ? base - base / (1 + rate) : base * rate);
-    }, 0);
-  }
+  const rate = taxEnabled ? Number(settings?.tax_rate || 0) / 100 : 0;
+  const taxInclusive = !!settings?.tax_inclusive;
+  // Tax is stored per order once, so each order contributes exactly one tax figure.
+  for (const inv of invoices) inv.tax = invoiceTax(inv, rate, taxInclusive);
+  const tax = invoices.reduce((s, i) => s + i.tax, 0);
   const netSales = round2(totalSales - deliveryFees - tax);
 
   // Paid / Due come from the invoice records: due always equals total - paid.
@@ -241,14 +254,18 @@ export const fetchReport = async (from?: Date, to?: Date): Promise<ReportData> =
     .map(([name, t]) => ({ name, qty: t.qty, revenue: round2(t.revenue) }))
     .sort((a, b) => b.revenue - a.revenue);
 
-  const dayMap = new Map<string, { sales: number; paid: number; due: number; orders: number }>();
+  const dayMap = new Map<
+    string,
+    { sales: number; paid: number; due: number; tax: number; orders: number }
+  >();
   for (const inv of invoices) {
     const d = new Date(inv.created_at);
     const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(
       d.getDate()
     ).padStart(2, "0")}`;
-    const cur = dayMap.get(key) || { sales: 0, paid: 0, due: 0, orders: 0 };
+    const cur = dayMap.get(key) || { sales: 0, paid: 0, due: 0, tax: 0, orders: 0 };
     cur.sales += inv.total;
+    cur.tax += inv.tax;
     cur.paid += Math.min(inv.paid_amount, inv.total);
     cur.due += Math.max(0, inv.total - inv.paid_amount);
     cur.orders += 1;
@@ -260,6 +277,7 @@ export const fetchReport = async (from?: Date, to?: Date): Promise<ReportData> =
       sales: round2(v.sales),
       paid: round2(v.paid),
       due: round2(v.due),
+      tax: round2(v.tax),
       orders: v.orders,
     }))
     .sort((a, b) => (a.date < b.date ? 1 : -1));
@@ -287,5 +305,5 @@ export const fetchReport = async (from?: Date, to?: Date): Promise<ReportData> =
     netProfit: round2(totalSales - expenses),
   };
 
-  return { range, invoices, payments, totals, topItems, daily };
+  return { range, invoices, payments, totals, topItems, daily, taxRate: rate, taxInclusive };
 };
