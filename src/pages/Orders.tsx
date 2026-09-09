@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Search, Eye, CreditCard, Printer, Merge, Pencil, Plus, Minus, Trash2, Wallet } from "lucide-react";
+import { Search, Eye, CreditCard, Printer, Merge, Pencil, Plus, Minus, Trash2, Wallet, UserPlus } from "lucide-react";
 
 import {
   fetchOrders,
@@ -28,7 +28,13 @@ import {
   DialogFooter,
   DialogDescription,
 } from "@/components/ui/dialog";
-import { payUnpaidInvoice, listCustomers, type Customer, type PaymentMethod } from "@/lib/db";
+import {
+  payUnpaidInvoice,
+  listCustomers,
+  assignInvoiceToCustomer,
+  type Customer,
+  type PaymentMethod,
+} from "@/lib/db";
 import { useSearchParams } from "react-router-dom";
 
 import {
