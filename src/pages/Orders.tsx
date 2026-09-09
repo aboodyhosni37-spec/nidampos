@@ -432,11 +432,24 @@ const Orders = () => {
                             <Pencil className="h-3.5 w-3.5 mr-1" /> Edit
                           </Button>
                         )}
-                        {isUnpaid && o.customer && (
+                        {isUnpaid && !o.customerId && (
                           <Button
                             size="sm"
                             variant="outline"
-                            onClick={() => setDueCustomer(o.customer!)}
+                            onClick={() => {
+                              setAssignOrder(o);
+                              setAssignCustomerId("");
+                            }}
+                            className="h-8 rounded-lg"
+                          >
+                            <UserPlus className="h-3.5 w-3.5 mr-1" /> Assign
+                          </Button>
+                        )}
+                        {isUnpaid && o.customerId && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => setDueCustomer(o.customerId!)}
                             className="h-8 rounded-lg"
                           >
                             <Wallet className="h-3.5 w-3.5 mr-1" /> Customer Due
