@@ -2,7 +2,7 @@
 // expense records in the database. Nothing is derived from UI values or local storage.
 import { supabase } from "@/integrations/supabase/client";
 import { MOBILE_METHODS, type PaymentMethod } from "@/lib/db";
-import { fetchSystemSettings } from "@/lib/systemSettings";
+import { fetchSettings } from "@/lib/systemSettings";
 
 export type ReportRange = { fromIso: string; toIso: string; fromDate: string; toDate: string };
 
@@ -168,7 +168,7 @@ export const fetchReport = async (from?: Date, to?: Date): Promise<ReportData> =
   const range = buildRange(from, to);
   const [allInvoices, settings] = await Promise.all([
     fetchAllInvoices(range),
-    fetchSystemSettings().catch(() => null),
+    fetchSettings().catch(() => null),
   ]);
 
   const voided = allInvoices.filter(isVoided);
