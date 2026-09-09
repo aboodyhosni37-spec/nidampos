@@ -28,7 +28,9 @@ import {
   DialogFooter,
   DialogDescription,
 } from "@/components/ui/dialog";
-import { payUnpaidInvoice, type PaymentMethod } from "@/lib/db";
+import { payUnpaidInvoice, listCustomers, type Customer, type PaymentMethod } from "@/lib/db";
+import { useSearchParams } from "react-router-dom";
+
 import {
   fetchInvoiceDetail,
   saveInvoiceItems,
@@ -59,10 +61,18 @@ const statusStyles: Record<OrderWorkflowStatus, string> = {
 };
 
 const Orders = () => {
+  const [searchParams] = useSearchParams();
   const [orders, setOrders] = useState<Order[]>([]);
   const [q, setQ] = useState("");
-  const [filter, setFilter] = useState<"All" | OrderWorkflowStatus>("All");
+  const [filter, setFilter] = useState<"All" | "Due" | OrderWorkflowStatus>(
+    searchParams.get("filter") === "due" ? "Due" : "All"
+  );
   const [selected, setSelected] = useState<Order | null>(null);
+
+  // Customer due drawer
+  const [dueCustomer, setDueCustomer] = useState<string | null>(null);
+  const [customers, setCustomers] = useState<Customer[]>([]);
+
 
   // Pay-now dialog state
   const [payOrder, setPayOrder] = useState<Order | null>(null);
@@ -230,13 +240,21 @@ const Orders = () => {
   };
 
   const filtered = orders
-    .filter((o) => (filter === "All" ? true : (o.orderStatus ?? "Completed") === filter))
+    .filter((o) =>
+      filter === "All"
+        ? true
+        : filter === "Due"
+        ? (o.dueAmount ?? 0) > 0
+        : (o.orderStatus ?? "Completed") === filter
+    )
     .filter(
       (o) =>
         o.number.toString().includes(q) ||
         o.table.toLowerCase().includes(q.toLowerCase()) ||
+        (o.customer || "").toLowerCase().includes(q.toLowerCase()) ||
         o.paymentMethod.toLowerCase().includes(q.toLowerCase())
     );
+
 
   return (
     <div className="max-w-6xl mx-auto space-y-6">
