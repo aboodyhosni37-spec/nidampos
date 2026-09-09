@@ -207,7 +207,13 @@ const POS = () => {
     setUnpaidLoading(true);
     try {
       const rows = await listUnpaidInvoices();
-      setUnpaid(rows);
+      // Only unassigned due orders belong here. Once a customer is assigned,
+      // the balance is tracked under that customer's Customer Due.
+      setUnpaid(
+        rows.filter(
+          (r) => !r.customer_id && Number(r.due_amount || 0) > 0
+        )
+      );
     } catch (e: any) {
       toast({ title: "Failed to load due orders", description: e.message, variant: "destructive" });
     } finally {
