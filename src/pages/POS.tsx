@@ -1549,6 +1549,38 @@ const POS = () => {
                   UNPAID
                 </span>
               </div>
+
+              {!payOrder.customer_id && (
+                <div className="space-y-1.5 rounded-xl border border-border p-3">
+                  <Label>Assign to customer (move to Customer Due)</Label>
+                  <div className="flex gap-2">
+                    <select
+                      value={assignCustomerId}
+                      onChange={(e) => setAssignCustomerId(e.target.value)}
+                      className="h-10 flex-1 rounded-xl border border-border bg-card px-3 text-sm"
+                    >
+                      <option value="">Select customer…</option>
+                      {customers.map((c) => (
+                        <option key={c.id} value={c.id}>
+                          {c.name}
+                          {c.phone ? ` · ${c.phone}` : ""}
+                        </option>
+                      ))}
+                    </select>
+                    <Button
+                      variant="outline"
+                      className="rounded-xl"
+                      disabled={!assignCustomerId || assigning}
+                      onClick={assignDueToCustomer}
+                    >
+                      {assigning ? "Assigning…" : "Assign"}
+                    </Button>
+                  </div>
+                  <p className="text-[11px] text-muted-foreground">
+                    The order stays the same — its balance moves under the customer.
+                  </p>
+                </div>
+              )}
               <div className="space-y-1.5">
                 <Label>Payment Method</Label>
                 <div className="grid grid-cols-2 gap-2">
