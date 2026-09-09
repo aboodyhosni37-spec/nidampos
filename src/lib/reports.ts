@@ -210,7 +210,7 @@ export const fetchReport = async (from?: Date, to?: Date): Promise<ReportData> =
     0
   );
 
-  const taxInclusive = true; // prices always include tax in reports
+  const taxInclusive = true; // prices already include tax
   const rate = taxEnabled ? Number(settings?.tax_rate || 0) / 100 : 0;
   const taxInclusive = !!settings?.tax_inclusive;
   // Tax is stored per order once, so each order contributes exactly one tax figure.
