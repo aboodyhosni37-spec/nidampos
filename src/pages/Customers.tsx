@@ -11,7 +11,10 @@ import {
   History,
   Pencil,
   Trash2,
+  Receipt,
 } from "lucide-react";
+import { fetchOrders, type Order } from "@/lib/orders";
+import { ReceiptPreview } from "@/components/ReceiptPreview";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -87,6 +90,31 @@ const Customers = () => {
   const [editName, setEditName] = useState("");
   const [editPhone, setEditPhone] = useState("");
   const [deleteTarget, setDeleteTarget] = useState<Customer | null>(null);
+
+  // Order review + invoice printing (uses the existing receipt system)
+  const [reviewCustomer, setReviewCustomer] = useState<Customer | null>(null);
+  const [reviewOrders, setReviewOrders] = useState<Order[]>([]);
+  const [reviewLoading, setReviewLoading] = useState(false);
+  const [receiptOrder, setReceiptOrder] = useState<Order | null>(null);
+  const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
+
+  const openReview = async (c: Customer) => {
+    setReviewCustomer(c);
+    setReviewOrders([]);
+    setExpandedOrder(null);
+    setReviewLoading(true);
+    try {
+      const all = await fetchOrders();
+      setReviewOrders(
+        all.filter((o) => (o.customer || "").toLowerCase() === c.name.toLowerCase())
+      );
+    } catch (e: any) {
+      toast({ title: "Failed to load orders", description: e.message, variant: "destructive" });
+    } finally {
+      setReviewLoading(false);
+    }
+  };
+
 
   const startEdit = (c: Customer) => {
     setEditTarget(c);
@@ -331,11 +359,20 @@ const Customers = () => {
                     <Button
                       size="sm"
                       variant="outline"
+                      onClick={() => openReview(c)}
+                      className="rounded-lg"
+                    >
+                      <Receipt className="h-3.5 w-3.5 mr-1" /> Orders
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
                       onClick={() => openHistory(c)}
                       className="rounded-lg"
                     >
                       <History className="h-3.5 w-3.5 mr-1" /> History
                     </Button>
+
                     <Button
                       size="sm"
                       disabled={!hasDebt}
