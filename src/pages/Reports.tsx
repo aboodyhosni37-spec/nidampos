@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { format } from "date-fns";
-import { CalendarIcon, Loader2, X } from "lucide-react";
+import { CalendarIcon, Loader2, Printer, X } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -84,6 +84,9 @@ const Reports = () => {
     const payments = data.payments.filter((p) => ids.has(p.invoice_id));
     const round2 = (n: number) => Math.round(n * 100) / 100;
     const totalSales = invoices.reduce((s, i) => s + i.total, 0);
+    const tax = round2(invoices.reduce((s, i) => s + i.tax, 0));
+    const deliveryFees = round2(invoices.reduce((s, i) => s + i.delivery_fee, 0));
+    const expenses = payment === "all" ? data.totals.expenses : 0;
     const byMethod: Record<string, number> = {};
     payments.forEach((p) => {
       if (p.method === "Due" || p.amount <= 0) return;
@@ -109,7 +112,11 @@ const Reports = () => {
         ...data.totals,
         orders: invoices.length,
         grossSales: round2(invoices.reduce((s, i) => s + i.subtotal, 0)),
-        deliveryFees: round2(invoices.reduce((s, i) => s + i.delivery_fee, 0)),
+        deliveryFees,
+        tax,
+        netSales: round2(totalSales - deliveryFees - tax),
+        expenses,
+        netProfit: round2(totalSales - expenses),
         discounts: round2(
           invoices.reduce((s, i) => s + Math.max(0, i.subtotal + i.delivery_fee - i.total), 0)
         ),
@@ -146,15 +153,72 @@ const Reports = () => {
   const summary = [
     { label: "Total Sales", value: money(t?.totalSales ?? 0), strong: true },
     { label: "Orders", value: String(t?.orders ?? 0) },
+    { label: "Total Tax", value: money(t?.tax ?? 0) },
+    { label: "Discounts", value: money(t?.discounts ?? 0) },
     { label: "Total Paid", value: money(t?.totalPaid ?? 0) },
     { label: "Total Due", value: money(t?.totalDue ?? 0) },
   ];
+
+  const rangeLabel = view
+    ? `${view.range.fromDate} to ${view.range.toDate}`
+    : "";
+
+  const printReport = () => {
+    if (!view || !t) return;
+    const row = (l: string, v: string, strong = false) =>
+      `<tr${strong ? ' class="strong"' : ""}><td>${l}</td><td class="r">${v}</td></tr>`;
+    const html = `<!doctype html><html><head><meta charset="utf-8" />
+<title>Report ${rangeLabel}</title>
+<style>
+body{font-family:Arial,Helvetica,sans-serif;color:#000;background:#fff;margin:24px;}
+h1{font-size:20px;margin:0 0 4px;}
+.meta{font-size:12px;color:#444;margin-bottom:16px;}
+h2{font-size:14px;margin:18px 0 6px;text-transform:uppercase;letter-spacing:.04em;}
+table{width:100%;border-collapse:collapse;font-size:13px;}
+td,th{padding:6px 4px;border-bottom:1px solid #ddd;text-align:left;}
+.r{text-align:right;}
+tr.strong td{font-weight:700;border-top:1px solid #000;}
+</style></head><body>
+<h1>Sales Report</h1>
+<div class="meta">Date range: ${rangeLabel}<br/>Payment method: ${payment === "all" ? "All methods" : payment}<br/>Tax: ${(view.taxRate * 100).toFixed(2)}% ${view.taxInclusive ? "(inclusive)" : "(exclusive)"}<br/>Printed: ${format(new Date(), "PPpp")}</div>
+<h2>Summary</h2><table>
+${row("Orders", String(t.orders))}
+${row("Gross Sales", money(t.grossSales))}
+${row("Discounts", `- ${money(t.discounts)}`)}
+${row("Delivery Fees", money(t.deliveryFees))}
+${row("Total Tax", money(t.tax))}
+${row("Net Sales", money(t.netSales))}
+${row("Total Sales", money(t.totalSales), true)}
+${row("Total Paid", money(t.totalPaid))}
+${row("Total Due", money(t.totalDue), true)}
+</table>
+<h2>Money Received by Method</h2><table>
+${methods.map((m) => row(m.label, money(m.value))).join("")}
+${row("Total received", money(methodsTotal), true)}
+</table>
+<h2>Day by Day</h2><table>
+<tr><th>Date</th><th class="r">Orders</th><th class="r">Sales</th><th class="r">Tax</th><th class="r">Paid</th><th class="r">Due</th></tr>
+${view.daily
+  .map(
+    (d) =>
+      `<tr><td>${d.date}</td><td class="r">${d.orders}</td><td class="r">${money(d.sales)}</td><td class="r">${money(d.tax)}</td><td class="r">${money(d.paid)}</td><td class="r">${money(d.due)}</td></tr>`
+  )
+  .join("")}
+${`<tr class="strong"><td>Totals</td><td class="r">${t.orders}</td><td class="r">${money(t.totalSales)}</td><td class="r">${money(t.tax)}</td><td class="r">${money(t.totalPaid)}</td><td class="r">${money(t.totalDue)}</td></tr>`}
+</table>
+<script>window.onload=function(){window.print();}</script>
+</body></html>`;
+    const w = window.open("", "_blank", "width=900,height=700");
+    if (!w) return;
+    w.document.write(html);
+    w.document.close();
+  };
 
   const breakdown = [
     { label: "Gross Sales", value: money(t?.grossSales ?? 0) },
     { label: "Discounts", value: `- ${money(t?.discounts ?? 0)}` },
     { label: "Delivery Fees", value: money(t?.deliveryFees ?? 0) },
-    { label: "Tax", value: money(t?.tax ?? 0) },
+    { label: "Total Tax", value: money(t?.tax ?? 0) },
     { label: "Net Sales", value: money(t?.netSales ?? 0) },
     { label: "Avg. Ticket", value: money(t?.avgTicket ?? 0) },
     { label: "Expenses", value: `- ${money(t?.expenses ?? 0)}` },
@@ -179,7 +243,13 @@ const Reports = () => {
             Calculated from your saved orders, payments and expenses.
           </p>
         </div>
-        {loading && <Loader2 className="h-5 w-5 animate-spin text-muted-foreground mt-2" />}
+        <div className="flex items-center gap-3">
+          {loading && <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />}
+          <Button variant="outline" onClick={printReport} disabled={!view || loading}>
+            <Printer className="mr-2 h-4 w-4" />
+            Print Report
+          </Button>
+        </div>
       </div>
 
       <Card className="p-4 md:p-5 rounded-2xl border-border space-y-4">
@@ -294,7 +364,7 @@ const Reports = () => {
         </div>
       </Card>
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
         {summary.map((s) => (
           <Card key={s.label} className="p-5 rounded-2xl border-border">
             <div className="text-sm text-muted-foreground">{s.label}</div>
