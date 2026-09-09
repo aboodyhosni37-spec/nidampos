@@ -487,20 +487,10 @@ const Orders = () => {
       {/* Customer due — outstanding balance + unpaid / partially-paid orders */}
       <Dialog open={!!dueCustomer} onOpenChange={(o) => !o && setDueCustomer(null)}>
         <DialogContent className="sm:max-w-lg">
-          <DialogHeader>
-            <DialogTitle>{dueCustomer} · Customer due</DialogTitle>
-            <DialogDescription>
-              Outstanding balance and the orders that are still unpaid.
-            </DialogDescription>
-          </DialogHeader>
           {dueCustomer && (() => {
-            const record = customers.find(
-              (c) => c.name.toLowerCase() === dueCustomer.toLowerCase()
-            );
+            const record = customers.find((c) => c.id === dueCustomer);
             const dueOrders = orders.filter(
-              (o) =>
-                (o.customer || "").toLowerCase() === dueCustomer.toLowerCase() &&
-                (o.dueAmount ?? 0) > 0
+              (o) => o.customerId === dueCustomer && (o.dueAmount ?? 0) > 0
             );
             const orderDue = dueOrders.reduce((s, o) => s + (o.dueAmount ?? 0), 0);
             return (
