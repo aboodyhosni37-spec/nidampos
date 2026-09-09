@@ -80,7 +80,7 @@ const Dashboard = () => {
       value: money(stats?.totalDue ?? 0),
       icon: Wallet,
       color: "from-primary to-primary/80",
-      to: "/dashboard/customers",
+      to: "/dashboard/orders?filter=due",
     },
     {
       label: "Low Stock Alerts",

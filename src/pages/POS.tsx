@@ -717,13 +717,13 @@ const POS = () => {
         <div className="flex flex-col gap-3 min-h-0 min-w-0">
           {/* Categories */}
           {leftMode === "menu" && (
-            <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1 shrink-0 min-w-0">
+            <div className="flex flex-wrap gap-1.5 pb-1 shrink-0 min-w-0">
               {categories.map((c) => (
                 <button
                   key={c.id}
                   onClick={() => setActiveCat(c.id)}
                   className={cn(
-                    "flex items-center gap-1.5 px-4 h-10 rounded-full text-sm font-semibold whitespace-nowrap transition-all",
+                    "flex items-center gap-1 px-3 h-9 rounded-full text-xs font-semibold whitespace-nowrap transition-all",
                     activeCat === c.id
                       ? "bg-primary text-primary-foreground hover:bg-primary/90 shadow-soft"
                       : "bg-card border border-border"
@@ -734,6 +734,7 @@ const POS = () => {
                 </button>
               ))}
             </div>
+
           )}
           {/* Quick-tabs */}
           <div className="flex items-center gap-2">
