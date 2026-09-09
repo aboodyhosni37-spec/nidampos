@@ -167,6 +167,8 @@ const Reports = () => {
     { label: "Mobile (EVC / Premier / E-Dahab)", value: t?.mobile ?? 0 },
     { label: "Other methods", value: t?.other ?? 0 },
   ];
+  const methodsTotal = Math.round(methods.reduce((s, m) => s + m.value, 0) * 100) / 100;
+
 
   return (
     <div className="max-w-6xl mx-auto space-y-6">
