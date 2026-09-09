@@ -84,6 +84,7 @@ import {
   listCustomers,
   listUnpaidInvoices,
   payUnpaidInvoice,
+  assignInvoiceToCustomer,
   type Customer,
   type PaymentMethod,
   type UnpaidInvoice,
@@ -179,6 +180,8 @@ const POS = () => {
   const [payOrder, setPayOrder] = useState<UnpaidInvoice | null>(null);
   const [payMethodInline, setPayMethodInline] = useState<Exclude<PaymentMethod, "Due" | "Split">>("EVC-Plus");
   const [payingInline, setPayingInline] = useState(false);
+  const [assignCustomerId, setAssignCustomerId] = useState<string>("");
+  const [assigning, setAssigning] = useState(false);
 
   // System settings (currency + tax)
   const [sys, setSys] = useState<SystemSettings>(() => getCachedSettings());
@@ -206,7 +209,13 @@ const POS = () => {
     setUnpaidLoading(true);
     try {
       const rows = await listUnpaidInvoices();
-      setUnpaid(rows);
+      // Only unassigned due orders belong here. Once a customer is assigned,
+      // the balance is tracked under that customer's Customer Due.
+      setUnpaid(
+        rows.filter(
+          (r) => !r.customer_id && Number(r.due_amount || 0) > 0
+        )
+      );
     } catch (e: any) {
       toast({ title: "Failed to load due orders", description: e.message, variant: "destructive" });
     } finally {
@@ -272,6 +281,30 @@ const POS = () => {
       setPayingInline(false);
     }
   };
+
+  // Assign an existing due order to an existing customer. The order then leaves
+  // this list and shows under that customer's Customer Due.
+  const assignDueToCustomer = async () => {
+    if (!payOrder || !assignCustomerId) return;
+    setAssigning(true);
+    try {
+      const res = await assignInvoiceToCustomer(payOrder.id, assignCustomerId);
+      toast({
+        title: "Customer assigned",
+        description: `Order #${payOrder.number} moved to ${res.customer_name}'s due.`,
+      });
+      setPayOrder(null);
+      setAssignCustomerId("");
+      refreshUnpaid();
+      listCustomers().then(setCustomers).catch(() => {});
+    } catch (e: any) {
+      toast({ title: "Failed to assign", description: e.message, variant: "destructive" });
+    } finally {
+      setAssigning(false);
+    }
+  };
+
+
 
   const filtered = useMemo(() => {
     return products.filter((p) => {
@@ -1516,6 +1549,38 @@ const POS = () => {
                   UNPAID
                 </span>
               </div>
+
+              {!payOrder.customer_id && (
+                <div className="space-y-1.5 rounded-xl border border-border p-3">
+                  <Label>Assign to customer (move to Customer Due)</Label>
+                  <div className="flex gap-2">
+                    <select
+                      value={assignCustomerId}
+                      onChange={(e) => setAssignCustomerId(e.target.value)}
+                      className="h-10 flex-1 rounded-xl border border-border bg-card px-3 text-sm"
+                    >
+                      <option value="">Select customer…</option>
+                      {customers.map((c) => (
+                        <option key={c.id} value={c.id}>
+                          {c.name}
+                          {c.phone ? ` · ${c.phone}` : ""}
+                        </option>
+                      ))}
+                    </select>
+                    <Button
+                      variant="outline"
+                      className="rounded-xl"
+                      disabled={!assignCustomerId || assigning}
+                      onClick={assignDueToCustomer}
+                    >
+                      {assigning ? "Assigning…" : "Assign"}
+                    </Button>
+                  </div>
+                  <p className="text-[11px] text-muted-foreground">
+                    The order stays the same — its balance moves under the customer.
+                  </p>
+                </div>
+              )}
               <div className="space-y-1.5">
                 <Label>Payment Method</Label>
                 <div className="grid grid-cols-2 gap-2">
