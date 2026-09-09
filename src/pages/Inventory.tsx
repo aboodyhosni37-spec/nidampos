@@ -362,6 +362,25 @@ const Inventory = () => {
                       </td>
                       <td className="p-4 text-right text-muted-foreground">{p.low_stock_threshold}</td>
                       <td className="p-4">
+                        <div className="flex flex-col gap-2">
+                          <label className="flex items-center gap-2 text-xs">
+                            <Switch
+                              checked={p.show_on_web}
+                              onCheckedChange={(v) => toggleVisibility(p, { show_on_web: v })}
+                            />
+                            <span className="text-muted-foreground">Website</span>
+                          </label>
+                          <label className="flex items-center gap-2 text-xs">
+                            <Switch
+                              checked={p.show_in_pos}
+                              onCheckedChange={(v) => toggleVisibility(p, { show_in_pos: v })}
+                            />
+                            <span className="text-muted-foreground">POS</span>
+                          </label>
+                        </div>
+                      </td>
+
+                      <td className="p-4">
                         <span
                           className={
                             "inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold " +
