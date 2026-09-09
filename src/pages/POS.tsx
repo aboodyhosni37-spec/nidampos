@@ -180,6 +180,8 @@ const POS = () => {
   const [payOrder, setPayOrder] = useState<UnpaidInvoice | null>(null);
   const [payMethodInline, setPayMethodInline] = useState<Exclude<PaymentMethod, "Due" | "Split">>("EVC-Plus");
   const [payingInline, setPayingInline] = useState(false);
+  const [assignCustomerId, setAssignCustomerId] = useState<string>("");
+  const [assigning, setAssigning] = useState(false);
 
   // System settings (currency + tax)
   const [sys, setSys] = useState<SystemSettings>(() => getCachedSettings());
