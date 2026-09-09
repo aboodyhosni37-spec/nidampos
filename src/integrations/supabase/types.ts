@@ -378,6 +378,8 @@ export type Database = {
           low_stock_threshold: number
           name: string
           price: number
+          show_in_pos: boolean
+          show_on_web: boolean
           stock: number
           updated_at: string
         }
@@ -391,6 +393,8 @@ export type Database = {
           low_stock_threshold?: number
           name: string
           price?: number
+          show_in_pos?: boolean
+          show_on_web?: boolean
           stock?: number
           updated_at?: string
         }
@@ -404,6 +408,8 @@ export type Database = {
           low_stock_threshold?: number
           name?: string
           price?: number
+          show_in_pos?: boolean
+          show_on_web?: boolean
           stock?: number
           updated_at?: string
         }

@@ -226,7 +226,7 @@ const POS = () => {
   useEffect(() => {
     listCustomers().then(setCustomers).catch(() => {});
     listCategories().then(setDbCategories).catch(() => {});
-    listProducts().then(setDbProducts).catch(() => {});
+    listProducts({ visibleOn: "pos" }).then(setDbProducts).catch(() => {});
     refreshUnpaid();
     fetchSettings().then(setSys).catch(() => {});
     const unsub = subscribeSettings(setSys);

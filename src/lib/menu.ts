@@ -16,6 +16,8 @@ export type DbProduct = {
   stock: number;
   low_stock_threshold: number;
   is_active: boolean;
+  show_on_web: boolean;
+  show_in_pos: boolean;
 };
 
 export const listCategories = async (): Promise<DbCategory[]> => {
@@ -28,16 +30,29 @@ export const listCategories = async (): Promise<DbCategory[]> => {
   return (data ?? []) as DbCategory[];
 };
 
-export const listProducts = async (): Promise<DbProduct[]> => {
-  const { data, error } = await supabase
-    .from("products")
-    .select("*")
-    .eq("is_active", true)
-    .order("category_name")
-    .order("name");
+export const listProducts = async (opts?: {
+  visibleOn?: "web" | "pos";
+}): Promise<DbProduct[]> => {
+  let query = supabase.from("products").select("*").eq("is_active", true);
+  if (opts?.visibleOn === "web") query = query.eq("show_on_web", true);
+  if (opts?.visibleOn === "pos") query = query.eq("show_in_pos", true);
+  const { data, error } = await query.order("category_name").order("name");
   if (error) throw error;
   return (data ?? []) as DbProduct[];
 };
+
+/** Toggles where a product is shown, without deleting or altering it. */
+export const updateProductVisibility = async (
+  id: string,
+  patch: { show_on_web?: boolean; show_in_pos?: boolean }
+) => {
+  const { error } = await supabase
+    .from("products")
+    .update({ ...patch, updated_at: new Date().toISOString() })
+    .eq("id", id);
+  if (error) throw error;
+};
+
 
 export type ImportRow = {
   category: string;

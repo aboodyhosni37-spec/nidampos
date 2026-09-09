@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/dialog";
 import { Package, Upload, Download, FileSpreadsheet, AlertTriangle, CheckCircle2, Plus, Pencil, ImagePlus, Trash2 } from "lucide-react";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import {
   listProducts,
   replaceMenu,
@@ -19,6 +20,7 @@ import {
   updateProductDetails,
   uploadProductImage,
   addInventory,
+  updateProductVisibility,
   type DbProduct,
 } from "@/lib/menu";
 
@@ -106,6 +108,21 @@ const Inventory = () => {
       toast({ title: "Update failed", description: e.message, variant: "destructive" });
     } finally {
       setEditSaving(false);
+    }
+  };
+  const toggleVisibility = async (
+    p: DbProduct,
+    patch: { show_on_web?: boolean; show_in_pos?: boolean }
+  ) => {
+    setProducts((prev) => prev.map((x) => (x.id === p.id ? { ...x, ...patch } : x)));
+    try {
+      await updateProductVisibility(p.id, patch);
+      const where = "show_on_web" in patch ? "Customer website" : "POS";
+      const on = "show_on_web" in patch ? patch.show_on_web : patch.show_in_pos;
+      toast({ title: `${where}: ${on ? "visible" : "hidden"}`, description: p.name });
+    } catch (e: any) {
+      setProducts((prev) => prev.map((x) => (x.id === p.id ? p : x)));
+      toast({ title: "Update failed", description: e.message, variant: "destructive" });
     }
   };
 
@@ -309,7 +326,9 @@ const Inventory = () => {
                 <th className="p-4 font-semibold text-right">Price</th>
                 <th className="p-4 font-semibold text-right">Stock</th>
                 <th className="p-4 font-semibold text-right">Threshold</th>
+                <th className="p-4 font-semibold">Visibility</th>
                 <th className="p-4 font-semibold">Status</th>
+
                 <th className="p-4 font-semibold text-right">Edit</th>
 
               </tr>
@@ -317,11 +336,11 @@ const Inventory = () => {
             <tbody className="divide-y divide-border">
               {loading ? (
                 <tr>
-                  <td colSpan={7} className="p-12 text-center text-muted-foreground">Loading…</td>
+                  <td colSpan={8} className="p-12 text-center text-muted-foreground">Loading…</td>
                 </tr>
               ) : products.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="p-12 text-center text-muted-foreground">
+                  <td colSpan={8} className="p-12 text-center text-muted-foreground">
                     No products yet. Import your menu from Excel to get started.
                   </td>
                 </tr>
@@ -359,6 +378,25 @@ const Inventory = () => {
                         />
                       </td>
                       <td className="p-4 text-right text-muted-foreground">{p.low_stock_threshold}</td>
+                      <td className="p-4">
+                        <div className="flex flex-col gap-2">
+                          <label className="flex items-center gap-2 text-xs">
+                            <Switch
+                              checked={p.show_on_web}
+                              onCheckedChange={(v) => toggleVisibility(p, { show_on_web: v })}
+                            />
+                            <span className="text-muted-foreground">Website</span>
+                          </label>
+                          <label className="flex items-center gap-2 text-xs">
+                            <Switch
+                              checked={p.show_in_pos}
+                              onCheckedChange={(v) => toggleVisibility(p, { show_in_pos: v })}
+                            />
+                            <span className="text-muted-foreground">POS</span>
+                          </label>
+                        </div>
+                      </td>
+
                       <td className="p-4">
                         <span
                           className={

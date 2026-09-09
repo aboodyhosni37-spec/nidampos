@@ -11,7 +11,10 @@ export const loadMenu = async (): Promise<{
   categories: DbCategory[];
   products: DbProduct[];
 }> => {
-  const [categories, products] = await Promise.all([listCategories(), listProducts()]);
+  const [categories, products] = await Promise.all([
+    listCategories(),
+    listProducts({ visibleOn: "web" }),
+  ]);
   return { categories, products };
 };
 
