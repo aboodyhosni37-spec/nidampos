@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Search, Eye, CreditCard, Printer, Merge, Pencil, Plus, Minus, Trash2 } from "lucide-react";
+import { Search, Eye, CreditCard, Printer, Merge, Pencil, Plus, Minus, Trash2, Wallet } from "lucide-react";
 
 import {
   fetchOrders,
@@ -434,6 +434,70 @@ const Orders = () => {
       {selected && (
         <ReceiptPreview order={selected} onClose={() => setSelected(null)} autoPrint={false} />
       )}
+
+      {/* Customer due — outstanding balance + unpaid / partially-paid orders */}
+      <Dialog open={!!dueCustomer} onOpenChange={(o) => !o && setDueCustomer(null)}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>{dueCustomer} · Customer due</DialogTitle>
+            <DialogDescription>
+              Outstanding balance and the orders that are still unpaid.
+            </DialogDescription>
+          </DialogHeader>
+          {dueCustomer && (() => {
+            const record = customers.find(
+              (c) => c.name.toLowerCase() === dueCustomer.toLowerCase()
+            );
+            const dueOrders = orders.filter(
+              (o) =>
+                (o.customer || "").toLowerCase() === dueCustomer.toLowerCase() &&
+                (o.dueAmount ?? 0) > 0
+            );
+            const orderDue = dueOrders.reduce((s, o) => s + (o.dueAmount ?? 0), 0);
+            return (
+              <div className="space-y-3">
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="p-3 rounded-xl bg-secondary">
+                    <div className="text-xs text-muted-foreground">Customer balance</div>
+                    <div className="text-xl font-bold">
+                      ${Number(record?.due_balance ?? 0).toFixed(2)}
+                    </div>
+                  </div>
+                  <div className="p-3 rounded-xl bg-secondary">
+                    <div className="text-xs text-muted-foreground">Due on orders</div>
+                    <div className="text-xl font-bold">${orderDue.toFixed(2)}</div>
+                  </div>
+                </div>
+                <div className="max-h-72 overflow-y-auto rounded-xl border border-border divide-y divide-border">
+                  {dueOrders.length === 0 && (
+                    <div className="p-6 text-center text-sm text-muted-foreground">
+                      No unpaid orders — everything is settled.
+                    </div>
+                  )}
+                  {dueOrders.map((o) => (
+                    <div key={o.id} className="p-3 flex items-center justify-between text-sm">
+                      <div>
+                        <div className="font-semibold">Order #{o.number}</div>
+                        <div className="text-xs text-muted-foreground">
+                          {new Date(o.createdAt).toLocaleString()} · {o.items.length} items
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className="font-bold">${(o.dueAmount ?? 0).toFixed(2)} due</div>
+                        <div className="text-xs text-muted-foreground">
+                          ${o.total.toFixed(2)} total · ${(o.paidAmount ?? 0).toFixed(2)} paid
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            );
+          })()}
+        </DialogContent>
+      </Dialog>
+
+
 
       <Dialog open={!!payOrder} onOpenChange={(o) => !o && setPayOrder(null)}>
         <DialogContent className="sm:max-w-md">
