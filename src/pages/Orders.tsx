@@ -280,7 +280,9 @@ const Orders = () => {
       filter === "All"
         ? true
         : filter === "Due"
-        ? (o.dueAmount ?? 0) > 0
+        ? // Main Due Orders list holds only unassigned dues — once an order is
+          // linked to a customer it lives in that customer's due instead.
+          (o.dueAmount ?? 0) > 0 && !o.customerId
         : (o.orderStatus ?? "Completed") === filter
     )
     .filter(
