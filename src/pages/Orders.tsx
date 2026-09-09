@@ -495,6 +495,12 @@ const Orders = () => {
             const orderDue = dueOrders.reduce((s, o) => s + (o.dueAmount ?? 0), 0);
             return (
               <div className="space-y-3">
+                <DialogHeader>
+                  <DialogTitle>{record?.name ?? "Customer"} · Customer due</DialogTitle>
+                  <DialogDescription>
+                    Outstanding balance and the orders that are still unpaid.
+                  </DialogDescription>
+                </DialogHeader>
                 <div className="grid grid-cols-2 gap-3">
                   <div className="p-3 rounded-xl bg-secondary">
                     <div className="text-xs text-muted-foreground">Customer balance</div>
