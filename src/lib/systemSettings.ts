@@ -57,7 +57,9 @@ const broadcast = (s: SystemSettings) => {
 export const fetchSettings = async (): Promise<SystemSettings> => {
   const { data, error } = await supabase
     .from("system_settings")
-    .select("currency_code, currency_symbol, tax_enabled, tax_rate, tax_inclusive")
+    .select(
+      "currency_code, currency_symbol, tax_enabled, tax_rate, tax_inclusive, loyalty_enabled, loyalty_threshold, loyalty_reward"
+    )
     .eq("id", "default")
     .maybeSingle();
   if (error) throw error;
