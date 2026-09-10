@@ -332,6 +332,57 @@ export type Database = {
           },
         ]
       }
+      loyalty_transactions: {
+        Row: {
+          created_at: string
+          customer_id: string
+          id: string
+          invoice_id: string | null
+          invoice_number: number | null
+          note: string | null
+          points: number
+          reward: string | null
+          type: string
+        }
+        Insert: {
+          created_at?: string
+          customer_id: string
+          id?: string
+          invoice_id?: string | null
+          invoice_number?: number | null
+          note?: string | null
+          points?: number
+          reward?: string | null
+          type?: string
+        }
+        Update: {
+          created_at?: string
+          customer_id?: string
+          id?: string
+          invoice_id?: string | null
+          invoice_number?: number | null
+          note?: string | null
+          points?: number
+          reward?: string | null
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "loyalty_transactions_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "loyalty_transactions_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       payments: {
         Row: {
           amount: number
