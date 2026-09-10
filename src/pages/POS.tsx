@@ -232,7 +232,35 @@ const POS = () => {
     }
   };
 
+  const openPreview = async (order: UnpaidInvoice) => {
+    setPreviewOrder(order);
+    setPreviewDetails(null);
+    setPreviewLoading(true);
+    try {
+      const details = await getInvoiceWithItems(order.id);
+      setPreviewDetails(details);
+    } catch (e: any) {
+      toast({ title: "Failed to load order preview", description: e.message, variant: "destructive" });
+      setPreviewOrder(null);
+    } finally {
+      setPreviewLoading(false);
+    }
+  };
+
+  const closePreview = () => {
+    setPreviewOrder(null);
+    setPreviewDetails(null);
+  };
+
+  const continueToPayment = () => {
+    if (!previewOrder) return;
+    setPayOrder(previewOrder);
+    setPayMethodInline("EVC-Plus");
+    closePreview();
+  };
+
   useEffect(() => {
+
     listCustomers().then(setCustomers).catch(() => {});
     listCategories().then(setDbCategories).catch(() => {});
     listProducts({ visibleOn: "pos" }).then(setDbProducts).catch(() => {});
