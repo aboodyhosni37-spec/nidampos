@@ -1293,9 +1293,20 @@ const POS = () => {
                     )}
                   </div>
                 ) : (
-                  <div className="text-[11px] text-muted-foreground">
-                    No reward yet. $100 = 50% off · $200 = Free Lunch.
-                  </div>
+                  (() => {
+                    const p = loyaltyProgress(selectedCustomer as any, sys);
+                    return (
+                      <div className="space-y-1">
+                        <div className="h-1.5 rounded-full bg-border overflow-hidden">
+                          <div className="h-full bg-primary" style={{ width: `${p.percent}%` }} />
+                        </div>
+                        <div className="text-[11px] text-muted-foreground">
+                          {formatMoney(p.progressAmount, sys)} / {formatMoney(p.threshold, sys)} ·{" "}
+                          {formatMoney(p.remainingToNext, sys)} more for {rewardLabel(p.reward)}
+                        </div>
+                      </div>
+                    );
+                  })()
                 )}
               </div>
             )}
