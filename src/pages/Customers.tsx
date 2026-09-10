@@ -21,8 +21,10 @@ import {
   listLoyaltyHistory,
   summarizeLoyalty,
   rewardLabel,
+  loyaltyProgress,
   type LoyaltyTransaction,
 } from "@/lib/loyalty";
+import { formatMoney, getCachedSettings } from "@/lib/systemSettings";
 import { loadReceiptSettings } from "@/lib/receiptSettings";
 import { ReceiptPreview } from "@/components/ReceiptPreview";
 
