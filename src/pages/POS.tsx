@@ -186,6 +186,12 @@ const POS = () => {
   const [assignCustomerId, setAssignCustomerId] = useState<string>("");
   const [assigning, setAssigning] = useState(false);
 
+  // Order Preview before settling a due order
+  const [previewOrder, setPreviewOrder] = useState<UnpaidInvoice | null>(null);
+  const [previewDetails, setPreviewDetails] = useState<InvoiceWithItems | null>(null);
+  const [previewLoading, setPreviewLoading] = useState(false);
+
+
   // System settings (currency + tax)
   const [sys, setSys] = useState<SystemSettings>(() => getCachedSettings());
 
