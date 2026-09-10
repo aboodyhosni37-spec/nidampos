@@ -82,6 +82,7 @@ const REPAY_METHODS: Exclude<PaymentMethod, "Due" | "Split">[] = [
 const Customers = () => {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [search, setSearch] = useState("");
+  const sys = getCachedSettings();
   const [loading, setLoading] = useState(true);
 
   // New customer dialog
