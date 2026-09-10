@@ -27,6 +27,7 @@ export type Customer = {
   due_balance: number;
   total_spent: number;
   loyalty_points: number;
+  rewards_claimed?: number;
   reward_status: "none" | "half_off" | "free_lunch" | string;
   created_at: string;
 };
