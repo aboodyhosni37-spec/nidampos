@@ -116,7 +116,56 @@ const statusStyles: Record<OrderStatus, string> = {
   Cancelled: "bg-foreground text-background border-foreground",
 };
 
+const orderTypeLabel = (inv: InvoiceWithItems | UnpaidInvoice): string => {
+  const raw = String((inv as any).order_type ?? "").toUpperCase();
+  if (raw === "DELIVERY") return "Delivery";
+  if (raw === "DINE-IN") return "Dine-in";
+  if (raw === "TAKEAWAY") return "Takeaway";
+  if (raw === "ONLINE") return "Online";
+  if ((inv as any).customer_address || (inv as any).delivery_fee > 0) return "Delivery";
+  if ((inv as any).table_label && (inv as any).table_label !== "Delivery") return "Dine-in";
+  return "Takeaway";
+};
+
+const computePreviewTotals = (
+  subtotal: number,
+  deliveryFee: number,
+  total: number,
+  settings: SystemSettings
+) => {
+  const sub = Math.max(0, Number(subtotal) || 0);
+  const fee = Math.max(0, Number(deliveryFee) || 0);
+  const orderTotal = Math.max(0, Number(total) || 0);
+  const rate = settings.tax_enabled ? Number(settings.tax_rate || 0) / 100 : 0;
+  let discount = 0;
+  let tax = 0;
+
+  if (rate > 0) {
+    if (settings.tax_inclusive) {
+      discount = Math.max(0, +(sub + fee - orderTotal).toFixed(2));
+      const taxable = Math.max(0, sub - discount);
+      tax = +(taxable - taxable / (1 + rate)).toFixed(2);
+    } else {
+      const denom = 1 + rate;
+      discount = Math.max(0, +(sub - (orderTotal - fee) / denom).toFixed(2));
+      const taxable = Math.max(0, sub - discount);
+      tax = +(taxable * rate).toFixed(2);
+    }
+  } else {
+    discount = Math.max(0, +(sub + fee - orderTotal).toFixed(2));
+  }
+
+  return {
+    subtotal: sub,
+    discount,
+    tax,
+    deliveryFee: fee,
+    total: orderTotal,
+  };
+};
+
 const POS = () => {
+
   const [activeCat, setActiveCat] = useState("all");
   const [search, setSearch] = useState("");
   const [dbCategories, setDbCategories] = useState<DbCategory[]>([]);
