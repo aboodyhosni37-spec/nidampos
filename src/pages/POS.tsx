@@ -22,7 +22,9 @@ import {
   Sparkles,
   Monitor,
   QrCode,
+  Loader2,
 } from "lucide-react";
+
 import { QRCodeSVG } from "qrcode.react";
 import {
   loadReceiptSettings,
