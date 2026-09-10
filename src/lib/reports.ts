@@ -211,8 +211,11 @@ export const fetchReport = async (from?: Date, to?: Date): Promise<ReportData> =
   );
 
   const taxInclusive = true; // prices already include tax
-  const taxEnabled = !!settings?.tax_enabled && Number(settings?.tax_rate || 0) > 0;
-  const rate = taxEnabled ? Number(settings?.tax_rate || 0) / 100 : 0;
+  const rawRate = Number(settings?.tax_rate || 0);
+  const taxEnabled = !!settings?.tax_enabled && rawRate > 0;
+  // The saved rate may be stored as a percentage (5 = 5%) or as a fraction
+  // (0.05 = 5%). Normalise both to a fraction so the tax portion is correct.
+  const rate = taxEnabled ? (rawRate > 1 ? rawRate / 100 : rawRate) : 0;
   // Tax is stored per order once, so each order contributes exactly one tax figure.
   for (const inv of invoices) inv.tax = invoiceTax(inv, rate, taxInclusive);
   const tax = invoices.reduce((s, i) => s + i.tax, 0);
