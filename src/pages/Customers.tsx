@@ -846,7 +846,106 @@ const Customers = () => {
   );
 };
 
+// Order type shown in the profile: Dine-in / Delivery / Takeaway / Online.
+const orderTypeLabel = (o: Order): string => {
+  const raw = String(o.orderType || "").toLowerCase();
+  if (raw.includes("delivery")) return "Delivery";
+  if (raw.includes("dine")) return "Dine-in";
+  if (raw.includes("take") || raw.includes("pickup")) return "Takeaway";
+  if (String(o.source || "").toLowerCase() === "web") return "Online";
+  if (o.table && o.table !== "—") return "Dine-in";
+  return "Takeaway";
+};
+
+/* Customer order history printout — rendered into the existing #print-root
+   node with id="receipt" so the current thermal print setup is reused. */
+const OrderHistoryPrintout = ({
+  customer,
+  orders,
+}: {
+  customer: Customer;
+  orders: Order[];
+}) => {
+  const settings = loadReceiptSettings();
+  const root = document.getElementById("print-root") || (() => {
+    const el = document.createElement("div");
+    el.id = "print-root";
+    document.body.appendChild(el);
+    return el;
+  })();
+
+  const totals = orders.reduce(
+    (acc, o) => {
+      const paid = o.paidAmount ?? 0;
+      acc.total += o.total;
+      acc.paid += paid;
+      acc.due += Math.max(0, o.total - paid);
+      return acc;
+    },
+    { total: 0, paid: 0, due: 0 }
+  );
+
+  return createPortal(
+    <div id="receipt" className="receipt receipt-print p-3 text-[11px] leading-tight">
+      <div className="text-center font-bold text-sm">{settings.businessName}</div>
+      <div className="text-center">Customer Order History</div>
+      <div className="mt-1">Customer: {customer.name}</div>
+      {customer.phone && <div>Phone: {customer.phone}</div>}
+      <div>Printed: {new Date().toLocaleString()}</div>
+      <div className="border-t border-dashed border-black my-1" />
+      {orders.map((o) => {
+        const paid = o.paidAmount ?? 0;
+        const due = Math.max(0, o.total - paid);
+        return (
+          <div key={o.id} className="mb-1.5">
+            <div className="font-bold">
+              #{o.number} · {orderTypeLabel(o)}
+            </div>
+            <div>{new Date(o.createdAt).toLocaleString()}</div>
+            {o.items.map((it, i) => (
+              <div key={`${o.id}-p-${i}`} className="flex justify-between">
+                <span>
+                  {it.qty} x {it.name}
+                </span>
+                <span>{(it.price * it.qty).toFixed(2)}</span>
+              </div>
+            ))}
+            <div className="flex justify-between">
+              <span>Total / Paid / Due</span>
+              <span>
+                {o.total.toFixed(2)} / {paid.toFixed(2)} / {due.toFixed(2)}
+              </span>
+            </div>
+            <div>Status: {due <= 0 ? "PAID" : paid > 0 ? "PARTIAL" : "UNPAID"}</div>
+            <div className="border-t border-dashed border-black mt-1" />
+          </div>
+        );
+      })}
+      <div className="font-bold">
+        <div className="flex justify-between">
+          <span>Orders</span>
+          <span>{orders.length}</span>
+        </div>
+        <div className="flex justify-between">
+          <span>Total</span>
+          <span>{totals.total.toFixed(2)}</span>
+        </div>
+        <div className="flex justify-between">
+          <span>Paid</span>
+          <span>{totals.paid.toFixed(2)}</span>
+        </div>
+        <div className="flex justify-between">
+          <span>Outstanding</span>
+          <span>{totals.due.toFixed(2)}</span>
+        </div>
+      </div>
+    </div>,
+    root
+  );
+};
+
 const KpiCard = ({
+
   icon,
   label,
   value,
