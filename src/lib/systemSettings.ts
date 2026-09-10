@@ -70,6 +70,10 @@ export const fetchSettings = async (): Promise<SystemSettings> => {
         tax_enabled: !!data.tax_enabled,
         tax_rate: Number(data.tax_rate) || 0,
         tax_inclusive: !!data.tax_inclusive,
+        loyalty_enabled: (data as any).loyalty_enabled ?? true,
+        loyalty_threshold: Number((data as any).loyalty_threshold) || 100,
+        loyalty_reward:
+          ((data as any).loyalty_reward as SystemSettings["loyalty_reward"]) || "half_off",
       }
     : { ...DEFAULT_SETTINGS };
   broadcast(merged);
