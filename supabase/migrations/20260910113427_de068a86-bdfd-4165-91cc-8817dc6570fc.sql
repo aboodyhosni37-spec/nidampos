@@ -1,0 +1,1 @@
+REVOKE ALL ON FUNCTION public.apply_due_transaction() FROM anon, authenticated;

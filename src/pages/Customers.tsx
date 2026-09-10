@@ -21,8 +21,10 @@ import {
   listLoyaltyHistory,
   summarizeLoyalty,
   rewardLabel,
+  loyaltyProgress,
   type LoyaltyTransaction,
 } from "@/lib/loyalty";
+import { formatMoney, getCachedSettings } from "@/lib/systemSettings";
 import { loadReceiptSettings } from "@/lib/receiptSettings";
 import { ReceiptPreview } from "@/components/ReceiptPreview";
 
@@ -80,6 +82,7 @@ const REPAY_METHODS: Exclude<PaymentMethod, "Due" | "Split">[] = [
 const Customers = () => {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [search, setSearch] = useState("");
+  const sys = getCachedSettings();
   const [loading, setLoading] = useState(true);
 
   // New customer dialog
@@ -652,6 +655,47 @@ const Customers = () => {
                     {rewardLabel(reviewCustomer.reward_status)}
                   </span>
                 </div>
+                {(() => {
+                  const p = loyaltyProgress(reviewCustomer as any, sys);
+                  return (
+                    <div className="rounded-lg bg-secondary/60 p-3 space-y-2">
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-muted-foreground">Cumulative spending</span>
+                        <span className="font-bold tabular-nums">
+                          {formatMoney(p.totalSpent, sys)}
+                        </span>
+                      </div>
+                      <div className="h-2 rounded-full bg-border overflow-hidden">
+                        <div
+                          className="h-full bg-primary"
+                          style={{ width: `${p.percent}%` }}
+                        />
+                      </div>
+                      <div className="flex items-center justify-between text-[11px] text-muted-foreground">
+                        <span>
+                          {formatMoney(p.progressAmount, sys)} / {formatMoney(p.threshold, sys)}{" "}
+                          toward next reward
+                        </span>
+                        <span>
+                          {p.remainingToNext > 0
+                            ? `${formatMoney(p.remainingToNext, sys)} to go`
+                            : "Milestone reached"}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between text-[11px]">
+                        <span className="text-muted-foreground">
+                          Milestones reached: <b>{p.milestonesReached}</b> · used:{" "}
+                          <b>{p.milestonesClaimed}</b>
+                        </span>
+                        {p.rewardsAvailable > 0 && (
+                          <span className="font-semibold">
+                            {p.rewardsAvailable} × {rewardLabel(p.reward)} available
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })()}
                 {(() => {
                   const s = summarizeLoyalty(
                     Number(reviewCustomer.loyalty_points || 0),

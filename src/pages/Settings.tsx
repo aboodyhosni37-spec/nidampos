@@ -761,6 +761,71 @@ const Settings = () => {
             )}
           </Card>
 
+          <Card className="p-6 rounded-2xl border-border space-y-5">
+            <h2 className="font-semibold text-lg">Customer Loyalty</h2>
+            <div className="flex items-center justify-between p-3 rounded-xl bg-secondary/40">
+              <div>
+                <div className="font-medium">Enable loyalty rewards</div>
+                <div className="text-sm text-muted-foreground">
+                  Rewards unlock from cumulative spending across all paid orders
+                </div>
+              </div>
+              <Switch
+                checked={sys.loyalty_enabled}
+                onCheckedChange={(v) => setSysField("loyalty_enabled", v)}
+                disabled={!canManageSystem}
+              />
+            </div>
+            <div className="grid sm:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Spending milestone ({sys.currency_symbol})</Label>
+                <Input
+                  type="number"
+                  min={1}
+                  step="0.01"
+                  value={sys.loyalty_threshold}
+                  onChange={(e) =>
+                    setSysField("loyalty_threshold", Math.max(1, Number(e.target.value) || 1))
+                  }
+                  className="rounded-xl"
+                  disabled={!canManageSystem || !sys.loyalty_enabled}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Reward granted</Label>
+                <Select
+                  value={sys.loyalty_reward}
+                  onValueChange={(v) => setSysField("loyalty_reward", v as any)}
+                  disabled={!canManageSystem || !sys.loyalty_enabled}
+                >
+                  <SelectTrigger className="rounded-xl">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="half_off">50% Discount</SelectItem>
+                    <SelectItem value="free_lunch">Free Lunch</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Every {sys.currency_symbol}
+              {Number(sys.loyalty_threshold || 0)} of cumulative spending unlocks one reward.
+              Spending never resets — leftover amounts count toward the next milestone.
+            </p>
+            {canManageSystem && (
+              <div className="flex justify-end">
+                <Button
+                  onClick={saveSystem}
+                  disabled={savingSys}
+                  className="rounded-xl bg-primary text-primary-foreground hover:bg-primary/90"
+                >
+                  <Save className="h-4 w-4 mr-1.5" /> Save
+                </Button>
+              </div>
+            )}
+          </Card>
+
           <p className="text-xs text-muted-foreground">
             Receipt header, footer & printer options are in <b>Printer & Receipt</b>.
           </p>

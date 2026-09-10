@@ -8,6 +8,9 @@ export type SystemSettings = {
   tax_enabled: boolean;
   tax_rate: number; // percentage e.g. 5 means 5%
   tax_inclusive: boolean;
+  loyalty_enabled: boolean;
+  loyalty_threshold: number; // cumulative spend per reward milestone
+  loyalty_reward: "half_off" | "free_lunch";
 };
 
 export const DEFAULT_SETTINGS: SystemSettings = {
@@ -16,6 +19,9 @@ export const DEFAULT_SETTINGS: SystemSettings = {
   tax_enabled: false,
   tax_rate: 0,
   tax_inclusive: false,
+  loyalty_enabled: true,
+  loyalty_threshold: 100,
+  loyalty_reward: "half_off",
 };
 
 const CACHE_KEY = "nidam_system_settings";
@@ -51,7 +57,9 @@ const broadcast = (s: SystemSettings) => {
 export const fetchSettings = async (): Promise<SystemSettings> => {
   const { data, error } = await supabase
     .from("system_settings")
-    .select("currency_code, currency_symbol, tax_enabled, tax_rate, tax_inclusive")
+    .select(
+      "currency_code, currency_symbol, tax_enabled, tax_rate, tax_inclusive, loyalty_enabled, loyalty_threshold, loyalty_reward"
+    )
     .eq("id", "default")
     .maybeSingle();
   if (error) throw error;
@@ -62,6 +70,10 @@ export const fetchSettings = async (): Promise<SystemSettings> => {
         tax_enabled: !!data.tax_enabled,
         tax_rate: Number(data.tax_rate) || 0,
         tax_inclusive: !!data.tax_inclusive,
+        loyalty_enabled: (data as any).loyalty_enabled ?? true,
+        loyalty_threshold: Number((data as any).loyalty_threshold) || 100,
+        loyalty_reward:
+          ((data as any).loyalty_reward as SystemSettings["loyalty_reward"]) || "half_off",
       }
     : { ...DEFAULT_SETTINGS };
   broadcast(merged);
