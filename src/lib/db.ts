@@ -432,3 +432,49 @@ export const updateCustomer = async (
   if (error) throw error;
 };
 
+export type InvoiceWithItems = UnpaidInvoice & {
+  customer_phone: string | null;
+  customer_address: string | null;
+  order_type: string | null;
+  delivery_fee: number;
+  subtotal: number;
+  source: string | null;
+  invoice_items: {
+    name: string;
+    price: number;
+    qty: number;
+    product_id: string | null;
+  }[];
+  payments: {
+    method: PaymentMethod;
+    amount: number;
+    created_at: string;
+  }[];
+};
+
+export const getInvoiceWithItems = async (id: string): Promise<InvoiceWithItems> => {
+  const { data, error } = await supabase
+    .from("invoices")
+    .select(
+      "id, number, total, paid_amount, due_amount, table_label, customer_id, customer_name, customer_phone, customer_address, order_type, delivery_fee, subtotal, source, payment_method, order_status, created_at, invoice_items(name, price, qty, product_id), payments(method, amount, created_at)"
+    )
+    .eq("id", id)
+    .single();
+  if (error) throw error;
+  return {
+    ...(data as any),
+    invoice_items: ((data as any).invoice_items ?? []).map((it: any) => ({
+      name: it.name,
+      price: Number(it.price || 0),
+      qty: Number(it.qty || 0),
+      product_id: it.product_id ?? null,
+    })),
+    payments: ((data as any).payments ?? []).map((p: any) => ({
+      method: p.method as PaymentMethod,
+      amount: Number(p.amount || 0),
+      created_at: p.created_at,
+    })),
+  } as InvoiceWithItems;
+};
+
+

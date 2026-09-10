@@ -22,7 +22,9 @@ import {
   Sparkles,
   Monitor,
   QrCode,
+  Loader2,
 } from "lucide-react";
+
 import { QRCodeSVG } from "qrcode.react";
 import {
   loadReceiptSettings,
@@ -85,10 +87,13 @@ import {
   listUnpaidInvoices,
   payUnpaidInvoice,
   assignInvoiceToCustomer,
+  getInvoiceWithItems,
   type Customer,
   type PaymentMethod,
   type UnpaidInvoice,
+  type InvoiceWithItems,
 } from "@/lib/db";
+
 import {
   fetchSettings,
   getCachedSettings,
@@ -113,7 +118,56 @@ const statusStyles: Record<OrderStatus, string> = {
   Cancelled: "bg-foreground text-background border-foreground",
 };
 
+const orderTypeLabel = (inv: InvoiceWithItems | UnpaidInvoice): string => {
+  const raw = String((inv as any).order_type ?? "").toUpperCase();
+  if (raw === "DELIVERY") return "Delivery";
+  if (raw === "DINE-IN") return "Dine-in";
+  if (raw === "TAKEAWAY") return "Takeaway";
+  if (raw === "ONLINE") return "Online";
+  if ((inv as any).customer_address || (inv as any).delivery_fee > 0) return "Delivery";
+  if ((inv as any).table_label && (inv as any).table_label !== "Delivery") return "Dine-in";
+  return "Takeaway";
+};
+
+const computePreviewTotals = (
+  subtotal: number,
+  deliveryFee: number,
+  total: number,
+  settings: SystemSettings
+) => {
+  const sub = Math.max(0, Number(subtotal) || 0);
+  const fee = Math.max(0, Number(deliveryFee) || 0);
+  const orderTotal = Math.max(0, Number(total) || 0);
+  const rate = settings.tax_enabled ? Number(settings.tax_rate || 0) / 100 : 0;
+  let discount = 0;
+  let tax = 0;
+
+  if (rate > 0) {
+    if (settings.tax_inclusive) {
+      discount = Math.max(0, +(sub + fee - orderTotal).toFixed(2));
+      const taxable = Math.max(0, sub - discount);
+      tax = +(taxable - taxable / (1 + rate)).toFixed(2);
+    } else {
+      const denom = 1 + rate;
+      discount = Math.max(0, +(sub - (orderTotal - fee) / denom).toFixed(2));
+      const taxable = Math.max(0, sub - discount);
+      tax = +(taxable * rate).toFixed(2);
+    }
+  } else {
+    discount = Math.max(0, +(sub + fee - orderTotal).toFixed(2));
+  }
+
+  return {
+    subtotal: sub,
+    discount,
+    tax,
+    deliveryFee: fee,
+    total: orderTotal,
+  };
+};
+
 const POS = () => {
+
   const [activeCat, setActiveCat] = useState("all");
   const [search, setSearch] = useState("");
   const [dbCategories, setDbCategories] = useState<DbCategory[]>([]);
@@ -183,6 +237,12 @@ const POS = () => {
   const [assignCustomerId, setAssignCustomerId] = useState<string>("");
   const [assigning, setAssigning] = useState(false);
 
+  // Order Preview before settling a due order
+  const [previewOrder, setPreviewOrder] = useState<UnpaidInvoice | null>(null);
+  const [previewDetails, setPreviewDetails] = useState<InvoiceWithItems | null>(null);
+  const [previewLoading, setPreviewLoading] = useState(false);
+
+
   // System settings (currency + tax)
   const [sys, setSys] = useState<SystemSettings>(() => getCachedSettings());
 
@@ -223,7 +283,35 @@ const POS = () => {
     }
   };
 
+  const openPreview = async (order: UnpaidInvoice) => {
+    setPreviewOrder(order);
+    setPreviewDetails(null);
+    setPreviewLoading(true);
+    try {
+      const details = await getInvoiceWithItems(order.id);
+      setPreviewDetails(details);
+    } catch (e: any) {
+      toast({ title: "Failed to load order preview", description: e.message, variant: "destructive" });
+      setPreviewOrder(null);
+    } finally {
+      setPreviewLoading(false);
+    }
+  };
+
+  const closePreview = () => {
+    setPreviewOrder(null);
+    setPreviewDetails(null);
+  };
+
+  const continueToPayment = () => {
+    if (!previewOrder) return;
+    setPayOrder(previewOrder);
+    setPayMethodInline("EVC-Plus");
+    closePreview();
+  };
+
   useEffect(() => {
+
     listCustomers().then(setCustomers).catch(() => {});
     listCategories().then(setDbCategories).catch(() => {});
     listProducts({ visibleOn: "pos" }).then(setDbProducts).catch(() => {});
@@ -868,12 +956,10 @@ const POS = () => {
                 {unpaid.map((u) => (
                   <button
                     key={u.id}
-                    onClick={() => {
-                      setPayOrder(u);
-                      setPayMethodInline("EVC-Plus");
-                    }}
+                    onClick={() => openPreview(u)}
                     className="w-full text-left rounded-xl border border-border bg-card hover:border-foreground/40 hover:shadow-soft transition-all p-3"
                   >
+
                     <div className="flex items-start justify-between gap-2">
                       <div className="min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
@@ -1524,8 +1610,175 @@ const POS = () => {
         </AlertDialogContent>
       </AlertDialog>
 
+      {/* Order Preview before settling a due order */}
+      <Dialog open={!!previewOrder} onOpenChange={(o) => !o && closePreview()}>
+        <DialogContent className="sm:max-w-lg max-h-[90vh] flex flex-col">
+          <DialogHeader>
+            <DialogTitle>Order Preview · #{previewOrder?.number}</DialogTitle>
+            <DialogDescription>
+              Review the order details before taking payment.
+            </DialogDescription>
+          </DialogHeader>
+
+          {previewLoading && (
+            <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
+              <Loader2 className="h-8 w-8 animate-spin mb-3" />
+              <span className="text-sm">Loading order details…</span>
+            </div>
+          )}
+
+          {!previewLoading && previewDetails && (
+            <div className="flex-1 overflow-y-auto pr-1 space-y-4">
+              {/* Order identity */}
+              <div className="flex flex-wrap items-center gap-2">
+                <Badge variant="outline" className="uppercase tracking-wider">
+                  {orderTypeLabel(previewDetails)}
+                </Badge>
+                <span className="text-xs text-muted-foreground">
+                  {new Date(previewDetails.created_at).toLocaleString()}
+                </span>
+              </div>
+
+              {/* Customer / location */}
+              <div className="rounded-xl border border-border p-3 space-y-1.5 text-sm">
+                <div className="flex items-center gap-2">
+                  <span className="text-muted-foreground">Customer:</span>
+                  <span className="font-semibold">
+                    {previewDetails.customer_name || "Walk-in"}
+                  </span>
+                </div>
+                {previewDetails.customer_phone && (
+                  <div className="flex items-center gap-2">
+                    <span className="text-muted-foreground">Phone:</span>
+                    <span>{previewDetails.customer_phone}</span>
+                  </div>
+                )}
+                {orderTypeLabel(previewDetails) === "Dine-in" && previewDetails.table_label && (
+                  <div className="flex items-center gap-2">
+                    <span className="text-muted-foreground">Table:</span>
+                    <span className="font-semibold">{previewDetails.table_label}</span>
+                  </div>
+                )}
+                {(orderTypeLabel(previewDetails) === "Delivery" || orderTypeLabel(previewDetails) === "Online") &&
+                  previewDetails.customer_address && (
+                    <div className="flex items-start gap-2">
+                      <span className="text-muted-foreground shrink-0">Address:</span>
+                      <span className="break-words">{previewDetails.customer_address}</span>
+                    </div>
+                  )}
+              </div>
+
+              {/* Items */}
+              <div className="rounded-xl border border-border overflow-hidden">
+                <div className="bg-secondary/50 px-3 py-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground grid grid-cols-[1fr_50px_70px_70px] gap-2">
+                  <span>Product</span>
+                  <span className="text-right">Qty</span>
+                  <span className="text-right">Price</span>
+                  <span className="text-right">Total</span>
+                </div>
+                <div className="divide-y divide-border">
+                  {previewDetails.invoice_items.map((it, idx) => {
+                    const lineTotal = it.price * it.qty;
+                    return (
+                      <div
+                        key={`${it.product_id ?? it.name}-${idx}`}
+                        className="px-3 py-2.5 grid grid-cols-[1fr_50px_70px_70px] gap-2 text-sm items-center"
+                      >
+                        <span className="font-medium truncate" title={it.name}>
+                          {it.name}
+                        </span>
+                        <span className="text-right tabular-nums">{it.qty}</span>
+                        <span className="text-right tabular-nums">{formatMoney(it.price, sys)}</span>
+                        <span className="text-right tabular-nums font-medium">
+                          {formatMoney(lineTotal, sys)}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Totals */}
+              {(() => {
+                const pt = computePreviewTotals(
+                  previewDetails.subtotal,
+                  previewDetails.delivery_fee,
+                  previewDetails.total,
+                  sys
+                );
+                return (
+                  <div className="rounded-xl border border-border p-3 space-y-1.5 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Subtotal</span>
+                      <span className="font-medium tabular-nums">{formatMoney(pt.subtotal, sys)}</span>
+                    </div>
+                    {pt.discount > 0 && (
+                      <div className="flex justify-between text-primary">
+                        <span className="flex items-center gap-1">
+                          <Percent className="h-3 w-3" /> Discount
+                        </span>
+                        <span className="font-medium tabular-nums">− {formatMoney(pt.discount, sys)}</span>
+                      </div>
+                    )}
+                    {sys.tax_enabled && pt.tax > 0 && (
+                      <div className="flex justify-between text-muted-foreground">
+                        <span>
+                          Tax {sys.tax_inclusive ? "(incl.)" : ""} {sys.tax_rate}%
+                        </span>
+                        <span className="tabular-nums">{formatMoney(pt.tax, sys)}</span>
+                      </div>
+                    )}
+                    {pt.deliveryFee > 0 && (
+                      <div className="flex justify-between text-muted-foreground">
+                        <span>Delivery fee</span>
+                        <span className="tabular-nums">{formatMoney(pt.deliveryFee, sys)}</span>
+                      </div>
+                    )}
+                    <div className="flex justify-between text-base font-bold border-t border-border pt-2">
+                      <span>Order total</span>
+                      <span className="tabular-nums">{formatMoney(pt.total, sys)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Paid</span>
+                      <span className="font-medium tabular-nums text-primary">
+                        {formatMoney(previewDetails.paid_amount, sys)}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Remaining due</span>
+                      <span className="font-bold tabular-nums text-destructive">
+                        {formatMoney(previewDetails.due_amount, sys)}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })()}
+            </div>
+          )}
+
+          <DialogFooter className="flex-col sm:flex-row gap-2 pt-2">
+            <Button
+              variant="outline"
+              onClick={closePreview}
+              disabled={previewLoading}
+              className="rounded-xl"
+            >
+              Cancel / Back
+            </Button>
+            <Button
+              onClick={continueToPayment}
+              disabled={previewLoading || !previewDetails}
+              className="rounded-xl bg-primary text-primary-foreground hover:bg-primary/90"
+            >
+              Pay Now
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* Inline Pay-Now dialog (Due Orders tab) */}
       <Dialog open={!!payOrder} onOpenChange={(o) => !o && setPayOrder(null)}>
+
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Pay Now · Order #{payOrder?.number}</DialogTitle>
