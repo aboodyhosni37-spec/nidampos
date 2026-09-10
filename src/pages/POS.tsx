@@ -103,7 +103,7 @@ import {
   type SystemSettings,
   type DiscountInput,
 } from "@/lib/systemSettings";
-import { addCustomerSpend, consumeReward, rewardLabel } from "@/lib/loyalty";
+import { addCustomerSpend, consumeReward, rewardLabel, loyaltyProgress } from "@/lib/loyalty";
 import { getSession } from "@/lib/auth";
 
 const HIGH_DEBT_THRESHOLD = 100;
