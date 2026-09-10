@@ -8,6 +8,9 @@ export type SystemSettings = {
   tax_enabled: boolean;
   tax_rate: number; // percentage e.g. 5 means 5%
   tax_inclusive: boolean;
+  loyalty_enabled: boolean;
+  loyalty_threshold: number; // cumulative spend per reward milestone
+  loyalty_reward: "half_off" | "free_lunch";
 };
 
 export const DEFAULT_SETTINGS: SystemSettings = {
@@ -16,6 +19,9 @@ export const DEFAULT_SETTINGS: SystemSettings = {
   tax_enabled: false,
   tax_rate: 0,
   tax_inclusive: false,
+  loyalty_enabled: true,
+  loyalty_threshold: 100,
+  loyalty_reward: "half_off",
 };
 
 const CACHE_KEY = "nidam_system_settings";
