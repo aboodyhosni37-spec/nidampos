@@ -81,6 +81,7 @@ export type Database = {
           name: string
           phone: string | null
           reward_status: string
+          rewards_claimed: number
           total_spent: number
           updated_at: string
         }
@@ -93,6 +94,7 @@ export type Database = {
           name: string
           phone?: string | null
           reward_status?: string
+          rewards_claimed?: number
           total_spent?: number
           updated_at?: string
         }
@@ -105,6 +107,7 @@ export type Database = {
           name?: string
           phone?: string | null
           reward_status?: string
+          rewards_claimed?: number
           total_spent?: number
           updated_at?: string
         }
@@ -594,6 +597,9 @@ export type Database = {
           delivery_enabled: boolean
           delivery_fee: number
           id: string
+          loyalty_enabled: boolean
+          loyalty_reward: string
+          loyalty_threshold: number
           tax_enabled: boolean
           tax_inclusive: boolean
           tax_rate: number
@@ -605,6 +611,9 @@ export type Database = {
           delivery_enabled?: boolean
           delivery_fee?: number
           id?: string
+          loyalty_enabled?: boolean
+          loyalty_reward?: string
+          loyalty_threshold?: number
           tax_enabled?: boolean
           tax_inclusive?: boolean
           tax_rate?: number
@@ -616,6 +625,9 @@ export type Database = {
           delivery_enabled?: boolean
           delivery_fee?: number
           id?: string
+          loyalty_enabled?: boolean
+          loyalty_reward?: string
+          loyalty_threshold?: number
           tax_enabled?: boolean
           tax_inclusive?: boolean
           tax_rate?: number
