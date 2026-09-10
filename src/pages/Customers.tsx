@@ -108,23 +108,50 @@ const Customers = () => {
   const [reviewLoading, setReviewLoading] = useState(false);
   const [receiptOrder, setReceiptOrder] = useState<Order | null>(null);
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
+  const [loyaltyHistory, setLoyaltyHistory] = useState<LoyaltyTransaction[]>([]);
+  const [printAll, setPrintAll] = useState(false);
 
   const openReview = async (c: Customer) => {
     setReviewCustomer(c);
     setReviewOrders([]);
+    setLoyaltyHistory([]);
     setExpandedOrder(null);
     setReviewLoading(true);
     try {
-      const all = await fetchOrders();
+      const [all, loyalty] = await Promise.all([
+        fetchOrders(),
+        listLoyaltyHistory(c.id).catch(() => [] as LoyaltyTransaction[]),
+      ]);
       setReviewOrders(
-        all.filter((o) => (o.customer || "").toLowerCase() === c.name.toLowerCase())
+        all.filter(
+          (o) =>
+            o.customerId === c.id ||
+            (!o.customerId && (o.customer || "").toLowerCase() === c.name.toLowerCase())
+        )
       );
+      setLoyaltyHistory(loyalty);
     } catch (e: any) {
       toast({ title: "Failed to load orders", description: e.message, variant: "destructive" });
     } finally {
       setReviewLoading(false);
     }
   };
+
+  // Print the customer's complete order history using the existing print node.
+  const handlePrintAll = () => {
+    setPrintAll(true);
+    requestAnimationFrame(() =>
+      requestAnimationFrame(() => {
+        try {
+          window.print();
+        } catch {
+          /* ignore */
+        }
+        setPrintAll(false);
+      })
+    );
+  };
+
 
 
   const startEdit = (c: Customer) => {
