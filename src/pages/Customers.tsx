@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import {
   Users,
   UserPlus,
@@ -12,9 +13,19 @@ import {
   Pencil,
   Trash2,
   Receipt,
+  Star,
+  Printer,
 } from "lucide-react";
 import { fetchOrders, type Order } from "@/lib/orders";
+import {
+  listLoyaltyHistory,
+  summarizeLoyalty,
+  rewardLabel,
+  type LoyaltyTransaction,
+} from "@/lib/loyalty";
+import { loadReceiptSettings } from "@/lib/receiptSettings";
 import { ReceiptPreview } from "@/components/ReceiptPreview";
+
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
