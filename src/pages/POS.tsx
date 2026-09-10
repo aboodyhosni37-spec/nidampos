@@ -85,10 +85,13 @@ import {
   listUnpaidInvoices,
   payUnpaidInvoice,
   assignInvoiceToCustomer,
+  getInvoiceWithItems,
   type Customer,
   type PaymentMethod,
   type UnpaidInvoice,
+  type InvoiceWithItems,
 } from "@/lib/db";
+
 import {
   fetchSettings,
   getCachedSettings,
