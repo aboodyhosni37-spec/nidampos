@@ -740,14 +740,22 @@ const POS = () => {
       // Loyalty: add spend & consume reward (only when fully paid now).
       if (selectedCustomerId && effectivePaid > 0) {
         try {
-          await addCustomerSpend(selectedCustomerId, effectivePaid);
+          await addCustomerSpend(selectedCustomerId, effectivePaid, {
+            invoice_id: created.id,
+            invoice_number: created.number,
+          });
         } catch {}
       }
       if (selectedCustomerId && appliedReward !== "none") {
         try {
-          await consumeReward(selectedCustomerId);
+          await consumeReward(selectedCustomerId, {
+            reward: appliedReward as any,
+            invoice_id: created.id,
+            invoice_number: created.number,
+          });
         } catch {}
       }
+
 
       if (effectiveDue > 0 || selectedCustomerId) {
         listCustomers().then(setCustomers).catch(() => {});

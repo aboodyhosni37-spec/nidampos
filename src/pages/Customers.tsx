@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import {
   Users,
   UserPlus,
@@ -12,9 +13,19 @@ import {
   Pencil,
   Trash2,
   Receipt,
+  Star,
+  Printer,
 } from "lucide-react";
 import { fetchOrders, type Order } from "@/lib/orders";
+import {
+  listLoyaltyHistory,
+  summarizeLoyalty,
+  rewardLabel,
+  type LoyaltyTransaction,
+} from "@/lib/loyalty";
+import { loadReceiptSettings } from "@/lib/receiptSettings";
 import { ReceiptPreview } from "@/components/ReceiptPreview";
+
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -97,23 +108,50 @@ const Customers = () => {
   const [reviewLoading, setReviewLoading] = useState(false);
   const [receiptOrder, setReceiptOrder] = useState<Order | null>(null);
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
+  const [loyaltyHistory, setLoyaltyHistory] = useState<LoyaltyTransaction[]>([]);
+  const [printAll, setPrintAll] = useState(false);
 
   const openReview = async (c: Customer) => {
     setReviewCustomer(c);
     setReviewOrders([]);
+    setLoyaltyHistory([]);
     setExpandedOrder(null);
     setReviewLoading(true);
     try {
-      const all = await fetchOrders();
+      const [all, loyalty] = await Promise.all([
+        fetchOrders(),
+        listLoyaltyHistory(c.id).catch(() => [] as LoyaltyTransaction[]),
+      ]);
       setReviewOrders(
-        all.filter((o) => (o.customer || "").toLowerCase() === c.name.toLowerCase())
+        all.filter(
+          (o) =>
+            o.customerId === c.id ||
+            (!o.customerId && (o.customer || "").toLowerCase() === c.name.toLowerCase())
+        )
       );
+      setLoyaltyHistory(loyalty);
     } catch (e: any) {
       toast({ title: "Failed to load orders", description: e.message, variant: "destructive" });
     } finally {
       setReviewLoading(false);
     }
   };
+
+  // Print the customer's complete order history using the existing print node.
+  const handlePrintAll = () => {
+    setPrintAll(true);
+    requestAnimationFrame(() =>
+      requestAnimationFrame(() => {
+        try {
+          window.print();
+        } catch {
+          /* ignore */
+        }
+        setPrintAll(false);
+      })
+    );
+  };
+
 
 
   const startEdit = (c: Customer) => {
@@ -596,13 +634,89 @@ const Customers = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Customer order review */}
+      {/* Customer profile: loyalty points + all orders */}
       <Dialog open={!!reviewCustomer} onOpenChange={(o) => !o && setReviewCustomer(null)}>
         <DialogContent className="sm:max-w-2xl">
           <DialogHeader>
-            <DialogTitle>{reviewCustomer?.name} · Order review</DialogTitle>
+            <DialogTitle>{reviewCustomer?.name} · Profile</DialogTitle>
           </DialogHeader>
-          <div className="space-y-3 pt-1">
+          <div className="space-y-4 pt-1 max-h-[70vh] overflow-y-auto">
+            {/* Loyalty points */}
+            {reviewCustomer && (
+              <div className="rounded-xl border border-border p-3 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="font-semibold text-sm inline-flex items-center gap-1.5">
+                    <Star className="h-4 w-4" /> Loyalty Points
+                  </div>
+                  <span className="text-xs text-muted-foreground">
+                    {rewardLabel(reviewCustomer.reward_status)}
+                  </span>
+                </div>
+                {(() => {
+                  const s = summarizeLoyalty(
+                    Number(reviewCustomer.loyalty_points || 0),
+                    loyaltyHistory
+                  );
+                  return (
+                    <div className="grid grid-cols-3 gap-2 text-center">
+                      <div className="rounded-lg bg-secondary p-2">
+                        <div className="text-xl font-bold tabular-nums">{s.balance}</div>
+                        <div className="text-[11px] text-muted-foreground">Balance</div>
+                      </div>
+                      <div className="rounded-lg bg-secondary p-2">
+                        <div className="text-xl font-bold tabular-nums">{s.earned}</div>
+                        <div className="text-[11px] text-muted-foreground">Earned</div>
+                      </div>
+                      <div className="rounded-lg bg-secondary p-2">
+                        <div className="text-xl font-bold tabular-nums">{s.redeemed}</div>
+                        <div className="text-[11px] text-muted-foreground">Redeemed</div>
+                      </div>
+                    </div>
+                  );
+                })()}
+                <div className="rounded-lg border border-border divide-y divide-border max-h-48 overflow-y-auto">
+                  {loyaltyHistory.length === 0 ? (
+                    <div className="p-4 text-center text-xs text-muted-foreground">
+                      No loyalty activity yet.
+                    </div>
+                  ) : (
+                    loyaltyHistory.map((t) => (
+                      <div key={t.id} className="p-2 flex items-center justify-between text-xs">
+                        <div>
+                          <div className="font-medium">
+                            {t.type === "earn" ? "Points earned" : "Points redeemed"}
+                            {t.invoice_number ? ` · Order #${t.invoice_number}` : ""}
+                          </div>
+                          <div className="text-muted-foreground">
+                            {new Date(t.created_at).toLocaleString()}
+                            {t.note ? ` · ${t.note}` : ""}
+                          </div>
+                        </div>
+                        <div className="font-bold tabular-nums">
+                          {t.type === "earn" ? "+" : "−"}
+                          {Number(t.points || 0)} pts
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* All orders */}
+            <div className="flex items-center justify-between">
+              <div className="font-semibold text-sm">All Orders ({reviewOrders.length})</div>
+              <Button
+                size="sm"
+                variant="outline"
+                className="rounded-lg h-8"
+                disabled={reviewOrders.length === 0}
+                onClick={handlePrintAll}
+              >
+                <Printer className="h-3.5 w-3.5 mr-1" /> Print All Orders
+              </Button>
+            </div>
+
             {reviewLoading ? (
               <div className="p-8 text-center text-sm text-muted-foreground">Loading…</div>
             ) : reviewOrders.length === 0 ? (
@@ -610,7 +724,7 @@ const Customers = () => {
                 No orders recorded for this customer yet.
               </div>
             ) : (
-              <div className="max-h-[65vh] overflow-y-auto rounded-xl border border-border divide-y divide-border">
+              <div className="rounded-xl border border-border divide-y divide-border">
                 {reviewOrders.map((o) => {
                   const due = Math.max(0, o.total - (o.paidAmount ?? 0));
                   const paid = o.paidAmount ?? 0;
@@ -620,7 +734,12 @@ const Customers = () => {
                     <div key={o.id} className="p-3 text-sm">
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0">
-                          <div className="font-semibold">Order #{o.number}</div>
+                          <div className="font-semibold">
+                            Order #{o.number}{" "}
+                            <span className="text-[10px] font-bold uppercase tracking-wider bg-secondary px-1.5 py-0.5 rounded">
+                              {orderTypeLabel(o)}
+                            </span>
+                          </div>
                           <div className="text-xs text-muted-foreground">
                             {new Date(o.createdAt).toLocaleString()} · {o.items.length} items ·{" "}
                             {o.paymentMethod}
@@ -638,7 +757,7 @@ const Customers = () => {
                             className="rounded-lg h-8"
                             onClick={() => setExpandedOrder(open ? null : o.id)}
                           >
-                            {open ? "Hide" : "Details"}
+                            {open ? "Hide" : "View Order"}
                           </Button>
                           <Button
                             size="sm"
@@ -651,6 +770,11 @@ const Customers = () => {
                       </div>
                       {open && (
                         <div className="mt-2 rounded-lg bg-secondary/60 p-2 space-y-1">
+                          <div className="text-xs text-muted-foreground">
+                            Type: {orderTypeLabel(o)}
+                            {o.table ? ` · Table ${o.table}` : ""} · Status:{" "}
+                            {o.orderStatus || "—"}
+                          </div>
                           {o.items.map((it, i) => (
                             <div key={`${o.id}-${i}`} className="flex justify-between text-xs">
                               <span>
@@ -661,6 +785,10 @@ const Customers = () => {
                               </span>
                             </div>
                           ))}
+                          <div className="flex justify-between text-xs font-semibold border-t border-border pt-1">
+                            <span>Total</span>
+                            <span className="tabular-nums">${o.total.toFixed(2)}</span>
+                          </div>
                         </div>
                       )}
                     </div>
@@ -671,6 +799,11 @@ const Customers = () => {
           </div>
         </DialogContent>
       </Dialog>
+
+      {printAll && reviewCustomer && (
+        <OrderHistoryPrintout customer={reviewCustomer} orders={reviewOrders} />
+      )}
+
 
       {receiptOrder && (
         <ReceiptPreview
@@ -713,7 +846,106 @@ const Customers = () => {
   );
 };
 
+// Order type shown in the profile: Dine-in / Delivery / Takeaway / Online.
+const orderTypeLabel = (o: Order): string => {
+  const raw = String(o.orderType || "").toLowerCase();
+  if (raw.includes("delivery")) return "Delivery";
+  if (raw.includes("dine")) return "Dine-in";
+  if (raw.includes("take") || raw.includes("pickup")) return "Takeaway";
+  if (String(o.source || "").toLowerCase() === "web") return "Online";
+  if (o.table && o.table !== "—") return "Dine-in";
+  return "Takeaway";
+};
+
+/* Customer order history printout — rendered into the existing #print-root
+   node with id="receipt" so the current thermal print setup is reused. */
+const OrderHistoryPrintout = ({
+  customer,
+  orders,
+}: {
+  customer: Customer;
+  orders: Order[];
+}) => {
+  const settings = loadReceiptSettings();
+  const root = document.getElementById("print-root") || (() => {
+    const el = document.createElement("div");
+    el.id = "print-root";
+    document.body.appendChild(el);
+    return el;
+  })();
+
+  const totals = orders.reduce(
+    (acc, o) => {
+      const paid = o.paidAmount ?? 0;
+      acc.total += o.total;
+      acc.paid += paid;
+      acc.due += Math.max(0, o.total - paid);
+      return acc;
+    },
+    { total: 0, paid: 0, due: 0 }
+  );
+
+  return createPortal(
+    <div id="receipt" className="receipt receipt-print p-3 text-[11px] leading-tight">
+      <div className="text-center font-bold text-sm">{settings.businessName}</div>
+      <div className="text-center">Customer Order History</div>
+      <div className="mt-1">Customer: {customer.name}</div>
+      {customer.phone && <div>Phone: {customer.phone}</div>}
+      <div>Printed: {new Date().toLocaleString()}</div>
+      <div className="border-t border-dashed border-black my-1" />
+      {orders.map((o) => {
+        const paid = o.paidAmount ?? 0;
+        const due = Math.max(0, o.total - paid);
+        return (
+          <div key={o.id} className="mb-1.5">
+            <div className="font-bold">
+              #{o.number} · {orderTypeLabel(o)}
+            </div>
+            <div>{new Date(o.createdAt).toLocaleString()}</div>
+            {o.items.map((it, i) => (
+              <div key={`${o.id}-p-${i}`} className="flex justify-between">
+                <span>
+                  {it.qty} x {it.name}
+                </span>
+                <span>{(it.price * it.qty).toFixed(2)}</span>
+              </div>
+            ))}
+            <div className="flex justify-between">
+              <span>Total / Paid / Due</span>
+              <span>
+                {o.total.toFixed(2)} / {paid.toFixed(2)} / {due.toFixed(2)}
+              </span>
+            </div>
+            <div>Status: {due <= 0 ? "PAID" : paid > 0 ? "PARTIAL" : "UNPAID"}</div>
+            <div className="border-t border-dashed border-black mt-1" />
+          </div>
+        );
+      })}
+      <div className="font-bold">
+        <div className="flex justify-between">
+          <span>Orders</span>
+          <span>{orders.length}</span>
+        </div>
+        <div className="flex justify-between">
+          <span>Total</span>
+          <span>{totals.total.toFixed(2)}</span>
+        </div>
+        <div className="flex justify-between">
+          <span>Paid</span>
+          <span>{totals.paid.toFixed(2)}</span>
+        </div>
+        <div className="flex justify-between">
+          <span>Outstanding</span>
+          <span>{totals.due.toFixed(2)}</span>
+        </div>
+      </div>
+    </div>,
+    root
+  );
+};
+
 const KpiCard = ({
+
   icon,
   label,
   value,

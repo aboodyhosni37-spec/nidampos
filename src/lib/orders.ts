@@ -42,17 +42,21 @@ export type Order = {
   createdAt: string;
   status: "completed" | "pending";
   orderStatus?: OrderWorkflowStatus;
+  orderType?: string | null;
+  source?: string | null;
   notes?: string;
   rewardApplied?: "none" | "half_off" | "free_lunch";
 };
+
 
 // Fetch all orders from the database (joined with items). Used by Orders page.
 export const fetchOrders = async (): Promise<Order[]> => {
   const { data: invoices, error } = await supabase
     .from("invoices")
     .select(
-      "id, number, total, paid_amount, due_amount, table_label, customer_id, customer_name, payment_method, status, order_status, created_at, invoice_items(id, name, price, qty, product_id)"
+      "id, number, total, paid_amount, due_amount, table_label, customer_id, customer_name, payment_method, status, order_status, order_type, source, created_at, invoice_items(id, name, price, qty, product_id)"
     )
+
     .order("created_at", { ascending: false })
     .limit(500);
   if (error) throw error;
@@ -75,7 +79,10 @@ export const fetchOrders = async (): Promise<Order[]> => {
     createdAt: inv.created_at,
     status: inv.status === "completed" ? "completed" : "pending",
     orderStatus: (inv.order_status as OrderWorkflowStatus) || "Completed",
+    orderType: inv.order_type ?? null,
+    source: inv.source ?? null,
   }));
+
 };
 
 // Update server-side workflow status. Realtime listeners refresh UIs.
