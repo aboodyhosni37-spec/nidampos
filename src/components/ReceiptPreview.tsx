@@ -410,7 +410,7 @@ const CustomerReceipt = ({
       <div className="text-center text-[12.5px] mt-2">
         <div className="font-bold">{settings.footerMessage}</div>
         {settings.showPoweredBy && (
-          <div className="text-[11px] mt-2">Powered by Blue Flag</div>
+          <div className="text-[11px] mt-2">Powered by Hagajiye Tech</div>
         )}
       </div>
     )}

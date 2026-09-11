@@ -634,7 +634,7 @@ const Settings = () => {
               />
             </div>
             <div className="flex items-center justify-between p-3 rounded-xl bg-secondary/40">
-              <div className="font-medium">Show "Powered by Blue Flag"</div>
+              <div className="font-medium">Show "Powered by Hagajiye Tech"</div>
               <Switch
                 checked={receipt.showPoweredBy}
                 onCheckedChange={(v) => setR("showPoweredBy", v)}
