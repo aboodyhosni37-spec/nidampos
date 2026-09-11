@@ -194,7 +194,7 @@ export const DashboardLayout = () => {
         </main>
 
         <footer className="py-4 text-center text-xs text-muted-foreground border-t border-border bg-card">
-          Powered by <span className="font-semibold text-primary">Hagajiye Tech</span>
+          Powered by <span className="font-semibold text-primary">Hagaajiye Tech</span>
         </footer>
       </div>
     </div>
