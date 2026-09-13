@@ -133,6 +133,106 @@ export type LoyaltySettleResult = {
   amount?: number;
 };
 
+/** One consistent rule for "does this saved order count toward loyalty". */
+const eligibleAmount = (inv: any): number => {
+  const isVoid =
+    VOID_STATUSES.includes(String(inv?.status ?? "").toLowerCase()) ||
+    VOID_STATUSES.includes(String(inv?.order_status ?? "").toLowerCase());
+  if (isVoid) return 0;
+  const total = Number(inv?.total || 0);
+  const paid = Number(inv?.paid_amount || 0);
+  const due = Math.max(0, Number(inv?.due_amount ?? total - paid));
+  const fullyPaid = total > 0 && due <= 0.005 && paid >= total - 0.005;
+  if (!fullyPaid) return 0;
+  // The final saved order total — no re-derived tax, discount or delivery math.
+  return +Math.min(paid, total).toFixed(2);
+};
+
+/**
+ * Recompute a customer's cumulative loyalty spending from the saved orders.
+ *
+ * Single source of truth: SUM(final total of every eligible fully-paid,
+ * non-void order). Fully idempotent — running it again yields the same value,
+ * so refreshing, printing, reopening or re-paying never inflates the total.
+ * Also repairs the earn ledger: one earn row per eligible order, stale earn
+ * rows for no-longer-eligible orders are removed.
+ */
+export const reconcileCustomerLoyalty = async (
+  customerId: string,
+  s: SystemSettings = getCachedSettings()
+): Promise<LoyaltyProgress> => {
+  const { data: invoices, error } = await supabase
+    .from("invoices")
+    .select("id, number, total, paid_amount, due_amount, status, order_status")
+    .eq("customer_id", customerId)
+    .limit(2000);
+  if (error) throw error;
+
+  const eligible = (invoices ?? [])
+    .map((inv: any) => ({ inv, amount: eligibleAmount(inv) }))
+    .filter((r) => r.amount > 0);
+
+  const totalSpent = +eligible.reduce((sum, r) => sum + r.amount, 0).toFixed(2);
+
+  const { data: cust } = await supabase
+    .from("customers")
+    .select("rewards_claimed")
+    .eq("id", customerId)
+    .maybeSingle();
+
+  const claimed = Math.max(0, Number((cust as any)?.rewards_claimed || 0));
+  const progress = loyaltyProgress({ total_spent: totalSpent, rewards_claimed: claimed }, s);
+
+  const { error: upErr } = await supabase
+    .from("customers")
+    .update({
+      total_spent: totalSpent,
+      loyalty_points: Math.floor(totalSpent),
+      reward_status: s.loyalty_enabled && progress.rewardsAvailable > 0 ? progress.reward : "none",
+    })
+    .eq("id", customerId);
+  if (upErr) throw upErr;
+
+  // Repair the earn ledger so history matches the eligible orders exactly.
+  const { data: earnRows } = await supabase
+    .from("loyalty_transactions")
+    .select("id, invoice_id, points")
+    .eq("customer_id", customerId)
+    .eq("type", "earn")
+    .is("reward", null);
+
+  const eligibleIds = new Set(eligible.map((r) => r.inv.id as string));
+  const seen = new Set<string>();
+  const staleIds: string[] = [];
+  for (const row of (earnRows ?? []) as any[]) {
+    const invId = row.invoice_id as string | null;
+    if (!invId || !eligibleIds.has(invId) || seen.has(invId)) {
+      staleIds.push(row.id as string);
+    } else {
+      seen.add(invId);
+    }
+  }
+  if (staleIds.length) {
+    await supabase.from("loyalty_transactions").delete().in("id", staleIds);
+  }
+
+  const missing = eligible.filter((r) => !seen.has(r.inv.id as string));
+  if (missing.length) {
+    await supabase.from("loyalty_transactions").insert(
+      missing.map((r) => ({
+        customer_id: customerId,
+        invoice_id: r.inv.id as string,
+        invoice_number: (r.inv.number as number) ?? null,
+        type: "earn",
+        points: Math.floor(r.amount),
+        note: r.inv.number ? `Order #${r.inv.number}` : "Order payment",
+      }))
+    );
+  }
+
+  return progress;
+};
+
 /**
  * Credit loyalty for ONE invoice, exactly once.
  *
@@ -140,7 +240,8 @@ export type LoyaltySettleResult = {
  * payment still uses its final amount. Idempotent: the earn row is inserted
  * first and a unique index on loyalty_transactions(invoice_id) (earn rows
  * without a reward) rejects any second attempt, so refreshing, double-clicking
- * or re-paying can never duplicate points.
+ * or re-paying can never duplicate points. The cumulative total is then always
+ * recomputed from the saved orders, never added to a stale stored value.
  */
 export const settleInvoiceLoyalty = async (
   invoiceId: string,
@@ -165,33 +266,16 @@ export const settleInvoiceLoyalty = async (
     VOID_STATUSES.includes(String(inv.order_status ?? "").toLowerCase());
   if (isVoid) return { applied: false, reason: "voided" };
 
-  const total = Number(inv.total || 0);
-  const paid = Number(inv.paid_amount || 0);
-  const due = Math.max(0, Number(inv.due_amount ?? total - paid));
-  const fullyPaid = total > 0 && due <= 0.005 && paid >= total - 0.005;
-  if (!fullyPaid) return { applied: false, reason: "not-fully-paid" };
-
-  // Eligible spend = what was actually paid, never more than the order total.
-  const eligible = +Math.min(paid, total).toFixed(2);
+  const eligible = eligibleAmount(inv);
   if (eligible <= 0) return { applied: false, reason: "not-fully-paid" };
 
   const { data: cust, error: cErr } = await supabase
     .from("customers")
-    .select("total_spent, reward_status, loyalty_points, rewards_claimed")
+    .select("total_spent, rewards_claimed")
     .eq("id", customerId)
     .maybeSingle();
   if (cErr) throw cErr;
-
   const before = loyaltyProgress(cust ?? {}, settings);
-  const newTotal = +(before.totalSpent + eligible).toFixed(2);
-  const after = loyaltyProgress(
-    { total_spent: newTotal, rewards_claimed: before.milestonesClaimed },
-    settings
-  );
-
-  const points = Math.floor(newTotal); // 1 point per currency unit spent
-  const previousPoints = Number((cust as any)?.loyalty_points || 0);
-  const earned = Math.max(0, points - previousPoints);
 
   // Claim the invoice FIRST — the unique index makes this the atomic gate.
   const { error: claimErr } = await supabase.from("loyalty_transactions").insert({
@@ -199,26 +283,16 @@ export const settleInvoiceLoyalty = async (
     invoice_id: invoiceId,
     invoice_number: (inv.number as number) ?? null,
     type: "earn",
-    points: earned,
+    points: Math.floor(eligible),
     note: inv.number ? `Order #${inv.number}` : "Order payment",
   });
-  if (claimErr) {
-    if ((claimErr as any).code === "23505") return { applied: false, reason: "already-counted" };
-    throw claimErr;
-  }
+  const alreadyCounted = !!claimErr && (claimErr as any).code === "23505";
+  if (claimErr && !alreadyCounted) throw claimErr;
 
-  const newReward: RewardStatus =
-    settings.loyalty_enabled && after.rewardsAvailable > 0 ? after.reward : "none";
+  // Recompute the cumulative total from the saved orders (idempotent).
+  const after = await reconcileCustomerLoyalty(customerId, settings);
 
-  const { error: upErr } = await supabase
-    .from("customers")
-    .update({
-      total_spent: newTotal,
-      reward_status: newReward,
-      loyalty_points: points,
-    })
-    .eq("id", customerId);
-  if (upErr) throw upErr;
+  if (alreadyCounted) return { applied: false, reason: "already-counted" };
 
   // Ledger note when one or more milestones were crossed by this order.
   const newMilestones = after.milestonesReached - before.milestonesReached;
@@ -238,6 +312,7 @@ export const settleInvoiceLoyalty = async (
 
   return { applied: true, amount: eligible };
 };
+
 
 /** Back-compat wrapper: always routed through the idempotent invoice settler. */
 export const addCustomerSpend = async (
