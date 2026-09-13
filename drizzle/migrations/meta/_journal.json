@@ -1,0 +1,13 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1789307626827,
+      "tag": "0000_loyalty_earn_unique_per_invoice",
+      "breakpoints": true
+    }
+  ]
+}

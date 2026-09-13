@@ -103,7 +103,7 @@ import {
   type SystemSettings,
   type DiscountInput,
 } from "@/lib/systemSettings";
-import { addCustomerSpend, consumeReward, rewardLabel, loyaltyProgress } from "@/lib/loyalty";
+import { settleInvoiceLoyalty, consumeReward, rewardLabel, loyaltyProgress } from "@/lib/loyalty";
 import { getSession } from "@/lib/auth";
 
 const HIGH_DEBT_THRESHOLD = 100;
@@ -357,12 +357,19 @@ const POS = () => {
         method: payMethodInline,
         customer_id: payOrder.customer_id ?? undefined,
       });
+      // Due order just became fully paid → credit loyalty now (once).
+      try {
+        await settleInvoiceLoyalty(payOrder.id, {
+          customerIdFallback: payOrder.customer_id ?? null,
+        });
+      } catch {}
       toast({
         title: "Payment received",
         description: `Order #${payOrder.number} marked PAID via ${payMethodInline}.`,
       });
       setPayOrder(null);
       refreshUnpaid();
+      listCustomers().then(setCustomers).catch(() => {});
     } catch (e: any) {
       toast({ title: "Failed", description: e.message, variant: "destructive" });
     } finally {
@@ -737,12 +744,11 @@ const POS = () => {
         }, 5000);
       }
 
-      // Loyalty: add spend & consume reward (only when fully paid now).
-      if (selectedCustomerId && effectivePaid > 0) {
+      // Loyalty: credited once per invoice, only when that invoice is fully paid.
+      if (created.id) {
         try {
-          await addCustomerSpend(selectedCustomerId, effectivePaid, {
-            invoice_id: created.id,
-            invoice_number: created.number,
+          await settleInvoiceLoyalty(created.id, {
+            customerIdFallback: selectedCustomerId || null,
           });
         } catch {}
       }
