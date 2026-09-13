@@ -121,9 +121,13 @@ const Customers = () => {
     setExpandedOrder(null);
     setReviewLoading(true);
     try {
-      const [all, loyalty] = await Promise.all([
+      // Recompute cumulative spending from the saved eligible paid orders
+      // (idempotent — viewing never adds points twice).
+      await reconcileCustomerLoyalty(c.id).catch(() => null);
+      const [all, loyalty, fresh] = await Promise.all([
         fetchOrders(),
         listLoyaltyHistory(c.id).catch(() => [] as LoyaltyTransaction[]),
+        listCustomers().catch(() => [] as Customer[]),
       ]);
       setReviewOrders(
         all.filter(
@@ -133,6 +137,12 @@ const Customers = () => {
         )
       );
       setLoyaltyHistory(loyalty);
+      if (fresh.length) {
+        setCustomers(fresh);
+        const updated = fresh.find((x) => x.id === c.id);
+        if (updated) setReviewCustomer(updated);
+      }
+
     } catch (e: any) {
       toast({ title: "Failed to load orders", description: e.message, variant: "destructive" });
     } finally {
