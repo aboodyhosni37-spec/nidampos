@@ -155,6 +155,12 @@ const Orders = () => {
         method: payMethod,
         customer_id: payOrder.customerId ?? undefined,
       });
+      // Due order just became fully paid → credit loyalty now (once).
+      try {
+        await settleInvoiceLoyalty(payOrder.id, {
+          customerIdFallback: payOrder.customerId ?? null,
+        });
+      } catch {}
       toast({
         title: "Payment received",
         description: `Order #${payOrder.number} marked as PAID via ${payMethod}.`,
