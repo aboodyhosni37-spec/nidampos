@@ -47,6 +47,7 @@ import {
 import { listProducts, type DbProduct } from "@/lib/menu";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
+import { settleInvoiceLoyalty } from "@/lib/loyalty";
 import { cn } from "@/lib/utils";
 
 
