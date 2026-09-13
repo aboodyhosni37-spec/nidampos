@@ -120,37 +120,95 @@ export const summarizeLoyalty = (
     .reduce((s, t) => s + Number(t.points || 0), 0),
 });
 
-// After an order is paid, add the paid amount to cumulative spending and unlock
-// any milestone rewards the customer has newly reached. Spending never resets;
-// the remainder past a milestone carries over toward the next one.
-export const addCustomerSpend = async (
-  customerId: string,
-  paidAmount: number,
-  order?: { invoice_id?: string | null; invoice_number?: number | null }
-) => {
-  if (!customerId || paidAmount <= 0) return;
+const VOID_STATUSES = ["cancelled", "canceled", "void", "voided", "refunded"];
+
+export type LoyaltySettleResult = {
+  applied: boolean;
+  reason?:
+    | "no-invoice"
+    | "no-customer"
+    | "voided"
+    | "not-fully-paid"
+    | "already-counted";
+  amount?: number;
+};
+
+/**
+ * Credit loyalty for ONE invoice, exactly once.
+ *
+ * Reads the final saved invoice/payment record, so an order edited before
+ * payment still uses its final amount. Idempotent: the earn row is inserted
+ * first and a unique index on loyalty_transactions(invoice_id) (earn rows
+ * without a reward) rejects any second attempt, so refreshing, double-clicking
+ * or re-paying can never duplicate points.
+ */
+export const settleInvoiceLoyalty = async (
+  invoiceId: string,
+  opts?: { customerIdFallback?: string | null }
+): Promise<LoyaltySettleResult> => {
+  if (!invoiceId) return { applied: false, reason: "no-invoice" };
   const settings = getCachedSettings();
 
-  const { data, error } = await supabase
+  const { data: inv, error: invErr } = await supabase
+    .from("invoices")
+    .select("id, number, customer_id, total, paid_amount, due_amount, status, order_status")
+    .eq("id", invoiceId)
+    .maybeSingle();
+  if (invErr) throw invErr;
+  if (!inv) return { applied: false, reason: "no-invoice" };
+
+  const customerId = (inv.customer_id as string | null) ?? opts?.customerIdFallback ?? null;
+  if (!customerId) return { applied: false, reason: "no-customer" };
+
+  const isVoid =
+    VOID_STATUSES.includes(String(inv.status ?? "").toLowerCase()) ||
+    VOID_STATUSES.includes(String(inv.order_status ?? "").toLowerCase());
+  if (isVoid) return { applied: false, reason: "voided" };
+
+  const total = Number(inv.total || 0);
+  const paid = Number(inv.paid_amount || 0);
+  const due = Math.max(0, Number(inv.due_amount ?? total - paid));
+  const fullyPaid = total > 0 && due <= 0.005 && paid >= total - 0.005;
+  if (!fullyPaid) return { applied: false, reason: "not-fully-paid" };
+
+  // Eligible spend = what was actually paid, never more than the order total.
+  const eligible = +Math.min(paid, total).toFixed(2);
+  if (eligible <= 0) return { applied: false, reason: "not-fully-paid" };
+
+  const { data: cust, error: cErr } = await supabase
     .from("customers")
     .select("total_spent, reward_status, loyalty_points, rewards_claimed")
     .eq("id", customerId)
     .maybeSingle();
-  if (error) throw error;
+  if (cErr) throw cErr;
 
-  const before = loyaltyProgress(data ?? {}, settings);
-  const newTotal = +(before.totalSpent + Number(paidAmount || 0)).toFixed(2);
+  const before = loyaltyProgress(cust ?? {}, settings);
+  const newTotal = +(before.totalSpent + eligible).toFixed(2);
   const after = loyaltyProgress(
     { total_spent: newTotal, rewards_claimed: before.milestonesClaimed },
     settings
   );
 
-  // Reward is available whenever an unredeemed milestone exists.
+  const points = Math.floor(newTotal); // 1 point per currency unit spent
+  const previousPoints = Number((cust as any)?.loyalty_points || 0);
+  const earned = Math.max(0, points - previousPoints);
+
+  // Claim the invoice FIRST — the unique index makes this the atomic gate.
+  const { error: claimErr } = await supabase.from("loyalty_transactions").insert({
+    customer_id: customerId,
+    invoice_id: invoiceId,
+    invoice_number: (inv.number as number) ?? null,
+    type: "earn",
+    points: earned,
+    note: inv.number ? `Order #${inv.number}` : "Order payment",
+  });
+  if (claimErr) {
+    if ((claimErr as any).code === "23505") return { applied: false, reason: "already-counted" };
+    throw claimErr;
+  }
+
   const newReward: RewardStatus =
     settings.loyalty_enabled && after.rewardsAvailable > 0 ? after.reward : "none";
-
-  const points = Math.floor(newTotal); // 1 point per currency unit spent
-  const previousPoints = Number((data as any)?.loyalty_points || 0);
 
   const { error: upErr } = await supabase
     .from("customers")
@@ -162,25 +220,13 @@ export const addCustomerSpend = async (
     .eq("id", customerId);
   if (upErr) throw upErr;
 
-  const earned = Math.max(0, points - previousPoints);
-  if (earned > 0) {
-    await supabase.from("loyalty_transactions").insert({
-      customer_id: customerId,
-      invoice_id: order?.invoice_id ?? null,
-      invoice_number: order?.invoice_number ?? null,
-      type: "earn",
-      points: earned,
-      note: order?.invoice_number ? `Order #${order.invoice_number}` : "Order payment",
-    });
-  }
-
   // Ledger note when one or more milestones were crossed by this order.
   const newMilestones = after.milestonesReached - before.milestonesReached;
   if (settings.loyalty_enabled && newMilestones > 0) {
     await supabase.from("loyalty_transactions").insert({
       customer_id: customerId,
-      invoice_id: order?.invoice_id ?? null,
-      invoice_number: order?.invoice_number ?? null,
+      invoice_id: invoiceId,
+      invoice_number: (inv.number as number) ?? null,
       type: "earn",
       points: 0,
       reward: after.reward,
@@ -189,6 +235,18 @@ export const addCustomerSpend = async (
       )} unlocked`,
     });
   }
+
+  return { applied: true, amount: eligible };
+};
+
+/** Back-compat wrapper: always routed through the idempotent invoice settler. */
+export const addCustomerSpend = async (
+  customerId: string,
+  _paidAmount: number,
+  order?: { invoice_id?: string | null; invoice_number?: number | null }
+) => {
+  if (!order?.invoice_id) return;
+  await settleInvoiceLoyalty(order.invoice_id, { customerIdFallback: customerId });
 };
 
 // Mark one milestone reward as used. Cumulative spending is preserved, only the
