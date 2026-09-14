@@ -65,6 +65,7 @@ import {
   deleteCustomer,
   listCustomerDueHistory,
   listCustomers,
+  reconcileCustomerDues,
   recordRepayment,
   updateCustomer,
   type Customer,
@@ -209,6 +210,7 @@ const Customers = () => {
   const refresh = async () => {
     setLoading(true);
     try {
+      await reconcileCustomerDues().catch(() => {});
       setCustomers(await listCustomers());
     } catch (e: any) {
       toast({ title: "Failed to load customers", description: e.message, variant: "destructive" });

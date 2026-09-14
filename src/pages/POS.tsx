@@ -85,6 +85,7 @@ import {
   createInvoice,
   listCustomers,
   listUnpaidInvoices,
+  reconcileCustomerDues,
   payUnpaidInvoice,
   assignInvoiceToCustomer,
   getInvoiceWithItems,
@@ -268,6 +269,7 @@ const POS = () => {
   const refreshUnpaid = async () => {
     setUnpaidLoading(true);
     try {
+      await reconcileCustomerDues().catch(() => {});
       const rows = await listUnpaidInvoices();
       // Only unassigned due orders belong here. Once a customer is assigned,
       // the balance is tracked under that customer's Customer Due.
