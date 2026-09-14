@@ -254,6 +254,51 @@ export const recordRepayment = async (input: {
   method: Exclude<PaymentMethod, "Due" | "Split">;
   note?: string;
 }) => {
+  // Apply the repayment to the customer's outstanding orders (oldest first) so
+  // the saved invoices stay the source of truth for what is still owed.
+  let remaining = input.amount;
+  const VOID = ["cancelled", "canceled", "void", "voided", "refunded"];
+  const { data: open, error: oErr } = await supabase
+    .from("invoices")
+    .select("id, total, paid_amount, status, order_status")
+    .eq("customer_id", input.customer_id)
+    .order("created_at", { ascending: true });
+  if (oErr) throw oErr;
+
+  for (const inv of open ?? []) {
+    if (remaining <= 0) break;
+    if (
+      VOID.includes(String((inv as any).status ?? "").toLowerCase()) ||
+      VOID.includes(String((inv as any).order_status ?? "").toLowerCase())
+    )
+      continue;
+    const owed = Math.max(0, Number(inv.total || 0) - Number(inv.paid_amount || 0));
+    if (owed <= 0) continue;
+    const apply = Math.min(owed, remaining);
+
+    const { error: pErr } = await supabase.from("payments").insert({
+      invoice_id: inv.id,
+      method: input.method,
+      amount: apply,
+      reference: "Customer due repayment",
+    });
+    if (pErr) throw pErr;
+
+    const newPaid = Number(inv.paid_amount || 0) + apply;
+    const newDue = Math.max(0, owed - apply);
+    const { error: uErr } = await supabase
+      .from("invoices")
+      .update({
+        paid_amount: newPaid,
+        due_amount: newDue,
+        order_status: newDue <= 0 ? "Completed" : "Unpaid",
+      })
+      .eq("id", inv.id);
+    if (uErr) throw uErr;
+
+    remaining -= apply;
+  }
+
   const { error } = await supabase.from("due_transactions").insert({
     customer_id: input.customer_id,
     type: "repayment",
@@ -262,6 +307,9 @@ export const recordRepayment = async (input: {
     note: input.note ?? "Repayment",
   });
   if (error) throw error;
+
+  // Keep the stored balance exactly in sync with the saved orders.
+  await reconcileCustomerDues().catch(() => {});
 };
 
 export type UnpaidInvoice = {
