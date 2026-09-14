@@ -22,6 +22,8 @@ import {
   summarizeLoyalty,
   rewardLabel,
   loyaltyProgress,
+  reconcileCustomerLoyalty,
+
   type LoyaltyTransaction,
 } from "@/lib/loyalty";
 import { formatMoney, getCachedSettings } from "@/lib/systemSettings";
