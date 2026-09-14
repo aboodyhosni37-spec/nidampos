@@ -346,6 +346,50 @@ export const payUnpaidInvoice = async (input: {
   return { paid: newPaid, due: newDue, status: newStatus };
 };
 
+// Recompute every customer's due_balance from the saved invoices (source of truth):
+// Customer Due = SUM(total - paid) over live orders that still owe money.
+// Fully paid, cancelled/voided/refunded orders contribute nothing.
+export const reconcileCustomerDues = async (): Promise<void> => {
+  const VOID = ["cancelled", "canceled", "void", "voided", "refunded"];
+  const live = (i: any) =>
+    !VOID.includes(String(i.status ?? "").toLowerCase()) &&
+    !VOID.includes(String(i.order_status ?? "").toLowerCase());
+
+  const { data: invoices, error } = await supabase
+    .from("invoices")
+    .select("customer_id, total, paid_amount, status, order_status")
+    .not("customer_id", "is", null);
+  if (error) throw error;
+
+  const owed = new Map<string, number>();
+  for (const inv of invoices ?? []) {
+    if (!live(inv)) continue;
+    const due = Math.max(0, Number(inv.total || 0) - Number(inv.paid_amount || 0));
+    if (due <= 0) continue;
+    const cid = inv.customer_id as string;
+    owed.set(cid, (owed.get(cid) ?? 0) + due);
+  }
+
+  const { data: customers, error: cErr } = await supabase
+    .from("customers")
+    .select("id, due_balance");
+  if (cErr) throw cErr;
+
+  const fixes = (customers ?? [])
+    .map((c: any) => ({ id: c.id as string, due: owed.get(c.id) ?? 0 }))
+    .filter((c) => Math.abs(Number((customers ?? []).find((x: any) => x.id === c.id)?.due_balance || 0) - c.due) > 0.004);
+
+  await Promise.all(
+    fixes.map(async (f) => {
+      const { error: uErr } = await supabase
+        .from("customers")
+        .update({ due_balance: f.due })
+        .eq("id", f.id);
+      if (uErr) throw uErr;
+    })
+  );
+};
+
 // Delete customer ONLY if no due remains.
 export const deleteCustomer = async (id: string) => {
   const { data, error } = await supabase
