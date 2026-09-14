@@ -106,6 +106,7 @@ const Orders = () => {
 
   const refresh = async () => {
     try {
+      await reconcileCustomerDues().catch(() => {});
       setOrders(await fetchOrders());
     } catch (e: any) {
       toast({ title: "Failed to load orders", description: e.message, variant: "destructive" });
