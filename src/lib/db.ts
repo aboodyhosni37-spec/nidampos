@@ -391,6 +391,8 @@ export const payUnpaidInvoice = async (input: {
     .eq("id", invoice_id);
   if (updErr) throw updErr;
 
+  await reconcileCustomerDues().catch(() => {});
+
   return { paid: newPaid, due: newDue, status: newStatus };
 };
 
