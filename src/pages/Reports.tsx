@@ -340,12 +340,12 @@ ${`<tr class="strong"><td>Totals</td><td class="r">${t.orders}</td><td class="r"
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All methods</SelectItem>
-                <SelectItem value="Cash">Cash</SelectItem>
-                <SelectItem value="EVC-Plus">EVC-Plus</SelectItem>
-                <SelectItem value="Premier Wallet">Premier Wallet</SelectItem>
-                <SelectItem value="E-Dahab">E-Dahab</SelectItem>
-                <SelectItem value="Card">Card</SelectItem>
                 <SelectItem value="Due">Due</SelectItem>
+                <SelectItem value="EVC-Plus">EVC-Plus</SelectItem>
+                <SelectItem value="E-Dahab">E-Dahab</SelectItem>
+                <SelectItem value="Premier Wallet">Premier Wallet</SelectItem>
+                <SelectItem value="Cash">Cash</SelectItem>
+                <SelectItem value="Card">Card</SelectItem>
                 <SelectItem value="Split">Split</SelectItem>
               </SelectContent>
             </Select>

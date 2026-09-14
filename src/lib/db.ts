@@ -9,14 +9,14 @@ export type PaymentMethod =
   | "Due"
   | "Split";
 
-export const MOBILE_METHODS: PaymentMethod[] = ["EVC-Plus", "Premier Wallet", "E-Dahab"];
+export const MOBILE_METHODS: PaymentMethod[] = ["EVC-Plus", "E-Dahab", "Premier Wallet"];
 export const ALL_PAYMENT_METHODS: PaymentMethod[] = [
-  "Cash",
-  "EVC-Plus",
-  "Premier Wallet",
-  "E-Dahab",
-  "Card",
   "Due",
+  "EVC-Plus",
+  "E-Dahab",
+  "Premier Wallet",
+  "Cash",
+  "Card",
 ];
 
 export type Customer = {

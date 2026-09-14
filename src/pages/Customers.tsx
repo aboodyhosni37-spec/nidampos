@@ -75,10 +75,10 @@ import {
 
 const HIGH_DEBT = 100;
 const REPAY_METHODS: Exclude<PaymentMethod, "Due" | "Split">[] = [
-  "Cash",
   "EVC-Plus",
-  "Premier Wallet",
   "E-Dahab",
+  "Premier Wallet",
+  "Cash",
   "Card",
 ];
 

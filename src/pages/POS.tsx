@@ -1864,7 +1864,7 @@ const POS = () => {
               <div className="space-y-1.5">
                 <Label>Payment Method</Label>
                 <div className="grid grid-cols-2 gap-2">
-                  {(["EVC-Plus", "Premier Wallet", "E-Dahab", "Cash", "Card"] as const).map((m) => (
+                  {(["EVC-Plus", "E-Dahab", "Premier Wallet", "Cash", "Card"] as const).map((m) => (
                     <button
                       key={m}
                       type="button"
