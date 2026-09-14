@@ -55,8 +55,8 @@ import { cn } from "@/lib/utils";
 const STATUSES: OrderWorkflowStatus[] = ["Pending", "Preparing", "Completed", "Unpaid"];
 const PAY_METHODS: Exclude<PaymentMethod, "Due" | "Split">[] = [
   "EVC-Plus",
-  "Premier Wallet",
   "E-Dahab",
+  "Premier Wallet",
   "Cash",
   "Card",
 ];

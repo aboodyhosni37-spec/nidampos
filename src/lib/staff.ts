@@ -20,7 +20,7 @@ export type SalaryPayment = {
   created_at: string;
 };
 
-export const SALARY_METHODS = ["EVC-Plus", "Premier Wallet", "E-Dahab", "Cash"] as const;
+export const SALARY_METHODS = ["EVC-Plus", "E-Dahab", "Premier Wallet", "Cash"] as const;
 
 export const listStaff = async (): Promise<Staff[]> => {
   const { data, error } = await supabase.from("staff").select("*").order("name");
