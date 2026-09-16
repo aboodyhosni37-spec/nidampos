@@ -200,7 +200,7 @@ const POS = () => {
   const [cart, setCart] = useState<OrderItem[]>([]);
   const [table, setTable] = useState(tables[0]);
   const [customerName, setCustomerName] = useState("");
-  const [payment, setPayment] = useState<PaymentMethod>("Cash");
+  const [payment, setPayment] = useState<PaymentMethod>("Due");
   const [splitDue, setSplitDue] = useState(false);
   const [dueAmount, setDueAmount] = useState<string>("");
   const [completedOrder, setCompletedOrder] = useState<Order | null>(null);
@@ -420,7 +420,7 @@ const POS = () => {
     setDueAmount("");
     setSelectedCustomerId("");
     setCustomerName("");
-    setPayment("Cash");
+    setPayment("Due");
     setDiscountType("none");
     setDiscountValue("");
     setAppliedReward("none");
@@ -518,7 +518,7 @@ const POS = () => {
     setSplitDue(false);
     setDueAmount("");
     setSelectedCustomerId("");
-    setPayment("Cash");
+    setPayment("Due");
     removeHeldOrder(h.id);
     setHeldOrders(loadHeldOrders());
     setHeldOpen(false);
