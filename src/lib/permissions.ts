@@ -18,7 +18,10 @@ export type Permission =
   | "manage_system_settings"
   | "access_staff"
   | "manage_staff"
-  | "manage_website";
+  | "manage_website"
+  | "access_sessions"
+  | "view_all_sessions"
+  | "manage_deposits";
 
 export type PermissionMap = Partial<Record<Permission, boolean>>;
 
@@ -48,6 +51,9 @@ export const ALL_PERMISSIONS: { key: Permission; label: string; group: string }[
   { key: "manage_users", label: "Manage Users (Admin only)", group: "Admin" },
   { key: "access_settings", label: "Access Settings", group: "Admin" },
   { key: "manage_system_settings", label: "Modify System Settings (Admin only)", group: "Admin" },
+  { key: "access_sessions", label: "View Own Cashier Sessions", group: "Sessions" },
+  { key: "view_all_sessions", label: "View All Staff Sessions (Admin only)", group: "Sessions" },
+  { key: "manage_deposits", label: "Manage Customer Deposits (Admin only)", group: "Orders" },
 ];
 
 export const ADMIN_PERMS: PermissionMap = ALL_PERMISSIONS.reduce(
