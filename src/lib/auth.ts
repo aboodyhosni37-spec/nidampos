@@ -53,8 +53,12 @@ export const setSession = (u: SessionUser) => {
   notify();
 };
 
-export const clearSession = () => {
+export const clearSession = (reason: string = "sign-out") => {
   localStorage.removeItem(KEY);
+  // Close the cashier work session (never blocks sign-out).
+  import("./posSessions")
+    .then((m) => m.endPosSession(reason))
+    .catch(() => {});
   notify();
 };
 
