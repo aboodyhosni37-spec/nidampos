@@ -7,6 +7,7 @@ import { toast } from "@/hooks/use-toast";
 import { setSession } from "@/lib/auth";
 import { findUserByPin } from "@/lib/users";
 import { listRoles } from "@/lib/permissions";
+import { startPosSession } from "@/lib/posSessions";
 
 const NUMPAD = ["1", "2", "3", "4", "5", "6", "7", "8", "9"];
 const PIN_LEN = 4;
@@ -50,6 +51,12 @@ export const PosLoginForm = () => {
         identifier: user.username || user.name,
         role: user.role,
         permissions: role?.permissions ?? {},
+      });
+      await startPosSession({
+        id: user.id,
+        name: user.name,
+        role: user.role,
+        method: "pos",
       });
       setWelcome(user.name);
       toast({ title: `Welcome, ${user.name}!` });

@@ -8,6 +8,7 @@ import { toast } from "@/hooks/use-toast";
 import { setSession } from "@/lib/auth";
 import { findUserByUsernamePin } from "@/lib/users";
 import { listRoles } from "@/lib/permissions";
+import { startPosSession } from "@/lib/posSessions";
 
 export const WebLoginForm = () => {
   const navigate = useNavigate();
@@ -38,6 +39,12 @@ export const WebLoginForm = () => {
         identifier: user.username || user.name,
         role: user.role,
         permissions: role?.permissions ?? {},
+      });
+      await startPosSession({
+        id: user.id,
+        name: user.name,
+        role: user.role,
+        method: "web",
       });
       toast({ title: "Welcome back!", description: `Signed in as ${user.name}` });
       navigate("/dashboard", { replace: true });

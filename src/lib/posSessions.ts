@@ -1,0 +1,152 @@
+// Cashier work sessions. A session opens when staff sign in and closes when they
+// sign out / their login expires. Orders created while a session is open are
+// linked to it — the POS order-creation workflow itself is unchanged.
+import { supabase } from "@/integrations/supabase/client";
+import type { PaymentMethod } from "./db";
+
+const SESSION_ID_KEY = "nidam_pos_session_id";
+
+export type PosSession = {
+  id: string;
+  user_id: string | null;
+  user_name: string;
+  user_role: string;
+  login_method: string | null;
+  started_at: string;
+  ended_at: string | null;
+  end_reason: string | null;
+};
+
+export type SessionOrder = {
+  id: string;
+  number: number;
+  created_at: string;
+  customer_name: string | null;
+  total: number;
+  paid_amount: number;
+  due_amount: number;
+  payment_method: PaymentMethod;
+  order_status: string;
+  status: string;
+};
+
+export type SessionWithTotals = PosSession & {
+  orders_count: number;
+  total_sales: number;
+  total_payments: number;
+  total_due: number;
+};
+
+export const getCurrentSessionId = (): string | null => {
+  try {
+    return localStorage.getItem(SESSION_ID_KEY) || null;
+  } catch {
+    return null;
+  }
+};
+
+// Called right after a successful PIN login. Never blocks the login.
+export const startPosSession = async (user: {
+  id?: string;
+  name: string;
+  role: string;
+  method?: string;
+}): Promise<string | null> => {
+  try {
+    const { data, error } = await supabase
+      .from("pos_sessions")
+      .insert({
+        user_id: user.id ?? null,
+        user_name: user.name,
+        user_role: user.role,
+        login_method: user.method ?? null,
+      })
+      .select("id")
+      .single();
+    if (error) throw error;
+    localStorage.setItem(SESSION_ID_KEY, data.id as string);
+    return data.id as string;
+  } catch {
+    return null;
+  }
+};
+
+export const endPosSession = async (reason = "sign-out"): Promise<void> => {
+  const id = getCurrentSessionId();
+  try {
+    localStorage.removeItem(SESSION_ID_KEY);
+  } catch {}
+  if (!id) return;
+  try {
+    await supabase
+      .from("pos_sessions")
+      .update({ ended_at: new Date().toISOString(), end_reason: reason })
+      .eq("id", id)
+      .is("ended_at", null);
+  } catch {}
+};
+
+const VOID = ["cancelled", "canceled", "void", "voided", "refunded"];
+const isLive = (i: any) =>
+  !VOID.includes(String(i.status ?? "").toLowerCase()) &&
+  !VOID.includes(String(i.order_status ?? "").toLowerCase());
+
+// Sessions with their order totals. When userId is given, only that staff
+// member's own sessions are returned.
+export const listSessions = async (opts?: {
+  userId?: string | null;
+  limit?: number;
+}): Promise<SessionWithTotals[]> => {
+  let q = supabase
+    .from("pos_sessions")
+    .select("*")
+    .order("started_at", { ascending: false })
+    .limit(opts?.limit ?? 100);
+  if (opts?.userId) q = q.eq("user_id", opts.userId);
+  const { data: sessions, error } = await q;
+  if (error) throw error;
+
+  const ids = (sessions ?? []).map((s: any) => s.id as string);
+  if (ids.length === 0) return [];
+
+  const { data: invoices, error: iErr } = await supabase
+    .from("invoices")
+    .select("session_id, total, paid_amount, due_amount, status, order_status")
+    .in("session_id", ids);
+  if (iErr) throw iErr;
+
+  const agg = new Map<string, { n: number; sales: number; paid: number; due: number }>();
+  for (const inv of invoices ?? []) {
+    if (!isLive(inv)) continue;
+    const key = String((inv as any).session_id);
+    const cur = agg.get(key) ?? { n: 0, sales: 0, paid: 0, due: 0 };
+    cur.n += 1;
+    cur.sales += Number(inv.total || 0);
+    cur.paid += Number(inv.paid_amount || 0);
+    cur.due += Math.max(0, Number(inv.total || 0) - Number(inv.paid_amount || 0));
+    agg.set(key, cur);
+  }
+
+  return (sessions ?? []).map((s: any) => {
+    const a = agg.get(s.id) ?? { n: 0, sales: 0, paid: 0, due: 0 };
+    return {
+      ...(s as PosSession),
+      orders_count: a.n,
+      total_sales: +a.sales.toFixed(2),
+      total_payments: +a.paid.toFixed(2),
+      total_due: +a.due.toFixed(2),
+    };
+  });
+};
+
+export const listSessionOrders = async (sessionId: string): Promise<SessionOrder[]> => {
+  const { data, error } = await supabase
+    .from("invoices")
+    .select(
+      "id, number, created_at, customer_name, total, paid_amount, due_amount, payment_method, order_status, status"
+    )
+    .eq("session_id", sessionId)
+    .order("created_at", { ascending: false });
+  if (error) throw error;
+  return (data ?? []) as SessionOrder[];
+};
