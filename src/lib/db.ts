@@ -106,6 +106,9 @@ export const createInvoice = async (
 
   const orderStatus = dueAmount > 0 ? "Unpaid" : "Pending";
 
+  // Audit only: which cashier session created this order. Does not affect totals.
+  const staff = getSession();
+
   const { data: invoice, error: invErr } = await supabase
     .from("invoices")
     .insert({
@@ -119,6 +122,9 @@ export const createInvoice = async (
       payment_method: input.payment_method,
       status: "completed",
       order_status: orderStatus,
+      session_id: getCurrentSessionId(),
+      created_by_user_id: staff?.id ?? null,
+      created_by_name: staff?.name ?? null,
     })
     .select("id, number, order_status")
     .single();
