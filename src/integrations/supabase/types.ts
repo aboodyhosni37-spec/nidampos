@@ -71,10 +71,67 @@ export type Database = {
         }
         Relationships: []
       }
+      customer_deposits: {
+        Row: {
+          amount: number
+          created_at: string
+          customer_id: string
+          id: string
+          invoice_id: string | null
+          method: string | null
+          note: string | null
+          staff_id: string | null
+          staff_name: string | null
+          type: string
+        }
+        Insert: {
+          amount?: number
+          created_at?: string
+          customer_id: string
+          id?: string
+          invoice_id?: string | null
+          method?: string | null
+          note?: string | null
+          staff_id?: string | null
+          staff_name?: string | null
+          type?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          customer_id?: string
+          id?: string
+          invoice_id?: string | null
+          method?: string | null
+          note?: string | null
+          staff_id?: string | null
+          staff_name?: string | null
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customer_deposits_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customer_deposits_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       customers: {
         Row: {
           address: string | null
           created_at: string
+          deposit_balance: number
+          deposit_total: number
+          deposit_used: number
           due_balance: number
           id: string
           loyalty_points: number
@@ -88,6 +145,9 @@ export type Database = {
         Insert: {
           address?: string | null
           created_at?: string
+          deposit_balance?: number
+          deposit_total?: number
+          deposit_used?: number
           due_balance?: number
           id?: string
           loyalty_points?: number
@@ -101,6 +161,9 @@ export type Database = {
         Update: {
           address?: string | null
           created_at?: string
+          deposit_balance?: number
+          deposit_total?: number
+          deposit_used?: number
           due_balance?: number
           id?: string
           loyalty_points?: number
@@ -262,6 +325,8 @@ export type Database = {
         Row: {
           client_ref: string | null
           created_at: string
+          created_by_name: string | null
+          created_by_user_id: string | null
           customer_address: string | null
           customer_id: string | null
           customer_name: string | null
@@ -275,6 +340,7 @@ export type Database = {
           order_type: string | null
           paid_amount: number
           payment_method: Database["public"]["Enums"]["payment_method"]
+          session_id: string | null
           source: string
           status: string
           subtotal: number
@@ -284,6 +350,8 @@ export type Database = {
         Insert: {
           client_ref?: string | null
           created_at?: string
+          created_by_name?: string | null
+          created_by_user_id?: string | null
           customer_address?: string | null
           customer_id?: string | null
           customer_name?: string | null
@@ -297,6 +365,7 @@ export type Database = {
           order_type?: string | null
           paid_amount?: number
           payment_method: Database["public"]["Enums"]["payment_method"]
+          session_id?: string | null
           source?: string
           status?: string
           subtotal?: number
@@ -306,6 +375,8 @@ export type Database = {
         Update: {
           client_ref?: string | null
           created_at?: string
+          created_by_name?: string | null
+          created_by_user_id?: string | null
           customer_address?: string | null
           customer_id?: string | null
           customer_name?: string | null
@@ -319,6 +390,7 @@ export type Database = {
           order_type?: string | null
           paid_amount?: number
           payment_method?: Database["public"]["Enums"]["payment_method"]
+          session_id?: string | null
           source?: string
           status?: string
           subtotal?: number
@@ -331,6 +403,13 @@ export type Database = {
             columns: ["customer_id"]
             isOneToOne: false
             referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "pos_sessions"
             referencedColumns: ["id"]
           },
         ]
@@ -420,6 +499,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      pos_sessions: {
+        Row: {
+          created_at: string
+          end_reason: string | null
+          ended_at: string | null
+          id: string
+          login_method: string | null
+          started_at: string
+          user_id: string | null
+          user_name: string
+          user_role: string
+        }
+        Insert: {
+          created_at?: string
+          end_reason?: string | null
+          ended_at?: string | null
+          id?: string
+          login_method?: string | null
+          started_at?: string
+          user_id?: string | null
+          user_name: string
+          user_role?: string
+        }
+        Update: {
+          created_at?: string
+          end_reason?: string | null
+          ended_at?: string | null
+          id?: string
+          login_method?: string | null
+          started_at?: string
+          user_id?: string | null
+          user_name?: string
+          user_role?: string
+        }
+        Relationships: []
       }
       products: {
         Row: {
@@ -651,6 +766,7 @@ export type Database = {
         | "E-Dahab"
         | "Due"
         | "Split"
+        | "Deposit"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -786,6 +902,7 @@ export const Constants = {
         "E-Dahab",
         "Due",
         "Split",
+        "Deposit",
       ],
     },
   },
