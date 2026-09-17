@@ -1,4 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
+import { getCurrentSessionId } from "./posSessions";
+import { getSession } from "./auth";
 
 export type PaymentMethod =
   | "Cash"
@@ -7,7 +9,8 @@ export type PaymentMethod =
   | "Premier Wallet"
   | "E-Dahab"
   | "Due"
-  | "Split";
+  | "Split"
+  | "Deposit";
 
 export const MOBILE_METHODS: PaymentMethod[] = ["EVC-Plus", "E-Dahab", "Premier Wallet"];
 export const ALL_PAYMENT_METHODS: PaymentMethod[] = [
@@ -30,6 +33,9 @@ export type Customer = {
   rewards_claimed?: number;
   reward_status: "none" | "half_off" | "free_lunch" | string;
   created_at: string;
+  deposit_total?: number;
+  deposit_used?: number;
+  deposit_balance?: number;
 };
 
 export type DbInvoiceItem = {
