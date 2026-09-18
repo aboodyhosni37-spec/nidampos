@@ -692,6 +692,154 @@ const Customers = () => {
         </DialogContent>
       </Dialog>
 
+      {/* Customer deposit (admin / authorized staff only) */}
+      <Dialog open={!!depositCustomer} onOpenChange={(o) => !o && setDepositCustomer(null)}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <PiggyBank className="h-4 w-4" /> Deposit · {depositCustomer?.name}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 pt-1 max-h-[70vh] overflow-y-auto">
+            <div className="grid grid-cols-3 gap-2 text-center">
+              <div className="rounded-xl border border-border p-3">
+                <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">
+                  Total Deposited
+                </div>
+                <div className="font-bold mt-1 tabular-nums">
+                  ${depositSummary.total_deposited.toFixed(2)}
+                </div>
+              </div>
+              <div className="rounded-xl border border-border p-3">
+                <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">
+                  Deposit Used
+                </div>
+                <div className="font-bold mt-1 tabular-nums">
+                  ${depositSummary.deposit_used.toFixed(2)}
+                </div>
+              </div>
+              <div className="rounded-xl border border-border p-3 bg-secondary/40">
+                <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">
+                  Remaining
+                </div>
+                <div className="font-bold mt-1 tabular-nums">
+                  ${depositSummary.balance.toFixed(2)}
+                </div>
+              </div>
+            </div>
+
+            <div className="rounded-xl border border-border p-3 space-y-3">
+              <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Add deposit
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div className="space-y-1.5">
+                  <Label className="text-xs">Amount</Label>
+                  <Input
+                    type="number"
+                    inputMode="decimal"
+                    step="0.01"
+                    min={0}
+                    placeholder="0.00"
+                    value={depositAmount}
+                    onChange={(e) => setDepositAmount(e.target.value)}
+                    className="rounded-lg h-9"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs">Payment method</Label>
+                  <Select value={depositMethod} onValueChange={setDepositMethod}>
+                    <SelectTrigger className="rounded-lg h-9">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {DEPOSIT_METHODS.map((m) => (
+                        <SelectItem key={m} value={m}>
+                          {m}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs">Note (optional)</Label>
+                <Input
+                  value={depositNote}
+                  onChange={(e) => setDepositNote(e.target.value)}
+                  placeholder="e.g. advance for weekly lunches"
+                  className="rounded-lg h-9"
+                />
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  onClick={handleAddDeposit}
+                  disabled={depositSubmitting}
+                  className="rounded-lg bg-primary text-primary-foreground hover:bg-primary/90"
+                >
+                  {depositSubmitting ? "Saving…" : "Add Deposit"}
+                </Button>
+                <Button
+                  variant="outline"
+                  className="rounded-lg"
+                  disabled={
+                    depositSubmitting ||
+                    depositSummary.balance <= 0 ||
+                    Number(depositCustomer?.due_balance || 0) <= 0
+                  }
+                  onClick={handleUseDepositForDue}
+                  title="Settle this customer's unpaid orders from their deposit"
+                >
+                  Use deposit for unpaid orders
+                </Button>
+              </div>
+              <p className="text-[11px] text-muted-foreground">
+                Received by {staff?.name || "staff"}. Deposits are kept separate from customer due
+                and loyalty spending.
+              </p>
+            </div>
+
+            <div>
+              <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">
+                Deposit history
+              </div>
+              {depositLoading ? (
+                <div className="py-6 text-center text-sm text-muted-foreground">Loading…</div>
+              ) : deposits.length === 0 ? (
+                <div className="py-6 text-center text-sm text-muted-foreground">
+                  No deposits recorded yet.
+                </div>
+              ) : (
+                <div className="divide-y divide-border rounded-xl border border-border">
+                  {deposits.map((d) => (
+                    <div key={d.id} className="p-3 flex items-center justify-between gap-3">
+                      <div className="min-w-0">
+                        <div className="text-sm font-semibold">
+                          {d.type === "usage" ? "Used for order" : `Deposit · ${d.method || "—"}`}
+                        </div>
+                        <div className="text-xs text-muted-foreground truncate">
+                          {new Date(d.created_at).toLocaleString()}
+                          {d.staff_name ? ` · by ${d.staff_name}` : ""}
+                          {d.note ? ` · ${d.note}` : ""}
+                        </div>
+                      </div>
+                      <div
+                        className={cn(
+                          "font-bold tabular-nums",
+                          d.type === "usage" ? "text-muted-foreground" : "text-foreground"
+                        )}
+                      >
+                        {d.type === "usage" ? "−" : "+"}${Number(d.amount).toFixed(2)}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       {/* Repayment dialog */}
       <Dialog open={repayOpen} onOpenChange={setRepayOpen}>
         <DialogContent className="sm:max-w-md">
