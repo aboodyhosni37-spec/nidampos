@@ -13,6 +13,7 @@ import {
   Settings as SettingsIcon,
   LogOut,
   Menu,
+  History,
 } from "lucide-react";
 import { NidamLogo } from "@/components/NidamLogo";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -41,6 +42,7 @@ const nav: { to: string; label: string; icon: any; perm?: Permission }[] = [
   { to: "/dashboard/inventory", label: "Inventory", icon: Package, perm: "access_inventory" },
   { to: "/dashboard/expenses", label: "Expenses", icon: Wallet, perm: "access_expenses" },
   { to: "/dashboard/staff", label: "Staff & Salaries", icon: UserCog, perm: "access_staff" },
+  { to: "/dashboard/sessions", label: "Sessions", icon: History, perm: "access_sessions" },
   { to: "/dashboard/reports", label: "Reports", icon: BarChart3, perm: "view_reports" },
   { to: "/dashboard/website", label: "Website", icon: Globe, perm: "manage_website" },
   { to: "/dashboard/settings", label: "Settings", icon: SettingsIcon, perm: "access_settings" },
@@ -53,8 +55,13 @@ export const DashboardLayout = () => {
   const [exitConfirm, setExitConfirm] = useState(false);
   const user = getSession();
 
+  const isOwner = user?.role === "admin" || user?.role === "owner";
   const visibleNav = nav.filter(
-    (n) => !n.perm || user?.permissions?.[n.perm] || (n.perm === "manage_website" && user?.role === "admin")
+    (n) =>
+      !n.perm ||
+      user?.permissions?.[n.perm] ||
+      (n.perm === "manage_website" && user?.role === "admin") ||
+      (n.perm === "access_sessions" && isOwner)
   );
 
   const logout = () => {

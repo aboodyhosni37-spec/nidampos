@@ -15,6 +15,7 @@ import {
   Receipt,
   Star,
   Printer,
+  PiggyBank,
 } from "lucide-react";
 import { fetchOrders, type Order } from "@/lib/orders";
 import {
@@ -27,6 +28,16 @@ import {
   type LoyaltyTransaction,
 } from "@/lib/loyalty";
 import { formatMoney, getCachedSettings } from "@/lib/systemSettings";
+import { getSession } from "@/lib/auth";
+import {
+  DEPOSIT_METHODS,
+  addDeposit,
+  listDeposits,
+  recomputeDepositBalance,
+  settleDueWithDeposit,
+  type DepositEntry,
+  type DepositSummary,
+} from "@/lib/deposits";
 import { loadReceiptSettings } from "@/lib/receiptSettings";
 import { ReceiptPreview } from "@/components/ReceiptPreview";
 
@@ -116,6 +127,104 @@ const Customers = () => {
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
   const [loyaltyHistory, setLoyaltyHistory] = useState<LoyaltyTransaction[]>([]);
   const [printAll, setPrintAll] = useState(false);
+
+  // Customer deposits (separate from due / loyalty)
+  const staff = getSession();
+  const canManageDeposits =
+    staff?.role === "admin" || staff?.role === "owner" || !!staff?.permissions?.manage_deposits;
+  const [depositCustomer, setDepositCustomer] = useState<Customer | null>(null);
+  const [deposits, setDeposits] = useState<DepositEntry[]>([]);
+  const [depositSummary, setDepositSummary] = useState<DepositSummary>({
+    total_deposited: 0,
+    deposit_used: 0,
+    balance: 0,
+  });
+  const [depositLoading, setDepositLoading] = useState(false);
+  const [depositAmount, setDepositAmount] = useState("");
+  const [depositMethod, setDepositMethod] = useState<string>("Cash");
+  const [depositNote, setDepositNote] = useState("");
+  const [depositSubmitting, setDepositSubmitting] = useState(false);
+
+  const refreshDeposits = async (customerId: string) => {
+    const [summary, list] = await Promise.all([
+      recomputeDepositBalance(customerId),
+      listDeposits(customerId),
+    ]);
+    setDepositSummary(summary);
+    setDeposits(list);
+  };
+
+  const openDeposits = async (c: Customer) => {
+    setDepositCustomer(c);
+    setDeposits([]);
+    setDepositAmount("");
+    setDepositNote("");
+    setDepositMethod("Cash");
+    setDepositLoading(true);
+    try {
+      await refreshDeposits(c.id);
+    } catch (e: any) {
+      toast({ title: "Could not load deposits", description: e.message, variant: "destructive" });
+    } finally {
+      setDepositLoading(false);
+    }
+  };
+
+  const handleAddDeposit = async () => {
+    if (!depositCustomer) return;
+    const amount = parseFloat(depositAmount);
+    if (!(amount > 0)) {
+      toast({ title: "Enter a deposit amount", variant: "destructive" });
+      return;
+    }
+    setDepositSubmitting(true);
+    try {
+      await addDeposit({
+        customer_id: depositCustomer.id,
+        amount,
+        method: depositMethod,
+        note: depositNote,
+        staff_id: staff?.id ?? null,
+        staff_name: staff?.name ?? null,
+      });
+      await refreshDeposits(depositCustomer.id);
+      setDepositAmount("");
+      setDepositNote("");
+      listCustomers().then(setCustomers).catch(() => {});
+      toast({ title: "Deposit added", description: `${depositCustomer.name} · $${amount.toFixed(2)}` });
+    } catch (e: any) {
+      toast({ title: "Failed", description: e.message, variant: "destructive" });
+    } finally {
+      setDepositSubmitting(false);
+    }
+  };
+
+  const handleUseDepositForDue = async () => {
+    if (!depositCustomer) return;
+    setDepositSubmitting(true);
+    try {
+      const res = await settleDueWithDeposit({
+        customer_id: depositCustomer.id,
+        staff_id: staff?.id ?? null,
+        staff_name: staff?.name ?? null,
+      });
+      await refreshDeposits(depositCustomer.id);
+      const fresh = await listCustomers();
+      setCustomers(fresh);
+      setDepositCustomer(fresh.find((c) => c.id === depositCustomer.id) ?? depositCustomer);
+      toast({
+        title: res.applied > 0 ? "Deposit applied" : "Nothing to settle",
+        description:
+          res.applied > 0
+            ? `$${res.applied.toFixed(2)} applied to ${res.orders} order(s).`
+            : "This customer has no unpaid orders.",
+      });
+    } catch (e: any) {
+      toast({ title: "Failed", description: e.message, variant: "destructive" });
+    } finally {
+      setDepositSubmitting(false);
+    }
+  };
 
   const openReview = async (c: Customer) => {
     setReviewCustomer(c);
@@ -427,6 +536,21 @@ const Customers = () => {
                     >
                       <History className="h-3.5 w-3.5 mr-1" /> History
                     </Button>
+                    {canManageDeposits && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => openDeposits(c)}
+                        className="rounded-lg"
+                        title="Customer deposit"
+                      >
+                        <PiggyBank className="h-3.5 w-3.5 mr-1" /> Deposit
+                        <span className="ml-1 tabular-nums text-xs text-muted-foreground">
+                          ${Number(c.deposit_balance || 0).toFixed(2)}
+                        </span>
+                      </Button>
+                    )}
+
 
                     <Button
                       size="sm"
@@ -565,6 +689,154 @@ const Customers = () => {
               </div>
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Customer deposit (admin / authorized staff only) */}
+      <Dialog open={!!depositCustomer} onOpenChange={(o) => !o && setDepositCustomer(null)}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <PiggyBank className="h-4 w-4" /> Deposit · {depositCustomer?.name}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 pt-1 max-h-[70vh] overflow-y-auto">
+            <div className="grid grid-cols-3 gap-2 text-center">
+              <div className="rounded-xl border border-border p-3">
+                <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">
+                  Total Deposited
+                </div>
+                <div className="font-bold mt-1 tabular-nums">
+                  ${depositSummary.total_deposited.toFixed(2)}
+                </div>
+              </div>
+              <div className="rounded-xl border border-border p-3">
+                <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">
+                  Deposit Used
+                </div>
+                <div className="font-bold mt-1 tabular-nums">
+                  ${depositSummary.deposit_used.toFixed(2)}
+                </div>
+              </div>
+              <div className="rounded-xl border border-border p-3 bg-secondary/40">
+                <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">
+                  Remaining
+                </div>
+                <div className="font-bold mt-1 tabular-nums">
+                  ${depositSummary.balance.toFixed(2)}
+                </div>
+              </div>
+            </div>
+
+            <div className="rounded-xl border border-border p-3 space-y-3">
+              <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Add deposit
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div className="space-y-1.5">
+                  <Label className="text-xs">Amount</Label>
+                  <Input
+                    type="number"
+                    inputMode="decimal"
+                    step="0.01"
+                    min={0}
+                    placeholder="0.00"
+                    value={depositAmount}
+                    onChange={(e) => setDepositAmount(e.target.value)}
+                    className="rounded-lg h-9"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs">Payment method</Label>
+                  <Select value={depositMethod} onValueChange={setDepositMethod}>
+                    <SelectTrigger className="rounded-lg h-9">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {DEPOSIT_METHODS.map((m) => (
+                        <SelectItem key={m} value={m}>
+                          {m}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs">Note (optional)</Label>
+                <Input
+                  value={depositNote}
+                  onChange={(e) => setDepositNote(e.target.value)}
+                  placeholder="e.g. advance for weekly lunches"
+                  className="rounded-lg h-9"
+                />
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  onClick={handleAddDeposit}
+                  disabled={depositSubmitting}
+                  className="rounded-lg bg-primary text-primary-foreground hover:bg-primary/90"
+                >
+                  {depositSubmitting ? "Saving…" : "Add Deposit"}
+                </Button>
+                <Button
+                  variant="outline"
+                  className="rounded-lg"
+                  disabled={
+                    depositSubmitting ||
+                    depositSummary.balance <= 0 ||
+                    Number(depositCustomer?.due_balance || 0) <= 0
+                  }
+                  onClick={handleUseDepositForDue}
+                  title="Settle this customer's unpaid orders from their deposit"
+                >
+                  Use deposit for unpaid orders
+                </Button>
+              </div>
+              <p className="text-[11px] text-muted-foreground">
+                Received by {staff?.name || "staff"}. Deposits are kept separate from customer due
+                and loyalty spending.
+              </p>
+            </div>
+
+            <div>
+              <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">
+                Deposit history
+              </div>
+              {depositLoading ? (
+                <div className="py-6 text-center text-sm text-muted-foreground">Loading…</div>
+              ) : deposits.length === 0 ? (
+                <div className="py-6 text-center text-sm text-muted-foreground">
+                  No deposits recorded yet.
+                </div>
+              ) : (
+                <div className="divide-y divide-border rounded-xl border border-border">
+                  {deposits.map((d) => (
+                    <div key={d.id} className="p-3 flex items-center justify-between gap-3">
+                      <div className="min-w-0">
+                        <div className="text-sm font-semibold">
+                          {d.type === "usage" ? "Used for order" : `Deposit · ${d.method || "—"}`}
+                        </div>
+                        <div className="text-xs text-muted-foreground truncate">
+                          {new Date(d.created_at).toLocaleString()}
+                          {d.staff_name ? ` · by ${d.staff_name}` : ""}
+                          {d.note ? ` · ${d.note}` : ""}
+                        </div>
+                      </div>
+                      <div
+                        className={cn(
+                          "font-bold tabular-nums",
+                          d.type === "usage" ? "text-muted-foreground" : "text-foreground"
+                        )}
+                      >
+                        {d.type === "usage" ? "−" : "+"}${Number(d.amount).toFixed(2)}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
 

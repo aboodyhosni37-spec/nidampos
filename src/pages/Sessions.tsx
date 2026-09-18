@@ -17,7 +17,7 @@ import {
   type SessionOrder,
   type SessionWithTotals,
 } from "@/lib/posSessions";
-import { getSystemSettings, formatMoney, type SystemSettings } from "@/lib/systemSettings";
+import { fetchSettings, formatMoney, type SystemSettings } from "@/lib/systemSettings";
 
 const fmtDateTime = (v?: string | null) =>
   v ? new Date(v).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" }) : "—";
@@ -41,7 +41,7 @@ const Sessions = () => {
     setLoading(true);
     try {
       const [s, list] = await Promise.all([
-        getSystemSettings(),
+        fetchSettings(),
         listSessions(isAdmin ? {} : { userId: staff?.id ?? null }),
       ]);
       setSys(s);
