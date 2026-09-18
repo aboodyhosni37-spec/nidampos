@@ -55,8 +55,13 @@ export const DashboardLayout = () => {
   const [exitConfirm, setExitConfirm] = useState(false);
   const user = getSession();
 
+  const isOwner = user?.role === "admin" || user?.role === "owner";
   const visibleNav = nav.filter(
-    (n) => !n.perm || user?.permissions?.[n.perm] || (n.perm === "manage_website" && user?.role === "admin")
+    (n) =>
+      !n.perm ||
+      user?.permissions?.[n.perm] ||
+      (n.perm === "manage_website" && user?.role === "admin") ||
+      (n.perm === "access_sessions" && isOwner)
   );
 
   const logout = () => {
