@@ -142,3 +142,66 @@ export const useDeposit = async (input: {
 
   return { applied, summary: await recomputeDepositBalance(input.customer_id) };
 };
+
+// Settle a customer's outstanding orders (oldest first) from their deposit
+// balance. Each order gets at most one deposit-usage record.
+export const settleDueWithDeposit = async (input: {
+  customer_id: string;
+  staff_id?: string | null;
+  staff_name?: string | null;
+  max_amount?: number;
+}): Promise<{ applied: number; orders: number }> => {
+  const { payUnpaidInvoice } = await import("./db");
+  const summary = await recomputeDepositBalance(input.customer_id);
+  let remaining = round(Math.min(summary.balance, input.max_amount ?? summary.balance));
+  if (!(remaining > 0)) throw new Error("This customer has no deposit balance left.");
+
+  const { data: invoices, error } = await supabase
+    .from("invoices")
+    .select("id, number, total, paid_amount, status, order_status")
+    .eq("customer_id", input.customer_id)
+    .order("created_at", { ascending: true });
+  if (error) throw error;
+
+  const VOID = ["cancelled", "canceled", "void", "voided", "refunded"];
+  let applied = 0;
+  let count = 0;
+
+  for (const inv of invoices ?? []) {
+    if (remaining <= 0) break;
+    if (
+      VOID.includes(String((inv as any).status ?? "").toLowerCase()) ||
+      VOID.includes(String((inv as any).order_status ?? "").toLowerCase())
+    )
+      continue;
+    const owed = round(Math.max(0, Number(inv.total || 0) - Number(inv.paid_amount || 0)));
+    if (owed <= 0) continue;
+    const pay = round(Math.min(owed, remaining));
+
+    // Record the deposit usage first — the unique index makes it impossible to
+    // deduct twice for the same order.
+    const used = await useDeposit({
+      customer_id: input.customer_id,
+      amount: pay,
+      invoice_id: inv.id as string,
+      invoice_number: Number(inv.number),
+      staff_id: input.staff_id ?? null,
+      staff_name: input.staff_name ?? null,
+    });
+    if (used.applied <= 0) continue;
+
+    await payUnpaidInvoice({
+      invoice_id: inv.id as string,
+      amount: used.applied,
+      method: "Deposit" as any,
+      customer_id: input.customer_id,
+    });
+
+    applied = round(applied + used.applied);
+    remaining = round(remaining - used.applied);
+    count += 1;
+  }
+
+  await recomputeDepositBalance(input.customer_id);
+  return { applied, orders: count };
+};
