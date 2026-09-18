@@ -14,6 +14,7 @@ import Reports from "./pages/Reports.tsx";
 import Settings from "./pages/Settings.tsx";
 import Customers from "./pages/Customers.tsx";
 import Staff from "./pages/Staff.tsx";
+import Sessions from "./pages/Sessions.tsx";
 import WebsiteEditor from "./pages/WebsiteEditor.tsx";
 import CustomerDisplay from "./pages/CustomerDisplay.tsx";
 import SiteLayout from "./components/site/SiteLayout.tsx";
@@ -75,6 +76,14 @@ const App = () => (
             <Route path="inventory" element={<RequirePermission permission="access_inventory"><Inventory /></RequirePermission>} />
             <Route path="expenses" element={<RequirePermission permission="access_expenses"><Expenses /></RequirePermission>} />
             <Route path="staff" element={<RequirePermission permission="access_staff"><Staff /></RequirePermission>} />
+            <Route
+              path="sessions"
+              element={
+                <RequirePermission permission="access_sessions" allowRoles={["admin", "owner"]}>
+                  <Sessions />
+                </RequirePermission>
+              }
+            />
             <Route
               path="website"
               element={
