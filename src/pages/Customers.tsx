@@ -27,6 +27,16 @@ import {
   type LoyaltyTransaction,
 } from "@/lib/loyalty";
 import { formatMoney, getCachedSettings } from "@/lib/systemSettings";
+import { getSession } from "@/lib/auth";
+import {
+  DEPOSIT_METHODS,
+  addDeposit,
+  listDeposits,
+  recomputeDepositBalance,
+  settleDueWithDeposit,
+  type DepositEntry,
+  type DepositSummary,
+} from "@/lib/deposits";
 import { loadReceiptSettings } from "@/lib/receiptSettings";
 import { ReceiptPreview } from "@/components/ReceiptPreview";
 
@@ -116,6 +126,104 @@ const Customers = () => {
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
   const [loyaltyHistory, setLoyaltyHistory] = useState<LoyaltyTransaction[]>([]);
   const [printAll, setPrintAll] = useState(false);
+
+  // Customer deposits (separate from due / loyalty)
+  const staff = getSession();
+  const canManageDeposits =
+    staff?.role === "admin" || staff?.role === "owner" || !!staff?.permissions?.manage_deposits;
+  const [depositCustomer, setDepositCustomer] = useState<Customer | null>(null);
+  const [deposits, setDeposits] = useState<DepositEntry[]>([]);
+  const [depositSummary, setDepositSummary] = useState<DepositSummary>({
+    total_deposited: 0,
+    deposit_used: 0,
+    balance: 0,
+  });
+  const [depositLoading, setDepositLoading] = useState(false);
+  const [depositAmount, setDepositAmount] = useState("");
+  const [depositMethod, setDepositMethod] = useState<string>("Cash");
+  const [depositNote, setDepositNote] = useState("");
+  const [depositSubmitting, setDepositSubmitting] = useState(false);
+
+  const refreshDeposits = async (customerId: string) => {
+    const [summary, list] = await Promise.all([
+      recomputeDepositBalance(customerId),
+      listDeposits(customerId),
+    ]);
+    setDepositSummary(summary);
+    setDeposits(list);
+  };
+
+  const openDeposits = async (c: Customer) => {
+    setDepositCustomer(c);
+    setDeposits([]);
+    setDepositAmount("");
+    setDepositNote("");
+    setDepositMethod("Cash");
+    setDepositLoading(true);
+    try {
+      await refreshDeposits(c.id);
+    } catch (e: any) {
+      toast({ title: "Could not load deposits", description: e.message, variant: "destructive" });
+    } finally {
+      setDepositLoading(false);
+    }
+  };
+
+  const handleAddDeposit = async () => {
+    if (!depositCustomer) return;
+    const amount = parseFloat(depositAmount);
+    if (!(amount > 0)) {
+      toast({ title: "Enter a deposit amount", variant: "destructive" });
+      return;
+    }
+    setDepositSubmitting(true);
+    try {
+      await addDeposit({
+        customer_id: depositCustomer.id,
+        amount,
+        method: depositMethod,
+        note: depositNote,
+        staff_id: staff?.id ?? null,
+        staff_name: staff?.name ?? null,
+      });
+      await refreshDeposits(depositCustomer.id);
+      setDepositAmount("");
+      setDepositNote("");
+      listCustomers().then(setCustomers).catch(() => {});
+      toast({ title: "Deposit added", description: `${depositCustomer.name} · $${amount.toFixed(2)}` });
+    } catch (e: any) {
+      toast({ title: "Failed", description: e.message, variant: "destructive" });
+    } finally {
+      setDepositSubmitting(false);
+    }
+  };
+
+  const handleUseDepositForDue = async () => {
+    if (!depositCustomer) return;
+    setDepositSubmitting(true);
+    try {
+      const res = await settleDueWithDeposit({
+        customer_id: depositCustomer.id,
+        staff_id: staff?.id ?? null,
+        staff_name: staff?.name ?? null,
+      });
+      await refreshDeposits(depositCustomer.id);
+      const fresh = await listCustomers();
+      setCustomers(fresh);
+      setDepositCustomer(fresh.find((c) => c.id === depositCustomer.id) ?? depositCustomer);
+      toast({
+        title: res.applied > 0 ? "Deposit applied" : "Nothing to settle",
+        description:
+          res.applied > 0
+            ? `$${res.applied.toFixed(2)} applied to ${res.orders} order(s).`
+            : "This customer has no unpaid orders.",
+      });
+    } catch (e: any) {
+      toast({ title: "Failed", description: e.message, variant: "destructive" });
+    } finally {
+      setDepositSubmitting(false);
+    }
+  };
 
   const openReview = async (c: Customer) => {
     setReviewCustomer(c);
