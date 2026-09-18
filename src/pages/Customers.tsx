@@ -15,6 +15,7 @@ import {
   Receipt,
   Star,
   Printer,
+  PiggyBank,
 } from "lucide-react";
 import { fetchOrders, type Order } from "@/lib/orders";
 import {
@@ -535,6 +536,21 @@ const Customers = () => {
                     >
                       <History className="h-3.5 w-3.5 mr-1" /> History
                     </Button>
+                    {canManageDeposits && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => openDeposits(c)}
+                        className="rounded-lg"
+                        title="Customer deposit"
+                      >
+                        <PiggyBank className="h-3.5 w-3.5 mr-1" /> Deposit
+                        <span className="ml-1 tabular-nums text-xs text-muted-foreground">
+                          ${Number(c.deposit_balance || 0).toFixed(2)}
+                        </span>
+                      </Button>
+                    )}
+
 
                     <Button
                       size="sm"
