@@ -106,6 +106,7 @@ import {
 } from "@/lib/systemSettings";
 import { settleInvoiceLoyalty, consumeReward, rewardLabel, loyaltyProgress } from "@/lib/loyalty";
 import { getSession } from "@/lib/auth";
+import { useDeposit } from "@/lib/deposits";
 
 const HIGH_DEBT_THRESHOLD = 100;
 const ADD_DEBOUNCE_MS = 250;
