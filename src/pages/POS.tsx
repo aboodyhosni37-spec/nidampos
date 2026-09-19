@@ -23,6 +23,7 @@ import {
   Monitor,
   QrCode,
   Loader2,
+  PiggyBank,
 } from "lucide-react";
 
 import { QRCodeSVG } from "qrcode.react";
@@ -106,6 +107,7 @@ import {
 } from "@/lib/systemSettings";
 import { settleInvoiceLoyalty, consumeReward, rewardLabel, loyaltyProgress } from "@/lib/loyalty";
 import { getSession } from "@/lib/auth";
+import { useDeposit } from "@/lib/deposits";
 
 const HIGH_DEBT_THRESHOLD = 100;
 const ADD_DEBOUNCE_MS = 250;
@@ -201,6 +203,7 @@ const POS = () => {
   const [table, setTable] = useState(tables[0]);
   const [customerName, setCustomerName] = useState("");
   const [payment, setPayment] = useState<PaymentMethod>("Due");
+  const staffUser = getSession();
   const [splitDue, setSplitDue] = useState(false);
   const [dueAmount, setDueAmount] = useState<string>("");
   const [completedOrder, setCompletedOrder] = useState<Order | null>(null);
@@ -605,6 +608,7 @@ const POS = () => {
 
 
   const isMobileMethod = MOBILE_METHODS.includes(payment);
+  const isDepositPayment = payment === "Deposit";
   const isFullDue = payment === "Due";
   const showSplitToggle = isMobileMethod && !isFullDue;
   const parsedDue = Math.max(0, Math.min(total, parseFloat(dueAmount) || 0));
@@ -653,6 +657,24 @@ const POS = () => {
       });
       return;
     }
+    if (isDepositPayment) {
+      if (!selectedCustomerId) {
+        toast({
+          title: "Customer required",
+          description: "Select the customer whose deposit is paying for this order.",
+          variant: "destructive",
+        });
+        return;
+      }
+      if (Number(selectedCustomer?.deposit_balance || 0) + 0.004 < total) {
+        toast({
+          title: "Not enough deposit",
+          description: `Deposit balance is $${Number(selectedCustomer?.deposit_balance || 0).toFixed(2)}.`,
+          variant: "destructive",
+        });
+        return;
+      }
+    }
     if (showSplitToggle && splitDue && (parsedDue <= 0 || parsedDue >= total)) {
       toast({
         title: "Invalid split",
@@ -692,6 +714,26 @@ const POS = () => {
         payment_method: summaryMethod,
         payments,
       });
+
+      // Deposit paid orders: deduct from the customer's deposit balance once.
+      if (isDepositPayment && selectedCustomerId && effectivePaid > 0) {
+        try {
+          await useDeposit({
+            customer_id: selectedCustomerId,
+            amount: +effectivePaid.toFixed(2),
+            invoice_id: created.id,
+            invoice_number: created.number,
+            staff_id: staffUser?.id ?? null,
+            staff_name: staffUser?.name ?? null,
+          });
+        } catch (e: any) {
+          toast({
+            title: "Deposit not deducted",
+            description: e.message,
+            variant: "destructive",
+          });
+        }
+      }
 
       const order: Order = {
         id: created.id,
@@ -1164,7 +1206,31 @@ const POS = () => {
                   />
                 ))}
               </div>
+              {selectedCustomer && Number(selectedCustomer.deposit_balance || 0) > 0 && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setPayment("Deposit");
+                    setSplitDue(false);
+                    setDueAmount("");
+                  }}
+                  className={cn(
+                    "mt-1.5 w-full flex items-center justify-between gap-2 px-3 py-2 rounded-xl text-xs font-semibold transition-all",
+                    isDepositPayment
+                      ? "bg-primary text-primary-foreground hover:bg-primary/90 shadow-soft"
+                      : "bg-secondary hover:bg-secondary/80 text-foreground"
+                  )}
+                >
+                  <span className="flex items-center gap-1.5">
+                    <PiggyBank className="h-4 w-4" /> Pay from Deposit
+                  </span>
+                  <span className="tabular-nums">
+                    ${Number(selectedCustomer.deposit_balance || 0).toFixed(2)} available
+                  </span>
+                </button>
+              )}
             </div>
+
 
             {showSplitToggle && (
               <div className="rounded-xl border border-border p-3 space-y-2 bg-secondary/30">
@@ -1962,6 +2028,7 @@ const methodIcon = (m: PaymentMethod) => {
   if (m === "Cash") return <Banknote className="h-4 w-4" />;
   if (m === "Card") return <CreditCard className="h-4 w-4" />;
   if (m === "Due") return <Wallet className="h-4 w-4" />;
+  if (m === "Deposit") return <PiggyBank className="h-4 w-4" />;
   return <span className="text-[10px] font-bold">{m === "EVC-Plus" ? "EVC" : m === "Premier Wallet" ? "PRM" : "EDH"}</span>;
 };
 

@@ -18,7 +18,8 @@ export type OrderPaymentMethod =
   | "Premier Wallet"
   | "E-Dahab"
   | "Due"
-  | "Split";
+  | "Split"
+  | "Deposit";
 
 export type OrderWorkflowStatus = "Pending" | "Preparing" | "Completed" | "Unpaid";
 
