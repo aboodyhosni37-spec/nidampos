@@ -201,6 +201,7 @@ const POS = () => {
   const [table, setTable] = useState(tables[0]);
   const [customerName, setCustomerName] = useState("");
   const [payment, setPayment] = useState<PaymentMethod>("Due");
+  const staffUser = getSession();
   const [splitDue, setSplitDue] = useState(false);
   const [dueAmount, setDueAmount] = useState<string>("");
   const [completedOrder, setCompletedOrder] = useState<Order | null>(null);
@@ -711,6 +712,26 @@ const POS = () => {
         payment_method: summaryMethod,
         payments,
       });
+
+      // Deposit paid orders: deduct from the customer's deposit balance once.
+      if (isDepositPayment && selectedCustomerId && effectivePaid > 0) {
+        try {
+          await useDeposit({
+            customer_id: selectedCustomerId,
+            amount: +effectivePaid.toFixed(2),
+            invoice_id: created.id,
+            invoice_number: created.number,
+            staff_id: staffUser?.id ?? null,
+            staff_name: staffUser?.name ?? null,
+          });
+        } catch (e: any) {
+          toast({
+            title: "Deposit not deducted",
+            description: e.message,
+            variant: "destructive",
+          });
+        }
+      }
 
       const order: Order = {
         id: created.id,
