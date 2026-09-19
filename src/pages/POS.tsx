@@ -2003,6 +2003,7 @@ const methodIcon = (m: PaymentMethod) => {
   if (m === "Cash") return <Banknote className="h-4 w-4" />;
   if (m === "Card") return <CreditCard className="h-4 w-4" />;
   if (m === "Due") return <Wallet className="h-4 w-4" />;
+  if (m === "Deposit") return <PiggyBank className="h-4 w-4" />;
   return <span className="text-[10px] font-bold">{m === "EVC-Plus" ? "EVC" : m === "Premier Wallet" ? "PRM" : "EDH"}</span>;
 };
 
