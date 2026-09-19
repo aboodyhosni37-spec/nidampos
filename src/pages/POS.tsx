@@ -605,6 +605,7 @@ const POS = () => {
 
 
   const isMobileMethod = MOBILE_METHODS.includes(payment);
+  const isDepositPayment = payment === "Deposit";
   const isFullDue = payment === "Due";
   const showSplitToggle = isMobileMethod && !isFullDue;
   const parsedDue = Math.max(0, Math.min(total, parseFloat(dueAmount) || 0));
@@ -652,6 +653,24 @@ const POS = () => {
         variant: "destructive",
       });
       return;
+    }
+    if (isDepositPayment) {
+      if (!selectedCustomerId) {
+        toast({
+          title: "Customer required",
+          description: "Select the customer whose deposit is paying for this order.",
+          variant: "destructive",
+        });
+        return;
+      }
+      if (Number(selectedCustomer?.deposit_balance || 0) + 0.004 < total) {
+        toast({
+          title: "Not enough deposit",
+          description: `Deposit balance is $${Number(selectedCustomer?.deposit_balance || 0).toFixed(2)}.`,
+          variant: "destructive",
+        });
+        return;
+      }
     }
     if (showSplitToggle && splitDue && (parsedDue <= 0 || parsedDue >= total)) {
       toast({
