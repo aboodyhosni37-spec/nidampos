@@ -23,6 +23,7 @@ import {
   Monitor,
   QrCode,
   Loader2,
+  PiggyBank,
 } from "lucide-react";
 
 import { QRCodeSVG } from "qrcode.react";
