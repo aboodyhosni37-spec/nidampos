@@ -1205,7 +1205,31 @@ const POS = () => {
                   />
                 ))}
               </div>
+              {selectedCustomer && Number(selectedCustomer.deposit_balance || 0) > 0 && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setPayment("Deposit");
+                    setSplitDue(false);
+                    setDueAmount("");
+                  }}
+                  className={cn(
+                    "mt-1.5 w-full flex items-center justify-between gap-2 px-3 py-2 rounded-xl text-xs font-semibold transition-all",
+                    isDepositPayment
+                      ? "bg-primary text-primary-foreground hover:bg-primary/90 shadow-soft"
+                      : "bg-secondary hover:bg-secondary/80 text-foreground"
+                  )}
+                >
+                  <span className="flex items-center gap-1.5">
+                    <PiggyBank className="h-4 w-4" /> Pay from Deposit
+                  </span>
+                  <span className="tabular-nums">
+                    ${Number(selectedCustomer.deposit_balance || 0).toFixed(2)} available
+                  </span>
+                </button>
+              )}
             </div>
+
 
             {showSplitToggle && (
               <div className="rounded-xl border border-border p-3 space-y-2 bg-secondary/30">
