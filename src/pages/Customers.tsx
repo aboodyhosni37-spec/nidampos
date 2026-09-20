@@ -700,29 +700,29 @@ const Customers = () => {
               <PiggyBank className="h-4 w-4" /> Deposit · {depositCustomer?.name}
             </DialogTitle>
           </DialogHeader>
-          <div className="space-y-4 pt-1 max-h-[70vh] overflow-y-auto">
-            <div className="grid grid-cols-3 gap-2 text-center">
-              <div className="rounded-xl border border-border p-3">
-                <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">
+          <div className="space-y-3 pt-0.5 max-h-[70vh] overflow-y-auto">
+            <div className="grid grid-cols-3 gap-1.5 text-center">
+              <div className="rounded-lg border border-border px-2 py-1.5">
+                <div className="text-[9px] uppercase tracking-wider text-muted-foreground font-semibold leading-tight">
                   Total Deposited
                 </div>
-                <div className="font-bold mt-1 tabular-nums">
+                <div className="text-sm font-bold tabular-nums leading-tight">
                   ${depositSummary.total_deposited.toFixed(2)}
                 </div>
               </div>
-              <div className="rounded-xl border border-border p-3">
-                <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">
+              <div className="rounded-lg border border-border px-2 py-1.5">
+                <div className="text-[9px] uppercase tracking-wider text-muted-foreground font-semibold leading-tight">
                   Deposit Used
                 </div>
-                <div className="font-bold mt-1 tabular-nums">
+                <div className="text-sm font-bold tabular-nums leading-tight">
                   ${depositSummary.deposit_used.toFixed(2)}
                 </div>
               </div>
-              <div className="rounded-xl border border-border p-3 bg-secondary/40">
-                <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">
+              <div className="rounded-lg border border-border px-2 py-1.5 bg-secondary/40">
+                <div className="text-[9px] uppercase tracking-wider text-muted-foreground font-semibold leading-tight">
                   Remaining
                 </div>
-                <div className="font-bold mt-1 tabular-nums">
+                <div className="text-sm font-bold tabular-nums leading-tight">
                   ${depositSummary.balance.toFixed(2)}
                 </div>
               </div>
