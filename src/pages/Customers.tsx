@@ -802,24 +802,24 @@ const Customers = () => {
             </div>
 
             <div>
-              <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">
+              <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-1.5 leading-none">
                 Deposit history
               </div>
               {depositLoading ? (
-                <div className="py-6 text-center text-sm text-muted-foreground">Loading…</div>
+                <div className="py-4 text-center text-xs text-muted-foreground">Loading…</div>
               ) : deposits.length === 0 ? (
-                <div className="py-6 text-center text-sm text-muted-foreground">
+                <div className="py-4 text-center text-xs text-muted-foreground">
                   No deposits recorded yet.
                 </div>
               ) : (
-                <div className="divide-y divide-border rounded-xl border border-border">
+                <div className="divide-y divide-border rounded-lg border border-border">
                   {deposits.map((d) => (
-                    <div key={d.id} className="p-3 flex items-center justify-between gap-3">
+                    <div key={d.id} className="px-2.5 py-1.5 flex items-center justify-between gap-3">
                       <div className="min-w-0">
-                        <div className="text-sm font-semibold">
+                        <div className="text-xs font-semibold leading-tight">
                           {d.type === "usage" ? "Used for order" : `Deposit · ${d.method || "—"}`}
                         </div>
-                        <div className="text-xs text-muted-foreground truncate">
+                        <div className="text-[10px] text-muted-foreground truncate leading-tight">
                           {new Date(d.created_at).toLocaleString()}
                           {d.staff_name ? ` · by ${d.staff_name}` : ""}
                           {d.note ? ` · ${d.note}` : ""}
@@ -827,7 +827,7 @@ const Customers = () => {
                       </div>
                       <div
                         className={cn(
-                          "font-bold tabular-nums",
+                          "text-sm font-bold tabular-nums",
                           d.type === "usage" ? "text-muted-foreground" : "text-foreground"
                         )}
                       >
