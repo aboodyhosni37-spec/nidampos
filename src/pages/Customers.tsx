@@ -734,7 +734,7 @@ const Customers = () => {
               </div>
               <div className="grid grid-cols-2 gap-2">
                 <div className="space-y-1">
-                  <Label className="text-xs">Amount</Label>
+                  <Label className="text-[10px] leading-none">Amount</Label>
                   <Input
                     type="number"
                     inputMode="decimal"
@@ -743,13 +743,13 @@ const Customers = () => {
                     placeholder="0.00"
                     value={depositAmount}
                     onChange={(e) => setDepositAmount(e.target.value)}
-                    className="rounded-lg h-9"
+                    className="rounded-lg h-8 text-sm"
                   />
                 </div>
-                <div className="space-y-1.5">
-                  <Label className="text-xs">Payment method</Label>
+                <div className="space-y-1">
+                  <Label className="text-[10px] leading-none">Payment method</Label>
                   <Select value={depositMethod} onValueChange={setDepositMethod}>
-                    <SelectTrigger className="rounded-lg h-9">
+                    <SelectTrigger className="rounded-lg h-8 text-sm">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -762,26 +762,28 @@ const Customers = () => {
                   </Select>
                 </div>
               </div>
-              <div className="space-y-1.5">
-                <Label className="text-xs">Note (optional)</Label>
+              <div className="space-y-1">
+                <Label className="text-[10px] leading-none">Note (optional)</Label>
                 <Input
                   value={depositNote}
                   onChange={(e) => setDepositNote(e.target.value)}
                   placeholder="e.g. advance for weekly lunches"
-                  className="rounded-lg h-9"
+                  className="rounded-lg h-8 text-sm"
                 />
               </div>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-1.5">
                 <Button
+                  size="sm"
                   onClick={handleAddDeposit}
                   disabled={depositSubmitting}
-                  className="rounded-lg bg-primary text-primary-foreground hover:bg-primary/90"
+                  className="rounded-lg h-8 px-3 bg-primary text-primary-foreground hover:bg-primary/90"
                 >
                   {depositSubmitting ? "Saving…" : "Add Deposit"}
                 </Button>
                 <Button
+                  size="sm"
                   variant="outline"
-                  className="rounded-lg"
+                  className="rounded-lg h-8 px-3"
                   disabled={
                     depositSubmitting ||
                     depositSummary.balance <= 0 ||
@@ -793,7 +795,7 @@ const Customers = () => {
                   Use deposit for unpaid orders
                 </Button>
               </div>
-              <p className="text-[11px] text-muted-foreground">
+              <p className="text-[10px] leading-snug text-muted-foreground">
                 Received by {staff?.name || "staff"}. Deposits are kept separate from customer due
                 and loyalty spending.
               </p>
