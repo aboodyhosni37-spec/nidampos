@@ -728,12 +728,12 @@ const Customers = () => {
               </div>
             </div>
 
-            <div className="rounded-xl border border-border p-3 space-y-3">
-              <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            <div className="rounded-lg border border-border px-2.5 py-2 space-y-2">
+              <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground leading-none">
                 Add deposit
               </div>
               <div className="grid grid-cols-2 gap-2">
-                <div className="space-y-1.5">
+                <div className="space-y-1">
                   <Label className="text-xs">Amount</Label>
                   <Input
                     type="number"
