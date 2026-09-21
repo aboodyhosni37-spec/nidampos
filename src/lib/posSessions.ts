@@ -63,7 +63,10 @@ export type SessionWithTotals = PosSession & {
   total_sales: number;
   total_payments: number;
   total_due: number;
+  methods: Record<string, number>;
+  status: string;
 };
+
 
 export const getCurrentSessionId = (): string | null => {
   try {
