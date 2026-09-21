@@ -251,32 +251,38 @@ export const listSessions = async (opts?: {
 
   const { data: invoices, error: iErr } = await supabase
     .from("invoices")
-    .select("session_id, total, paid_amount, due_amount, status, order_status")
+    .select("session_id, total, paid_amount, due_amount, status, order_status, payment_method")
     .in("session_id", ids);
   if (iErr) throw iErr;
 
-  const agg = new Map<string, { n: number; sales: number; paid: number; due: number }>();
+  type Agg = { n: number; sales: number; paid: number; due: number; methods: Record<string, number> };
+  const agg = new Map<string, Agg>();
   for (const inv of invoices ?? []) {
     if (!isLive(inv)) continue;
     const key = String((inv as any).session_id);
-    const cur = agg.get(key) ?? { n: 0, sales: 0, paid: 0, due: 0 };
+    const cur: Agg = agg.get(key) ?? { n: 0, sales: 0, paid: 0, due: 0, methods: {} };
     cur.n += 1;
     cur.sales += Number(inv.total || 0);
     cur.paid += Number(inv.paid_amount || 0);
     cur.due += Math.max(0, Number(inv.total || 0) - Number(inv.paid_amount || 0));
+    const m = String((inv as any).payment_method || "Unknown");
+    cur.methods[m] = +((cur.methods[m] ?? 0) + Number(inv.total || 0)).toFixed(2);
     agg.set(key, cur);
   }
 
   return (sessions ?? []).map((s: any) => {
-    const a = agg.get(s.id) ?? { n: 0, sales: 0, paid: 0, due: 0 };
+    const a = agg.get(s.id) ?? { n: 0, sales: 0, paid: 0, due: 0, methods: {} };
     return {
       ...(s as PosSession),
       orders_count: a.n,
       total_sales: +a.sales.toFixed(2),
       total_payments: +a.paid.toFixed(2),
       total_due: +a.due.toFixed(2),
+      methods: a.methods,
+      status: s.ended_at ? "Ended / Signed Out" : "Active",
     };
   });
+
 };
 
 export const listSessionOrders = async (sessionId: string): Promise<SessionOrder[]> => {
