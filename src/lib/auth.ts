@@ -76,6 +76,10 @@ export const setSession = (u: SessionUser) => {
 
 export const clearSession = (reason: string = "sign-out") => {
   localStorage.removeItem(KEY);
+  try {
+    sessionStorage.removeItem(TAB_ALIVE_KEY);
+  } catch {}
+
   // Close the cashier work session (never blocks sign-out).
   import("./posSessions")
     .then((m) => m.endPosSession(reason))
