@@ -541,13 +541,10 @@ const Customers = () => {
                         size="sm"
                         variant="outline"
                         onClick={() => openDeposits(c)}
-                        className="rounded-lg h-7 px-2"
+                        className="rounded-lg"
                         title="Customer deposit"
                       >
                         <PiggyBank className="h-3.5 w-3.5 mr-1" /> Dep
-                        <span className="ml-1 tabular-nums text-[10px] text-muted-foreground">
-                          ${Number(c.deposit_balance || 0).toFixed(2)}
-                        </span>
                       </Button>
                     )}
 
