@@ -544,7 +544,7 @@ const Customers = () => {
                         className="rounded-lg h-7 px-2"
                         title="Customer deposit"
                       >
-                        <PiggyBank className="h-3.5 w-3.5 mr-1" /> Deposit
+                        <PiggyBank className="h-3.5 w-3.5 mr-1" /> Dep
                         <span className="ml-1 tabular-nums text-[10px] text-muted-foreground">
                           ${Number(c.deposit_balance || 0).toFixed(2)}
                         </span>
@@ -778,7 +778,7 @@ const Customers = () => {
                   disabled={depositSubmitting}
                   className="rounded-lg h-8 px-3 bg-primary text-primary-foreground hover:bg-primary/90"
                 >
-                  {depositSubmitting ? "Saving…" : "Add Deposit"}
+                  {depositSubmitting ? "Saving…" : "Add Dep"}
                 </Button>
                 <Button
                   size="sm"
@@ -792,7 +792,7 @@ const Customers = () => {
                   onClick={handleUseDepositForDue}
                   title="Settle this customer's unpaid orders from their deposit"
                 >
-                  Use deposit for unpaid orders
+                  Use Dep for due orders
                 </Button>
               </div>
               <p className="text-[10px] leading-snug text-muted-foreground">
