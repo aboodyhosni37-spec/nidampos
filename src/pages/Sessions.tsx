@@ -145,6 +145,7 @@ const Sessions = () => {
                   <th className="text-left p-3">Staff</th>
                   <th className="text-left p-3">Started</th>
                   <th className="text-left p-3">Ended</th>
+                  <th className="text-left p-3">Status</th>
                   <th className="text-right p-3">Orders</th>
                   <th className="text-right p-3">Sales</th>
                   <th className="text-right p-3">Payments</th>
@@ -168,6 +169,17 @@ const Sessions = () => {
                         <span className="text-xs font-semibold text-primary">Active now</span>
                       )}
                     </td>
+                    <td className="p-3 whitespace-nowrap">
+                      <span
+                        className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${
+                          r.ended_at
+                            ? "bg-secondary text-muted-foreground"
+                            : "bg-primary/15 text-primary"
+                        }`}
+                      >
+                        {r.ended_at ? "Signed Out" : "Active"}
+                      </span>
+                    </td>
                     <td className="p-3 text-right">{r.orders_count}</td>
                     <td className="p-3 text-right font-semibold">{money(r.total_sales)}</td>
                     <td className="p-3 text-right">{money(r.total_payments)}</td>
@@ -184,6 +196,7 @@ const Sessions = () => {
                     </td>
                   </tr>
                 ))}
+
               </tbody>
             </table>
           </div>
@@ -208,6 +221,16 @@ const Sessions = () => {
                   label="Session end"
                   value={open.ended_at ? fmtDateTime(open.ended_at) : "Still active"}
                 />
+                <Info
+                  icon={ShieldCheck}
+                  label="Session status"
+                  value={
+                    open.ended_at
+                      ? `Ended / Signed Out${open.end_reason ? ` (${open.end_reason})` : ""}`
+                      : "Active"
+                  }
+                />
+                <Info icon={ClipboardList} label="Orders" value={String(open.orders_count)} />
               </div>
 
               <div className="grid grid-cols-3 gap-3">
@@ -215,6 +238,25 @@ const Sessions = () => {
                 <Stat label="Session Payments" value={money(open.total_payments)} />
                 <Stat label="Session Due" value={money(open.total_due)} />
               </div>
+
+              <div className="rounded-xl border border-border p-3">
+                <div className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">
+                  Payment methods
+                </div>
+                <div className="mt-2 flex flex-wrap gap-2 text-sm">
+                  {METHOD_ORDER.filter((m) => open.methods?.[m]).length === 0 ? (
+                    <span className="text-muted-foreground text-xs">No orders in this session.</span>
+                  ) : (
+                    METHOD_ORDER.filter((m) => open.methods?.[m]).map((m) => (
+                      <span key={m} className="px-2 py-1 rounded-lg bg-secondary/60">
+                        <span className="font-semibold">{m}</span>{" "}
+                        <span className="text-muted-foreground">{money(open.methods[m])}</span>
+                      </span>
+                    ))
+                  )}
+                </div>
+              </div>
+
 
               {ordersLoading ? (
                 <div className="py-8 flex items-center justify-center text-muted-foreground gap-2">

@@ -506,6 +506,7 @@ export type Database = {
           end_reason: string | null
           ended_at: string | null
           id: string
+          last_seen_at: string
           login_method: string | null
           started_at: string
           user_id: string | null
@@ -517,6 +518,7 @@ export type Database = {
           end_reason?: string | null
           ended_at?: string | null
           id?: string
+          last_seen_at?: string
           login_method?: string | null
           started_at?: string
           user_id?: string | null
@@ -528,6 +530,7 @@ export type Database = {
           end_reason?: string | null
           ended_at?: string | null
           id?: string
+          last_seen_at?: string
           login_method?: string | null
           started_at?: string
           user_id?: string | null

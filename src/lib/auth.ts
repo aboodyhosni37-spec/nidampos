@@ -24,6 +24,18 @@ const notify = () => {
   } catch {}
 };
 
+// Per-tab liveness marker. sessionStorage survives a reload but is discarded
+// when the window/tab is closed, so a stored login without it means the POS
+// window was closed and the staff member must sign in again.
+const TAB_ALIVE_KEY = "nidam_pos_tab_alive";
+const tabAlive = (): boolean => {
+  try {
+    return sessionStorage.getItem(TAB_ALIVE_KEY) === "1";
+  } catch {
+    return true;
+  }
+};
+
 export const getSession = (): SessionUser | null => {
   try {
     const raw = localStorage.getItem(KEY);
@@ -38,6 +50,11 @@ export const getSession = (): SessionUser | null => {
       localStorage.removeItem(KEY);
       return null;
     }
+    // Window was closed since sign-in: treat as signed out.
+    if (!tabAlive()) {
+      localStorage.removeItem(KEY);
+      return null;
+    }
     return parsed;
   } catch {
     return null;
@@ -46,6 +63,9 @@ export const getSession = (): SessionUser | null => {
 
 export const setSession = (u: SessionUser) => {
   const now = Date.now();
+  try {
+    sessionStorage.setItem(TAB_ALIVE_KEY, "1");
+  } catch {}
   localStorage.setItem(
     KEY,
     JSON.stringify({ ...u, issuedAt: now, expiresAt: now + MAX_AGE_MS })
@@ -53,8 +73,13 @@ export const setSession = (u: SessionUser) => {
   notify();
 };
 
+
 export const clearSession = (reason: string = "sign-out") => {
   localStorage.removeItem(KEY);
+  try {
+    sessionStorage.removeItem(TAB_ALIVE_KEY);
+  } catch {}
+
   // Close the cashier work session (never blocks sign-out).
   import("./posSessions")
     .then((m) => m.endPosSession(reason))
