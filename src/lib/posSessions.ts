@@ -93,6 +93,8 @@ export const startPosSession = async (user: {
       .single();
     if (error) throw error;
     localStorage.setItem(SESSION_ID_KEY, data.id as string);
+    markTabAlive();
+    startHeartbeat();
     return data.id as string;
   } catch {
     return null;
@@ -101,9 +103,11 @@ export const startPosSession = async (user: {
 
 export const endPosSession = async (reason = "sign-out"): Promise<void> => {
   const id = getCurrentSessionId();
+  stopHeartbeat();
   try {
     localStorage.removeItem(SESSION_ID_KEY);
   } catch {}
+  clearTabAlive();
   if (!id) return;
   try {
     await supabase
@@ -113,6 +117,114 @@ export const endPosSession = async (reason = "sign-out"): Promise<void> => {
       .is("ended_at", null);
   } catch {}
 };
+
+// ---------- Heartbeat: proves the session is still open ----------
+let hbTimer: ReturnType<typeof setInterval> | null = null;
+
+const beat = async () => {
+  const id = getCurrentSessionId();
+  if (!id) return;
+  try {
+    await supabase
+      .from("pos_sessions")
+      .update({ last_seen_at: new Date().toISOString() })
+      .eq("id", id)
+      .is("ended_at", null);
+  } catch {}
+};
+
+export const startHeartbeat = () => {
+  if (hbTimer) return;
+  void beat();
+  hbTimer = setInterval(beat, HEARTBEAT_MS);
+};
+
+export const stopHeartbeat = () => {
+  if (hbTimer) clearInterval(hbTimer);
+  hbTimer = null;
+};
+
+// ---------- Window close: end the session with a keepalive request ----------
+// Runs during pagehide, where async clients may be torn down, so it uses a raw
+// keepalive fetch. Guarded by `ended_at is null` so it can never duplicate an end.
+const endSessionOnUnload = (reason = "window-closed") => {
+  const id = getCurrentSessionId();
+  if (!id) return;
+  const url = import.meta.env.VITE_SUPABASE_URL;
+  const key = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+  if (!url || !key) return;
+  try {
+    fetch(
+      `${url}/rest/v1/pos_sessions?id=eq.${encodeURIComponent(id)}&ended_at=is.null`,
+      {
+        method: "PATCH",
+        keepalive: true,
+        headers: {
+          "Content-Type": "application/json",
+          apikey: key as string,
+          Authorization: `Bearer ${key}`,
+          Prefer: "return=minimal",
+        },
+        body: JSON.stringify({
+          ended_at: new Date().toISOString(),
+          end_reason: reason,
+        }),
+      }
+    ).catch(() => {});
+  } catch {}
+  try {
+    localStorage.removeItem(SESSION_ID_KEY);
+  } catch {}
+};
+
+// ---------- Recovery: close sessions whose heartbeat stopped ----------
+export const reapStaleSessions = async (): Promise<void> => {
+  const current = getCurrentSessionId();
+  try {
+    const cutoff = new Date(Date.now() - STALE_MS).toISOString();
+    const { data } = await supabase
+      .from("pos_sessions")
+      .select("id, last_seen_at")
+      .is("ended_at", null)
+      .lt("last_seen_at", cutoff)
+      .limit(50);
+    for (const row of data ?? []) {
+      if (current && row.id === current) continue;
+      await supabase
+        .from("pos_sessions")
+        .update({
+          ended_at: (row as any).last_seen_at ?? new Date().toISOString(),
+          end_reason: "timeout",
+        })
+        .eq("id", row.id)
+        .is("ended_at", null);
+    }
+  } catch {}
+};
+
+// Installed once at app start. Returns a cleanup function.
+export const installSessionLifecycle = (): (() => void) => {
+  const onPageHide = (e: PageTransitionEvent) => {
+    // A cached (back/forward) page is not a real close.
+    if ((e as any).persisted) return;
+    endSessionOnUnload("window-closed");
+  };
+  const onVisibility = () => {
+    if (document.visibilityState === "visible") void beat();
+  };
+
+  if (getCurrentSessionId()) startHeartbeat();
+  void reapStaleSessions();
+
+  window.addEventListener("pagehide", onPageHide);
+  document.addEventListener("visibilitychange", onVisibility);
+  return () => {
+    window.removeEventListener("pagehide", onPageHide);
+    document.removeEventListener("visibilitychange", onVisibility);
+    stopHeartbeat();
+  };
+};
+
 
 const VOID = ["cancelled", "canceled", "void", "voided", "refunded"];
 const isLive = (i: any) =>
