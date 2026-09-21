@@ -221,6 +221,16 @@ const Sessions = () => {
                   label="Session end"
                   value={open.ended_at ? fmtDateTime(open.ended_at) : "Still active"}
                 />
+                <Info
+                  icon={ShieldCheck}
+                  label="Session status"
+                  value={
+                    open.ended_at
+                      ? `Ended / Signed Out${open.end_reason ? ` (${open.end_reason})` : ""}`
+                      : "Active"
+                  }
+                />
+                <Info icon={ClipboardList} label="Orders" value={String(open.orders_count)} />
               </div>
 
               <div className="grid grid-cols-3 gap-3">
@@ -228,6 +238,25 @@ const Sessions = () => {
                 <Stat label="Session Payments" value={money(open.total_payments)} />
                 <Stat label="Session Due" value={money(open.total_due)} />
               </div>
+
+              <div className="rounded-xl border border-border p-3">
+                <div className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">
+                  Payment methods
+                </div>
+                <div className="mt-2 flex flex-wrap gap-2 text-sm">
+                  {METHOD_ORDER.filter((m) => open.methods?.[m]).length === 0 ? (
+                    <span className="text-muted-foreground text-xs">No orders in this session.</span>
+                  ) : (
+                    METHOD_ORDER.filter((m) => open.methods?.[m]).map((m) => (
+                      <span key={m} className="px-2 py-1 rounded-lg bg-secondary/60">
+                        <span className="font-semibold">{m}</span>{" "}
+                        <span className="text-muted-foreground">{money(open.methods[m])}</span>
+                      </span>
+                    ))
+                  )}
+                </div>
+              </div>
+
 
               {ordersLoading ? (
                 <div className="py-8 flex items-center justify-center text-muted-foreground gap-2">
