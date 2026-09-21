@@ -145,6 +145,7 @@ const Sessions = () => {
                   <th className="text-left p-3">Staff</th>
                   <th className="text-left p-3">Started</th>
                   <th className="text-left p-3">Ended</th>
+                  <th className="text-left p-3">Status</th>
                   <th className="text-right p-3">Orders</th>
                   <th className="text-right p-3">Sales</th>
                   <th className="text-right p-3">Payments</th>
@@ -168,6 +169,17 @@ const Sessions = () => {
                         <span className="text-xs font-semibold text-primary">Active now</span>
                       )}
                     </td>
+                    <td className="p-3 whitespace-nowrap">
+                      <span
+                        className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${
+                          r.ended_at
+                            ? "bg-secondary text-muted-foreground"
+                            : "bg-primary/15 text-primary"
+                        }`}
+                      >
+                        {r.ended_at ? "Signed Out" : "Active"}
+                      </span>
+                    </td>
                     <td className="p-3 text-right">{r.orders_count}</td>
                     <td className="p-3 text-right font-semibold">{money(r.total_sales)}</td>
                     <td className="p-3 text-right">{money(r.total_payments)}</td>
@@ -184,6 +196,7 @@ const Sessions = () => {
                     </td>
                   </tr>
                 ))}
+
               </tbody>
             </table>
           </div>
