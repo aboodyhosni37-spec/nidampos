@@ -5,6 +5,34 @@ import { supabase } from "@/integrations/supabase/client";
 import type { PaymentMethod } from "./db";
 
 const SESSION_ID_KEY = "nidam_pos_session_id";
+// Per-tab marker: sessionStorage survives reloads but dies with the tab/window,
+// so its absence means the window was closed since the last sign-in.
+const TAB_ALIVE_KEY = "nidam_pos_tab_alive";
+// A session with no heartbeat for this long is considered abandoned (crash,
+// power loss, lost connectivity) and is closed at its last seen time.
+const STALE_MS = 5 * 60 * 1000;
+const HEARTBEAT_MS = 45 * 1000;
+
+export const markTabAlive = () => {
+  try {
+    sessionStorage.setItem(TAB_ALIVE_KEY, "1");
+  } catch {}
+};
+
+export const isTabAlive = (): boolean => {
+  try {
+    return sessionStorage.getItem(TAB_ALIVE_KEY) === "1";
+  } catch {
+    return true;
+  }
+};
+
+export const clearTabAlive = () => {
+  try {
+    sessionStorage.removeItem(TAB_ALIVE_KEY);
+  } catch {}
+};
+
 
 export type PosSession = {
   id: string;
