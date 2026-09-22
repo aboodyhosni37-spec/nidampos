@@ -22,6 +22,18 @@ import { fetchSettings, formatMoney, type SystemSettings } from "@/lib/systemSet
 const fmtDateTime = (v?: string | null) =>
   v ? new Date(v).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" }) : "—";
 
+const METHOD_ORDER = [
+  "Due",
+  "EVC-Plus",
+  "E-Dahab",
+  "Premier Wallet",
+  "Cash",
+  "Card",
+  "Split",
+  "Deposit",
+];
+
+
 const Sessions = () => {
   const staff = getSession();
   const isAdmin =
