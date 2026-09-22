@@ -2,6 +2,7 @@ import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";
 import { readStoredTheme } from "./lib/theme.tsx";
+import { installSessionLifecycle } from "./lib/posSessions.ts";
 
 // Apply the saved theme before the first paint so refresh/navigation keeps it.
 (() => {
@@ -14,4 +15,9 @@ import { readStoredTheme } from "./lib/theme.tsx";
   } catch {}
 })();
 
+// Staff work-session lifecycle: heartbeat while open, end on window close,
+// close abandoned sessions when the app is next reachable.
+installSessionLifecycle();
+
 createRoot(document.getElementById("root")!).render(<App />);
+

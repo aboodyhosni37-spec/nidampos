@@ -43,7 +43,9 @@ export type PosSession = {
   started_at: string;
   ended_at: string | null;
   end_reason: string | null;
+  last_seen_at?: string | null;
 };
+
 
 export type SessionOrder = {
   id: string;
