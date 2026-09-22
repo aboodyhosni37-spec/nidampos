@@ -28,23 +28,14 @@ import { DashboardLayout } from "./components/DashboardLayout.tsx";
 import { ProtectedRoute } from "./components/ProtectedRoute.tsx";
 import { RequirePermission } from "./components/RequirePermission.tsx";
 import { ThemeProvider } from "./lib/theme.tsx";
-import { useEffect } from "react";
-import { installSessionLifecycle } from "./lib/posSessions.ts";
 
 const queryClient = new QueryClient();
-
-// Keeps the staff work session honest: heartbeat while open, end it when the
-// window closes, and close abandoned sessions once connectivity is back.
-const SessionLifecycle = () => {
-  useEffect(() => installSessionLifecycle(), []);
-  return null;
-};
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <ThemeProvider>
     <TooltipProvider>
-      <SessionLifecycle />
+
 
       <Toaster />
       <Sonner />
