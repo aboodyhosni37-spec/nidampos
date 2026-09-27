@@ -891,7 +891,7 @@ const POS = () => {
         </div>
       </Card>
 
-      <div className="grid grid-cols-1 lg:grid-cols-[1fr_minmax(320px,360px)] xl:grid-cols-[1fr_minmax(340px,380px)] 2xl:grid-cols-[1fr_minmax(340px,380px)] gap-4 h-[calc(100vh-12rem)] min-h-[560px]">
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_minmax(360px,420px)] xl:grid-cols-[1fr_minmax(420px,480px)] 2xl:grid-cols-[1fr_minmax(460px,520px)] gap-4 h-[calc(100vh-12rem)] min-h-[560px]">
         {/* Products / Due Orders */}
         <div className="flex flex-col gap-3 min-h-0 min-w-0">
           {/* Categories */}
