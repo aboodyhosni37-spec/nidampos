@@ -14,6 +14,51 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_audit_log: {
+        Row: {
+          action: string
+          created_at: string
+          details: Json
+          id: string
+          invoice_id: string | null
+          new_number: number | null
+          old_number: number | null
+          performed_by_id: string | null
+          performed_by_name: string | null
+          performed_by_role: string | null
+          reason: string | null
+          restaurant: string
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          details?: Json
+          id?: string
+          invoice_id?: string | null
+          new_number?: number | null
+          old_number?: number | null
+          performed_by_id?: string | null
+          performed_by_name?: string | null
+          performed_by_role?: string | null
+          reason?: string | null
+          restaurant?: string
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          details?: Json
+          id?: string
+          invoice_id?: string | null
+          new_number?: number | null
+          old_number?: number | null
+          performed_by_id?: string | null
+          performed_by_name?: string | null
+          performed_by_role?: string | null
+          reason?: string | null
+          restaurant?: string
+        }
+        Relationships: []
+      }
       app_users: {
         Row: {
           created_at: string

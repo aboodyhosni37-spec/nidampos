@@ -4,7 +4,8 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Search, Eye, CreditCard, Printer, Merge, Pencil, Plus, Minus, Trash2, Wallet, UserPlus } from "lucide-react";
+import { Search, Eye, CreditCard, Printer, Merge, Pencil, Plus, Minus, Trash2, Wallet, UserPlus, Hash } from "lucide-react";
+import { canAdminOrders, deleteOrder, changeOrderNumber } from "@/lib/adminOrders";
 
 import {
   fetchOrders,
@@ -104,6 +105,15 @@ const Orders = () => {
   const [products, setProducts] = useState<DbProduct[]>([]);
   const [productQuery, setProductQuery] = useState("");
 
+
+  // Admin-only controls
+  const isAdmin = canAdminOrders();
+  const [delOrder, setDelOrder] = useState<Order | null>(null);
+  const [delReason, setDelReason] = useState("");
+  const [delConfirm, setDelConfirm] = useState("");
+  const [numOrder, setNumOrder] = useState<Order | null>(null);
+  const [newNum, setNewNum] = useState("");
+  const [adminBusy, setAdminBusy] = useState(false);
 
   const refresh = async () => {
     try {
@@ -464,7 +474,18 @@ const Orders = () => {
                             <Wallet className="h-3.5 w-3.5 mr-1" /> Customer Due
                           </Button>
                         )}
-
+                        {isAdmin && (
+                          <Button size="sm" variant="outline" className="h-8 rounded-lg" title="Correct Order ID"
+                            onClick={() => { setNumOrder(o); setNewNum(""); }}>
+                            <Hash className="h-3.5 w-3.5" />
+                          </Button>
+                        )}
+                        {isAdmin && (
+                          <Button size="sm" variant="outline" className="h-8 rounded-lg text-destructive" title="Delete order"
+                            onClick={() => { setDelOrder(o); setDelReason(""); setDelConfirm(""); }}>
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </Button>
+                        )}
                         <button
                           onClick={() => setSelected(o)}
                           className="inline-flex items-center gap-1 text-primary hover:underline text-sm font-medium px-2"
@@ -684,6 +705,88 @@ const Orders = () => {
               className="rounded-xl bg-primary text-primary-foreground hover:bg-primary/90"
             >
               {paying ? "Processing…" : "Confirm Payment"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Admin: delete order */}
+      <Dialog open={!!delOrder} onOpenChange={(o) => !o && setDelOrder(null)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Delete order #{delOrder?.number}?</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to permanently delete this order? This cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div className="space-y-1">
+              <Label>Reason</Label>
+              <Input value={delReason} onChange={(e) => setDelReason(e.target.value)} placeholder="Why is this order being deleted?" />
+            </div>
+            <div className="space-y-1">
+              <Label>Type DELETE to confirm</Label>
+              <Input value={delConfirm} onChange={(e) => setDelConfirm(e.target.value)} />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDelOrder(null)}>Cancel</Button>
+            <Button
+              variant="destructive"
+              disabled={adminBusy || delConfirm.trim().toUpperCase() !== "DELETE" || !delReason.trim()}
+              onClick={async () => {
+                if (!delOrder) return;
+                setAdminBusy(true);
+                try {
+                  await deleteOrder(delOrder.id, delReason);
+                  toast({ title: "Order deleted", description: `Order #${delOrder.number} was permanently deleted.` });
+                  setDelOrder(null);
+                  await refresh();
+                  listCustomers().then(setCustomers).catch(() => {});
+                } catch (e: any) {
+                  toast({ title: "Delete failed", description: e.message, variant: "destructive" });
+                } finally {
+                  setAdminBusy(false);
+                }
+              }}
+            >
+              Delete permanently
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Admin: correct order number */}
+      <Dialog open={!!numOrder} onOpenChange={(o) => !o && setNumOrder(null)}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Correct Order ID</DialogTitle>
+            <DialogDescription>Current Order ID: #{numOrder?.number}. Only the ID changes.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-1">
+            <Label>New Order ID</Label>
+            <Input inputMode="numeric" value={newNum} onChange={(e) => setNewNum(e.target.value.replace(/\D/g, ""))} placeholder="e.g. 1005" />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setNumOrder(null)}>Cancel</Button>
+            <Button
+              disabled={adminBusy || !newNum}
+              onClick={async () => {
+                if (!numOrder) return;
+                setAdminBusy(true);
+                try {
+                  await changeOrderNumber(numOrder.id, Number(newNum));
+                  toast({ title: "Order ID updated", description: `#${numOrder.number} → #${newNum}` });
+                  setNumOrder(null);
+                  await refresh();
+                } catch (e: any) {
+                  toast({ title: "Could not change Order ID", description: e.message, variant: "destructive" });
+                } finally {
+                  setAdminBusy(false);
+                }
+              }}
+            >
+              Save
             </Button>
           </DialogFooter>
         </DialogContent>
