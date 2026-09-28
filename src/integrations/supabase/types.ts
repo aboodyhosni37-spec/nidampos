@@ -803,7 +803,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      resequence_invoice_numbers: { Args: never; Returns: number }
     }
     Enums: {
       payment_method:
