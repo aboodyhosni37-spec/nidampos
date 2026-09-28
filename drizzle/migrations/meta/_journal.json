@@ -29,6 +29,20 @@
       "when": 1790504090891,
       "tag": "0003_admin_audit_log",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1790592095838,
+      "tag": "0004_resequence_invoice_numbers",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1790592130064,
+      "tag": "0005_resequence_start_at_one",
+      "breakpoints": true
     }
   ]
 }

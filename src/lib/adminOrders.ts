@@ -70,6 +70,10 @@ export const deleteOrder = async (invoiceId: string, reason?: string) => {
     },
   });
 
+  // Close the gap: renumber remaining orders sequentially and reset the counter.
+  const { error: rErr } = await (supabase as any).rpc("resequence_invoice_numbers");
+  if (rErr) console.error("Order renumbering failed", rErr);
+
   await reconcileCustomerDues().catch(() => {});
   if (inv.customer_id) await reconcileCustomerLoyalty(inv.customer_id).catch(() => {});
 };
