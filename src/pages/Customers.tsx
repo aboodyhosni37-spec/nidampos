@@ -412,7 +412,7 @@ const Customers = () => {
   };
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto">
+    <div className="space-y-6 w-full max-w-none mx-auto">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Customers & Dues</h1>
@@ -479,15 +479,15 @@ const Customers = () => {
               return (
                 <div
                   key={c.id}
-                  className="p-4 flex items-center justify-between gap-3 hover:bg-secondary/40 transition-colors"
+                  className="p-4 flex flex-wrap xl:flex-nowrap items-center justify-between gap-x-6 gap-y-3 hover:bg-secondary/40 transition-colors"
                 >
-                  <div className="flex items-center gap-3 min-w-0">
+                  <div className="flex items-center gap-3 min-w-[220px] flex-1">
                     <div className="h-10 w-10 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 flex items-center justify-center font-bold shrink-0">
                       {c.name.charAt(0).toUpperCase()}
                     </div>
                     <div className="min-w-0">
-                      <div className="font-semibold truncate flex items-center gap-2">
-                        {c.name}
+                      <div className="font-semibold flex flex-wrap items-center gap-2 break-words">
+                        <span className="break-words">{c.name}</span>
                         {isHigh && (
                           <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider bg-secondary text-foreground px-1.5 py-0.5 rounded">
                             <AlertTriangle className="h-3 w-3" /> High debt
@@ -508,8 +508,8 @@ const Customers = () => {
                       </div>
                     </div>
                   </div>
-                  <div className="flex items-center gap-3 shrink-0">
-                    <div className="text-right">
+                  <div className="flex flex-wrap items-center justify-end gap-2 shrink-0 ml-auto">
+                    <div className="text-right min-w-[90px] pr-3 mr-1 border-r border-border">
                       <div className="text-xs text-muted-foreground">Due</div>
                       <div
                         className={cn(
