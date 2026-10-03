@@ -28,6 +28,10 @@ import { DashboardLayout } from "./components/DashboardLayout.tsx";
 import { ProtectedRoute } from "./components/ProtectedRoute.tsx";
 import { RequirePermission } from "./components/RequirePermission.tsx";
 import { ThemeProvider } from "./lib/theme.tsx";
+import SuperAdminLogin from "./pages/super-admin/SuperAdminLogin.tsx";
+import SuperAdminLayout from "./pages/super-admin/SuperAdminLayout.tsx";
+import SuperAdminOverview from "./pages/super-admin/Overview.tsx";
+import SuperAdminRestaurants from "./pages/super-admin/Restaurants.tsx";
 
 const queryClient = new QueryClient();
 
@@ -62,6 +66,13 @@ const App = () => (
           <Route path="/staff/website" element={<Navigate to="/dashboard/website" replace />} />
           <Route path="/pos" element={<Navigate to="/dashboard/pos" replace />} />
           <Route path="/customer-display" element={<CustomerDisplay />} />
+
+          {/* Hagaajiye Tech Super Admin (separate email/password accounts) */}
+          <Route path="/super-admin/login" element={<SuperAdminLogin />} />
+          <Route path="/super-admin" element={<SuperAdminLayout />}>
+            <Route index element={<SuperAdminOverview />} />
+            <Route path="restaurants" element={<SuperAdminRestaurants />} />
+          </Route>
 
           <Route
             path="/dashboard"
