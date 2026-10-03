@@ -640,6 +640,57 @@ export type Database = {
           },
         ]
       }
+      restaurants: {
+        Row: {
+          address: string | null
+          created_at: string
+          id: string
+          name: string
+          notes: string | null
+          owner_email: string | null
+          owner_name: string | null
+          phone: string | null
+          restaurant_code: string
+          status: string
+          subscription_ends_at: string | null
+          subscription_plan: string
+          subscription_status: string
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          created_at?: string
+          id?: string
+          name: string
+          notes?: string | null
+          owner_email?: string | null
+          owner_name?: string | null
+          phone?: string | null
+          restaurant_code: string
+          status?: string
+          subscription_ends_at?: string | null
+          subscription_plan?: string
+          subscription_status?: string
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          created_at?: string
+          id?: string
+          name?: string
+          notes?: string | null
+          owner_email?: string | null
+          owner_name?: string | null
+          phone?: string | null
+          restaurant_code?: string
+          status?: string
+          subscription_ends_at?: string | null
+          subscription_plan?: string
+          subscription_status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       role_permissions: {
         Row: {
           is_system: boolean
@@ -798,14 +849,44 @@ export type Database = {
         }
         Relationships: []
       }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
+      claim_first_super_admin: { Args: never; Returns: boolean }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
       resequence_invoice_numbers: { Args: never; Returns: number }
     }
     Enums: {
+      app_role: "super_admin" | "admin"
       payment_method:
         | "Cash"
         | "Card"
@@ -942,6 +1023,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      app_role: ["super_admin", "admin"],
       payment_method: [
         "Cash",
         "Card",
