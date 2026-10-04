@@ -640,6 +640,42 @@ export type Database = {
           },
         ]
       }
+      restaurant_members: {
+        Row: {
+          app_user_id: string
+          created_at: string
+          id: string
+          restaurant_id: string
+        }
+        Insert: {
+          app_user_id: string
+          created_at?: string
+          id?: string
+          restaurant_id: string
+        }
+        Update: {
+          app_user_id?: string
+          created_at?: string
+          id?: string
+          restaurant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "restaurant_members_app_user_id_fkey"
+            columns: ["app_user_id"]
+            isOneToOne: false
+            referencedRelation: "app_users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "restaurant_members_restaurant_id_fkey"
+            columns: ["restaurant_id"]
+            isOneToOne: false
+            referencedRelation: "restaurants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       restaurants: {
         Row: {
           address: string | null
@@ -650,10 +686,12 @@ export type Database = {
           owner_email: string | null
           owner_name: string | null
           phone: string | null
+          pos_url: string | null
           restaurant_code: string
           status: string
           subscription_ends_at: string | null
           subscription_plan: string
+          subscription_starts_at: string | null
           subscription_status: string
           updated_at: string
         }
@@ -666,10 +704,12 @@ export type Database = {
           owner_email?: string | null
           owner_name?: string | null
           phone?: string | null
+          pos_url?: string | null
           restaurant_code: string
           status?: string
           subscription_ends_at?: string | null
           subscription_plan?: string
+          subscription_starts_at?: string | null
           subscription_status?: string
           updated_at?: string
         }
@@ -682,10 +722,12 @@ export type Database = {
           owner_email?: string | null
           owner_name?: string | null
           phone?: string | null
+          pos_url?: string | null
           restaurant_code?: string
           status?: string
           subscription_ends_at?: string | null
           subscription_plan?: string
+          subscription_starts_at?: string | null
           subscription_status?: string
           updated_at?: string
         }
