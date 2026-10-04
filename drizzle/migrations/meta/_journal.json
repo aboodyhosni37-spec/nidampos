@@ -50,6 +50,13 @@
       "when": 1791055052180,
       "tag": "0006_migration",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1791124626747,
+      "tag": "0007_restaurant_management",
+      "breakpoints": true
     }
   ]
 }
