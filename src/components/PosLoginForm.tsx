@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { toast } from "@/hooks/use-toast";
 import { setSession } from "@/lib/auth";
-import { findUserByPin } from "@/lib/users";
+import { secureLogin } from "@/lib/users";
 import { listRoles } from "@/lib/permissions";
 import { startPosSession } from "@/lib/posSessions";
 
@@ -36,7 +36,7 @@ export const PosLoginForm = () => {
     setVerifying(true);
     setError(null);
     try {
-      const user = await findUserByPin(pinValue);
+      const user = await secureLogin(pinValue);
       if (!user) {
         setError("Invalid PIN");
         setPin("");
