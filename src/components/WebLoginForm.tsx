@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "@/hooks/use-toast";
 import { setSession } from "@/lib/auth";
-import { findUserByUsernamePin } from "@/lib/users";
+import { secureLogin } from "@/lib/users";
 import { listRoles } from "@/lib/permissions";
 import { startPosSession } from "@/lib/posSessions";
 
@@ -25,7 +25,7 @@ export const WebLoginForm = () => {
     }
     setLoading(true);
     try {
-      const user = await findUserByUsernamePin(username.trim(), password.trim());
+      const user = await secureLogin(password.trim(), username.trim());
       if (!user) {
         toast({ title: "Invalid credentials", description: "Username or PIN is wrong.", variant: "destructive" });
         return;
