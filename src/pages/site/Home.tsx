@@ -105,7 +105,7 @@ const Home = () => {
               <div className="absolute inset-0 bg-gradient-to-t from-foreground/40 via-transparent to-transparent" />
             </div>
             {content.contact.address && (
-              <div className="absolute -bottom-5 left-4 sm:left-6 right-4 sm:right-auto rounded-2xl border border-border bg-card/95 backdrop-blur px-4 py-3 shadow-elegant flex items-center gap-3">
+              <div className="relative mt-4 sm:mt-0 sm:absolute sm:-bottom-5 sm:left-6 rounded-2xl border border-border bg-card/95 backdrop-blur px-4 py-3 shadow-elegant flex items-center gap-3">
                 <span className="h-10 w-10 shrink-0 rounded-xl bg-primary text-primary-foreground flex items-center justify-center">
                   <MapPin className="h-4 w-4" />
                 </span>
