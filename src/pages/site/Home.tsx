@@ -32,6 +32,10 @@ const Home = () => {
   };
 
   const home = content.home;
+  const hasHeroText = !!(
+    home.hero_title || home.hero_subtitle || home.hero_description || home.hero_badge ||
+    home.primary_cta_label || home.secondary_cta_label
+  );
 
   return (
     <>
@@ -44,8 +48,9 @@ const Home = () => {
           <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-border to-transparent" />
         </div>
 
-        <div className="relative mx-auto max-w-6xl px-4 sm:px-6 pt-10 pb-20 sm:pt-16 sm:pb-24 lg:pt-20 lg:pb-32 grid gap-10 lg:gap-14 lg:grid-cols-[1.05fr_1fr] items-center">
+        <div className={`relative mx-auto max-w-6xl px-4 sm:px-6 pt-10 pb-20 sm:pt-16 sm:pb-24 lg:pt-20 lg:pb-32 grid gap-10 lg:gap-14 items-center ${hasHeroText ? "lg:grid-cols-[1.05fr_1fr]" : "max-w-5xl"}`}>
           {/* Copy */}
+          {hasHeroText && (
           <div className="order-2 lg:order-1 space-y-6 sm:space-y-7 text-center lg:text-left">
             {home.hero_badge && (
               <span className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-4 py-1.5 text-[11px] sm:text-xs font-semibold uppercase tracking-[0.18em] text-primary">
@@ -84,11 +89,12 @@ const Home = () => {
               )}
             </div>
           </div>
+          )}
 
           {/* Image */}
           <div className="order-1 lg:order-2 relative">
-            <div className="absolute -inset-3 sm:-inset-4 rounded-[2.25rem] border border-border/70 rotate-2" />
-            <div className="relative rounded-[2rem] overflow-hidden border border-border bg-card shadow-elegant aspect-[4/3] lg:aspect-[4/5]">
+            <div className="absolute -inset-3 sm:-inset-4 rounded-[2.25rem] border border-border/70 rotate-1" />
+            <div className={`relative rounded-[2rem] overflow-hidden border border-border bg-card shadow-elegant ${hasHeroText ? "aspect-[4/3] lg:aspect-[4/5]" : "aspect-[16/10] sm:aspect-[16/8]"}`}>
               <img
                 src={home.hero_image}
                 alt={`${content.brand.name} interior`}
