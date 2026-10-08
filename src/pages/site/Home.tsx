@@ -32,55 +32,89 @@ const Home = () => {
   };
 
   const home = content.home;
+  const hasHeroText = !!(
+    home.hero_title || home.hero_subtitle || home.hero_description || home.hero_badge ||
+    home.primary_cta_label || home.secondary_cta_label
+  );
 
   return (
     <>
       {/* HERO */}
-      <section className="relative">
-        <div className="absolute inset-0">
-          <img
-            src={home.hero_image}
-            alt={`${content.brand.name} interior`}
-            width={1600}
-            height={1100}
-            className="h-full w-full object-cover"
-          />
-          <div className="absolute inset-0 bg-gradient-to-r from-foreground/85 via-foreground/60 to-foreground/25" />
+      <section className="relative overflow-hidden bg-background">
+        {/* soft background depth */}
+        <div className="pointer-events-none absolute inset-0">
+          <div className="absolute -top-40 -left-32 h-[28rem] w-[28rem] rounded-full bg-primary/10 blur-3xl" />
+          <div className="absolute -bottom-40 right-0 h-[30rem] w-[30rem] rounded-full bg-secondary blur-3xl" />
+          <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-border to-transparent" />
         </div>
-        <div className="relative mx-auto max-w-6xl px-4 sm:px-6 py-24 sm:py-32 lg:py-40">
-          <div className="max-w-2xl space-y-6 text-background">
+
+        <div className={`relative mx-auto max-w-6xl px-4 sm:px-6 pt-10 pb-20 sm:pt-16 sm:pb-24 lg:pt-20 lg:pb-32 grid gap-10 lg:gap-14 items-center ${hasHeroText ? "lg:grid-cols-[1.05fr_1fr]" : "max-w-5xl"}`}>
+          {/* Copy */}
+          {hasHeroText && (
+          <div className="order-2 lg:order-1 space-y-6 sm:space-y-7 text-center lg:text-left">
             {home.hero_badge && (
-              <span className="inline-flex items-center gap-2 rounded-full border border-background/25 bg-background/10 px-3.5 py-1.5 text-xs font-semibold backdrop-blur">
+              <span className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-4 py-1.5 text-[11px] sm:text-xs font-semibold uppercase tracking-[0.18em] text-primary">
                 <Leaf className="h-3.5 w-3.5" /> {home.hero_badge}
               </span>
             )}
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight leading-[1.05]">
+            <h1 className="text-[2.4rem] leading-[1.04] sm:text-6xl lg:text-[4.25rem] font-extrabold tracking-[-0.03em] text-foreground text-balance">
               {home.hero_title}
             </h1>
-            <p className="text-lg sm:text-xl text-background/85 leading-relaxed">
+            <div className="mx-auto lg:mx-0 h-1 w-16 rounded-full bg-primary" />
+            <p className="mx-auto lg:mx-0 max-w-xl text-lg sm:text-xl leading-relaxed text-foreground/80">
               {home.hero_subtitle}
             </p>
             {home.hero_description && (
-              <p className="text-background/70 max-w-xl">{home.hero_description}</p>
+              <p className="mx-auto lg:mx-0 max-w-lg text-base leading-relaxed text-muted-foreground">
+                {home.hero_description}
+              </p>
             )}
-            <div className="flex flex-wrap gap-3 pt-2">
+            <div className="flex flex-col sm:flex-row justify-center lg:justify-start gap-3 pt-2">
               {home.primary_cta_label && (
                 <Link
                   to={home.primary_cta_href || "/menu"}
-                  className="inline-flex items-center gap-2 h-12 px-6 rounded-xl bg-primary text-primary-foreground font-semibold hover:bg-primary/90 transition-colors"
+                  className="group inline-flex items-center justify-center gap-2 h-14 px-8 rounded-full bg-primary text-primary-foreground font-semibold shadow-elegant hover:bg-primary/90 hover:-translate-y-0.5 transition-all duration-300"
                 >
-                  {home.primary_cta_label} <ArrowRight className="h-4 w-4" />
+                  {home.primary_cta_label}
+                  <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
                 </Link>
               )}
               {home.secondary_cta_label && (
                 <Link
                   to={home.secondary_cta_href || "/about"}
-                  className="inline-flex items-center gap-2 h-12 px-6 rounded-xl border border-background/30 bg-background/10 text-background font-semibold backdrop-blur hover:bg-background/20 transition-colors"
+                  className="inline-flex items-center justify-center gap-2 h-14 px-8 rounded-full border border-border bg-card text-foreground font-semibold shadow-soft hover:border-primary/40 hover:-translate-y-0.5 transition-all duration-300"
                 >
                   {home.secondary_cta_label}
                 </Link>
               )}
             </div>
+          </div>
+          )}
+
+          {/* Image */}
+          <div className="order-1 lg:order-2 relative">
+            <div className="absolute -inset-3 sm:-inset-4 rounded-[2.25rem] border border-border/70 rotate-1" />
+            <div className={`relative rounded-[2rem] overflow-hidden border border-border bg-card shadow-elegant ${hasHeroText ? "aspect-[4/3] lg:aspect-[4/5]" : "aspect-[16/10] sm:aspect-[16/8]"}`}>
+              <img
+                src={home.hero_image}
+                alt={`${content.brand.name} interior`}
+                width={1600}
+                height={1100}
+                className="h-full w-full object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-foreground/40 via-transparent to-transparent" />
+            </div>
+            {content.contact.address && (
+              <div className="relative mt-4 sm:mt-0 sm:absolute sm:-bottom-5 sm:left-6 rounded-2xl border border-border bg-card/95 backdrop-blur px-4 py-3 shadow-elegant flex items-center gap-3">
+                <span className="h-10 w-10 shrink-0 rounded-xl bg-primary text-primary-foreground flex items-center justify-center">
+                  <MapPin className="h-4 w-4" />
+                </span>
+                <span className="leading-tight min-w-0">
+                  <span className="block text-sm font-bold text-foreground truncate">{content.brand.name}</span>
+                  <span className="block text-xs text-muted-foreground truncate">{content.contact.address}</span>
+                </span>
+              </div>
+            )}
           </div>
         </div>
       </section>
