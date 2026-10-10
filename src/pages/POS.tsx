@@ -1508,6 +1508,19 @@ const POS = () => {
         </Card>
       </div>
 
+      {/* Phones/tablets: always-visible order total that jumps to the cart */}
+      <button
+        type="button"
+        onClick={() => document.getElementById("pos-cart")?.scrollIntoView({ behavior: "smooth", block: "start" })}
+        className="lg:hidden fixed inset-x-3 z-30 bottom-[max(0.75rem,env(safe-area-inset-bottom))] h-14 rounded-2xl bg-primary text-primary-foreground shadow-elegant flex items-center justify-between px-4 font-semibold"
+      >
+        <span className="flex items-center gap-2">
+          <ShoppingCart className="h-5 w-5" />
+          View cart · {cart.reduce((s, i) => s + i.qty, 0)} items
+        </span>
+        <span className="tabular-nums text-lg font-bold">{formatMoney(total, sys)}</span>
+      </button>
+
       {completedOrder && (
         <ReceiptPreview
           order={completedOrder}
