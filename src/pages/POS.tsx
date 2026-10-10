@@ -553,6 +553,16 @@ const POS = () => {
   );
   const total = totals.total;
 
+  // Phones/tablets: hide the floating "View cart" bar while the cart is on screen.
+  const [cartInView, setCartInView] = useState(false);
+  useEffect(() => {
+    const el = document.getElementById("pos-cart");
+    if (!el || typeof IntersectionObserver === "undefined") return;
+    const io = new IntersectionObserver(([e]) => setCartInView(e.isIntersecting), { threshold: 0.15 });
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+
   // Real-time sync to customer display (only when dual screen enabled & not in QR/paid mode)
   useEffect(() => {
     if (!receiptCfg.enableDualScreen) return;
@@ -1512,7 +1522,7 @@ const POS = () => {
       <button
         type="button"
         onClick={() => document.getElementById("pos-cart")?.scrollIntoView({ behavior: "smooth", block: "start" })}
-        className="lg:hidden fixed inset-x-3 z-30 bottom-[max(0.75rem,env(safe-area-inset-bottom))] h-14 rounded-2xl bg-primary text-primary-foreground shadow-elegant flex items-center justify-between px-4 font-semibold"
+        className={cn("lg:hidden fixed inset-x-3 z-30 transition-opacity", cartInView && "opacity-0 pointer-events-none", bottom-[max(0.75rem,env(safe-area-inset-bottom))] h-14 rounded-2xl bg-primary text-primary-foreground shadow-elegant flex items-center justify-between px-4 font-semibold")}
       >
         <span className="flex items-center gap-2">
           <ShoppingCart className="h-5 w-5" />
