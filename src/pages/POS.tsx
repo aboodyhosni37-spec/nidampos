@@ -1088,7 +1088,7 @@ const POS = () => {
             : "lg:hidden",
           orderStatus === "Active" ? "border-primary/40" : "border-border"
         )}>
-          <div className="h-14 shrink-0 px-4 border-b border-border flex items-center justify-between">
+          <div className="h-11 shrink-0 px-3 border-b border-border flex items-center justify-between">
             <div className="flex items-center gap-2 font-semibold">
               <ShoppingCart className="h-4 w-4" />
               <span>Order</span>
@@ -1118,18 +1118,18 @@ const POS = () => {
           </div>
 
           {/* Table */}
-          <div className="p-3 border-b border-border space-y-2">
-            <div>
-              <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5 mb-1.5">
+          <div className="px-3 py-2 border-b border-border">
+            <div className="flex items-center gap-2">
+              <label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1 shrink-0">
                 <Users className="h-3 w-3" /> Table
               </label>
-              <div className="flex flex-wrap gap-1.5">
+              <div className="flex flex-wrap gap-1">
                 {tables.map((t) => (
                   <button
                     key={t}
                     onClick={() => setTable(t)}
                     className={cn(
-                      "h-9 lg:h-8 min-w-[3rem] lg:min-w-[2.6rem] px-3 lg:px-2 rounded-lg text-xs font-bold transition-all",
+                      "h-7 min-w-[2.4rem] px-2 rounded-md text-[11px] font-bold transition-all",
                       table === t
                         ? "bg-primary text-primary-foreground hover:bg-primary/90 shadow-soft"
                         : "bg-secondary hover:bg-secondary/80"
