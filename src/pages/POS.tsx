@@ -553,15 +553,21 @@ const POS = () => {
   );
   const total = totals.total;
 
-  // Phones/tablets: hide the floating "View cart" bar while the cart is on screen.
-  const [cartInView, setCartInView] = useState(false);
+  // Cart visibility (presentation only — the cart state itself is never touched).
+  // Phones/tablets: the cart opens as a full-screen panel from the Cart bar.
+  // Desktop: follows the "Cart Display" setting (always / hidden / collapsible).
+  const cartMode = sys.cart_display || "always";
+  const [mobileCartOpen, setMobileCartOpen] = useState(false);
+  const [desktopCartOpen, setDesktopCartOpen] = useState(cartMode !== "hidden");
   useEffect(() => {
-    const el = document.getElementById("pos-cart");
-    if (!el || typeof IntersectionObserver === "undefined") return;
-    const io = new IntersectionObserver(([e]) => setCartInView(e.isIntersecting), { threshold: 0.15 });
-    io.observe(el);
-    return () => io.disconnect();
-  }, []);
+    setDesktopCartOpen(cartMode !== "hidden");
+  }, [cartMode]);
+  const desktopCartVisible = cartMode === "always" || desktopCartOpen;
+  const cartCount = cart.reduce((s, i) => s + i.qty, 0);
+  const closeCart = () => {
+    setMobileCartOpen(false);
+    if (cartMode !== "always") setDesktopCartOpen(false);
+  };
 
   // Real-time sync to customer display (only when dual screen enabled & not in QR/paid mode)
   useEffect(() => {
@@ -869,6 +875,19 @@ const POS = () => {
               <Monitor className="h-4 w-4 mr-1.5" /> Customer Display
             </Button>
           )}
+          {cartMode !== "always" && (
+            <Button
+              variant={desktopCartVisible ? "default" : "outline"}
+              size="sm"
+              onClick={() => setDesktopCartOpen((o) => !o)}
+              aria-expanded={desktopCartVisible}
+              aria-controls="pos-cart"
+              className="rounded-lg hidden lg:inline-flex"
+            >
+              <ShoppingCart className="h-4 w-4 mr-1.5" />
+              {desktopCartVisible ? "Hide Cart" : `Cart · ${cartCount} · ${formatMoney(total, sys)}`}
+            </Button>
+          )}
           <Button
             variant="outline"
             size="sm"
@@ -901,9 +920,9 @@ const POS = () => {
         </div>
       </Card>
 
-      <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_minmax(380px,440px)] xl:grid-cols-[minmax(0,1fr)_minmax(430px,490px)] 2xl:grid-cols-[minmax(0,1fr)_minmax(470px,530px)] gap-4 lg:h-[calc(100dvh-12rem)] lg:min-h-[560px] pb-20 lg:pb-0">
+      <div className={cn("grid grid-cols-1 gap-4 lg:h-[calc(100dvh-12rem)] lg:min-h-[560px] pb-20 lg:pb-0", desktopCartVisible ? "lg:grid-cols-[minmax(0,1fr)_minmax(440px,480px)] xl:grid-cols-[minmax(0,1fr)_minmax(470px,520px)] 2xl:grid-cols-[minmax(0,1fr)_minmax(500px,560px)]" : "lg:grid-cols-1")}>
         {/* Products / Due Orders */}
-        <div className="flex flex-col gap-3 min-h-0 min-w-0 h-[70dvh] min-h-[420px] lg:h-auto lg:min-h-0">
+        <div className="flex flex-col gap-3 min-h-0 min-w-0 h-[calc(100dvh-13rem)] min-h-[420px] lg:h-auto lg:min-h-0">
           {/* Categories */}
           {leftMode === "menu" && (
             <div className="flex flex-wrap gap-1.5 pb-1 shrink-0 min-w-0">
@@ -1058,8 +1077,14 @@ const POS = () => {
         </div>
 
         {/* Cart */}
-        <Card id="pos-cart" className={cn(
-          "rounded-2xl border-2 flex flex-col overflow-hidden transition-colors min-h-0 min-w-0 h-[calc(100dvh-5rem)] min-h-[520px] lg:h-auto lg:min-h-0 scroll-mt-16",
+        <Card id="pos-cart" role="region" aria-label="Order cart" className={cn(
+          "flex-col overflow-hidden transition-colors min-h-0 min-w-0",
+          mobileCartOpen
+            ? "flex fixed inset-0 z-50 h-[100dvh] rounded-none border-0 pt-[env(safe-area-inset-top)]"
+            : "hidden",
+          desktopCartVisible
+            ? "lg:flex lg:static lg:inset-auto lg:z-auto lg:h-auto lg:rounded-2xl lg:border-2 lg:pt-0"
+            : "lg:hidden",
           orderStatus === "Active" ? "border-primary/40" : "border-border"
         )}>
           <div className="h-14 shrink-0 px-4 border-b border-border flex items-center justify-between">
@@ -1068,14 +1093,27 @@ const POS = () => {
               <span>Order</span>
               <span className="text-xs font-mono text-muted-foreground">{orderId}</span>
             </div>
-            {cart.length > 0 && (
+            <div className="flex items-center gap-1">
+              {cart.length > 0 && (
+                <button
+                  onClick={handleClearCart}
+                  className="h-9 px-2.5 rounded-lg text-xs text-muted-foreground hover:text-destructive hover:bg-destructive/10 font-medium"
+                >
+                  Clear
+                </button>
+              )}
               <button
-                onClick={handleClearCart}
-                className="text-xs text-muted-foreground hover:text-destructive font-medium"
+                type="button"
+                onClick={closeCart}
+                aria-label="Close cart"
+                className={cn(
+                  "h-9 px-3 rounded-lg border border-border text-xs font-semibold hover:bg-secondary inline-flex items-center gap-1",
+                  cartMode === "always" && "lg:hidden"
+                )}
               >
-                Clear
+                <X className="h-4 w-4" /> Close
               </button>
-            )}
+            </div>
           </div>
 
           {/* Table */}
@@ -1103,8 +1141,8 @@ const POS = () => {
             </div>
           </div>
 
-          {/* Items - scrollable */}
-          <div className="flex-1 overflow-y-auto p-3 space-y-2 min-h-[150px]">
+          {/* Items — table on wider screens, compact rows on phones */}
+          <div className="flex-1 overflow-y-auto min-h-[150px]">
             {cart.length === 0 ? (
               <div className="h-full flex flex-col items-center justify-center text-center text-muted-foreground py-10">
                 <ShoppingCart className="h-10 w-10 opacity-30 mb-2" />
@@ -1112,43 +1150,62 @@ const POS = () => {
                 <div className="text-xs">Tap a product to add it</div>
               </div>
             ) : (
-              cart.map((it) => (
-                <div key={it.id} className="bg-secondary/50 rounded-xl p-3 min-h-[68px] flex flex-col justify-center">
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="flex-1 min-w-0">
-                      <div className="font-semibold text-sm leading-snug break-words">{it.name}</div>
-                      <div className="text-xs text-muted-foreground">{formatMoney(it.price, sys)}</div>
-                    </div>
-                    <button
-                      onClick={() => removeItem(it.id)}
-                      aria-label="Remove item"
-                      className="h-10 w-10 shrink-0 rounded-lg inline-flex items-center justify-center text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                  </div>
-                  <div className="flex items-center justify-between gap-2 mt-2">
-                    <div className="flex items-center gap-1 bg-card rounded-lg border border-border">
-                      <button
-                        onClick={() => updateQty(it.id, -1)}
-                        aria-label="Decrease quantity"
-                        className="h-10 w-10 flex items-center justify-center rounded-l-lg hover:text-primary hover:bg-secondary transition-colors"
-                      >
-                        <Minus className="h-4 w-4" />
-                      </button>
-                      <span className="w-8 text-center text-sm font-bold tabular-nums">{it.qty}</span>
-                      <button
-                        onClick={() => updateQty(it.id, 1)}
-                        aria-label="Increase quantity"
-                        className="h-10 w-10 flex items-center justify-center rounded-r-lg hover:text-primary hover:bg-secondary transition-colors"
-                      >
-                        <Plus className="h-4 w-4" />
-                      </button>
-                    </div>
-                    <div className="font-bold text-base tabular-nums shrink-0">{formatMoney(it.price * it.qty, sys)}</div>
-                  </div>
+              <>
+                <div className="hidden sm:grid grid-cols-[minmax(0,1fr)_56px_108px_68px_36px] gap-2 px-3 h-9 items-center sticky top-0 z-10 bg-secondary text-[11px] font-semibold uppercase tracking-wider text-muted-foreground border-b border-border">
+                  <span>Item</span>
+                  <span className="text-right">Price</span>
+                  <span className="text-center">Qty</span>
+                  <span className="text-right">Total</span>
+                  <span className="sr-only">Action</span>
                 </div>
-              ))
+                <ul className="divide-y divide-border">
+                  {cart.map((it) => (
+                    <li
+                      key={it.id}
+                      className="px-3 py-2.5 grid grid-cols-[minmax(0,1fr)_auto] sm:grid-cols-[minmax(0,1fr)_56px_108px_68px_36px] gap-x-2 gap-y-2 items-center min-h-[56px]"
+                    >
+                      <div className="col-start-1 row-start-1 min-w-0">
+                        <div className="font-semibold text-sm leading-snug break-words">{it.name}</div>
+                        <div className="sm:hidden text-xs text-muted-foreground tabular-nums">
+                          {formatMoney(it.price, sys)} each
+                        </div>
+                      </div>
+                      <div className="hidden sm:block sm:col-start-2 sm:row-start-1 text-right text-sm tabular-nums text-muted-foreground">
+                        {formatMoney(it.price, sys)}
+                      </div>
+                      <div className="col-start-1 row-start-2 sm:col-start-3 sm:row-start-1 flex sm:justify-center">
+                        <div className="inline-flex items-center rounded-lg border border-border bg-card">
+                          <button
+                            onClick={() => updateQty(it.id, -1)}
+                            aria-label={`Decrease ${it.name}`}
+                            className="h-9 w-9 flex items-center justify-center rounded-l-lg hover:bg-secondary transition-colors"
+                          >
+                            <Minus className="h-4 w-4" />
+                          </button>
+                          <span className="w-8 text-center text-sm font-bold tabular-nums">{it.qty}</span>
+                          <button
+                            onClick={() => updateQty(it.id, 1)}
+                            aria-label={`Increase ${it.name}`}
+                            className="h-9 w-9 flex items-center justify-center rounded-r-lg hover:bg-secondary transition-colors"
+                          >
+                            <Plus className="h-4 w-4" />
+                          </button>
+                        </div>
+                      </div>
+                      <div className="col-start-2 row-start-2 sm:col-start-4 sm:row-start-1 text-right font-bold text-sm tabular-nums">
+                        {formatMoney(it.price * it.qty, sys)}
+                      </div>
+                      <button
+                        onClick={() => removeItem(it.id)}
+                        aria-label={`Remove ${it.name}`}
+                        className="col-start-2 row-start-1 sm:col-start-5 justify-self-end h-9 w-9 rounded-lg inline-flex items-center justify-center text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </>
             )}
           </div>
 
@@ -1521,12 +1578,13 @@ const POS = () => {
       {/* Phones/tablets: always-visible order total that jumps to the cart */}
       <button
         type="button"
-        onClick={() => document.getElementById("pos-cart")?.scrollIntoView({ behavior: "smooth", block: "start" })}
-        className={cn("lg:hidden fixed inset-x-3 z-30 transition-opacity", cartInView && "opacity-0 pointer-events-none", "bottom-[max(0.75rem,env(safe-area-inset-bottom))] h-14 rounded-2xl bg-primary text-primary-foreground shadow-elegant flex items-center justify-between px-4 font-semibold")}
+        onClick={() => setMobileCartOpen(true)}
+        aria-controls="pos-cart"
+        className={cn("lg:hidden fixed inset-x-3 z-30 transition-opacity", mobileCartOpen && "opacity-0 pointer-events-none", "bottom-[max(0.75rem,env(safe-area-inset-bottom))] h-14 rounded-2xl bg-primary text-primary-foreground shadow-elegant flex items-center justify-between px-4 font-semibold")}
       >
         <span className="flex items-center gap-2">
           <ShoppingCart className="h-5 w-5" />
-          View cart · {cart.reduce((s, i) => s + i.qty, 0)} items
+          View cart · {cartCount} items
         </span>
         <span className="tabular-nums text-lg font-bold">{formatMoney(total, sys)}</span>
       </button>
