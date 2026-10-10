@@ -1004,6 +1004,7 @@ export type Database = {
       }
       system_settings: {
         Row: {
+          cart_display: string
           currency_code: string
           currency_symbol: string
           delivery_enabled: boolean
@@ -1018,6 +1019,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          cart_display?: string
           currency_code?: string
           currency_symbol?: string
           delivery_enabled?: boolean
@@ -1032,6 +1034,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          cart_display?: string
           currency_code?: string
           currency_symbol?: string
           delivery_enabled?: boolean

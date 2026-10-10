@@ -64,6 +64,13 @@
       "when": 1791375388513,
       "tag": "0008_tenant_backup_and_restaurant_id",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1791632863807,
+      "tag": "0009_cart_display_setting",
+      "breakpoints": true
     }
   ]
 }
