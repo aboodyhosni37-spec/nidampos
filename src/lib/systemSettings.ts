@@ -11,7 +11,10 @@ export type SystemSettings = {
   loyalty_enabled: boolean;
   loyalty_threshold: number; // cumulative spend per reward milestone
   loyalty_reward: "half_off" | "free_lunch";
+  cart_display: CartDisplay;
 };
+
+export type CartDisplay = "always" | "hidden" | "collapsible";
 
 export const DEFAULT_SETTINGS: SystemSettings = {
   currency_code: "USD",
@@ -22,6 +25,7 @@ export const DEFAULT_SETTINGS: SystemSettings = {
   loyalty_enabled: true,
   loyalty_threshold: 100,
   loyalty_reward: "half_off",
+  cart_display: "always",
 };
 
 const CACHE_KEY = "nidam_system_settings";
@@ -58,7 +62,7 @@ export const fetchSettings = async (): Promise<SystemSettings> => {
   const { data, error } = await supabase
     .from("system_settings")
     .select(
-      "currency_code, currency_symbol, tax_enabled, tax_rate, tax_inclusive, loyalty_enabled, loyalty_threshold, loyalty_reward"
+      "currency_code, currency_symbol, tax_enabled, tax_rate, tax_inclusive, loyalty_enabled, loyalty_threshold, loyalty_reward, cart_display"
     )
     .eq("id", "default")
     .maybeSingle();
@@ -74,6 +78,9 @@ export const fetchSettings = async (): Promise<SystemSettings> => {
         loyalty_threshold: Number((data as any).loyalty_threshold) || 100,
         loyalty_reward:
           ((data as any).loyalty_reward as SystemSettings["loyalty_reward"]) || "half_off",
+        cart_display: (["always", "hidden", "collapsible"].includes((data as any).cart_display)
+          ? (data as any).cart_display
+          : "always") as CartDisplay,
       }
     : { ...DEFAULT_SETTINGS };
   broadcast(merged);

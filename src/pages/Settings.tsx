@@ -761,6 +761,34 @@ const Settings = () => {
             )}
           </Card>
 
+          <Card className="p-6 rounded-2xl border-border space-y-4">
+            <div>
+              <h2 className="font-semibold text-lg">Cart Display</h2>
+              <p className="text-sm text-muted-foreground">How the order cart appears on the POS screen.</p>
+            </div>
+            <div className="grid sm:grid-cols-3 gap-2">
+              {([
+                ["always", "Always Show Cart", "Cart stays beside the products"],
+                ["hidden", "Hide Cart by Default", "Products use full width; open the cart with the Cart button"],
+                ["collapsible", "Collapsible Panel", "Cart starts open and can be closed or reopened"],
+              ] as const).map(([v, label, hint]) => (
+                <button
+                  key={v}
+                  type="button"
+                  disabled={!canManageSystem}
+                  onClick={() => setSysField("cart_display", v)}
+                  aria-pressed={sys.cart_display === v}
+                  className={`text-left rounded-xl border p-3 transition-colors disabled:opacity-60 ${
+                    sys.cart_display === v ? "border-primary bg-secondary ring-1 ring-primary" : "border-border hover:bg-secondary/50"
+                  }`}
+                >
+                  <div className="font-medium text-sm">{label}</div>
+                  <div className="text-xs text-muted-foreground mt-0.5">{hint}</div>
+                </button>
+              ))}
+            </div>
+          </Card>
+
           <Card className="p-6 rounded-2xl border-border space-y-5">
             <h2 className="font-semibold text-lg">Customer Loyalty</h2>
             <div className="flex items-center justify-between p-3 rounded-xl bg-secondary/40">
