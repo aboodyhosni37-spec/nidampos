@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Plus,
+  X,
   Minus,
   Trash2,
   Search,
