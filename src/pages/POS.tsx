@@ -1090,7 +1090,7 @@ const POS = () => {
                     key={t}
                     onClick={() => setTable(t)}
                     className={cn(
-                      "h-9 min-w-[3rem] px-3 rounded-lg text-xs font-bold transition-all",
+                      "h-9 lg:h-8 min-w-[3rem] lg:min-w-[2.6rem] px-3 lg:px-2 rounded-lg text-xs font-bold transition-all",
                       table === t
                         ? "bg-primary text-primary-foreground hover:bg-primary/90 shadow-soft"
                         : "bg-secondary hover:bg-secondary/80"
@@ -1104,7 +1104,7 @@ const POS = () => {
           </div>
 
           {/* Items - scrollable */}
-          <div className="flex-1 overflow-y-auto p-3 space-y-3 min-h-[96px]">
+          <div className="flex-1 overflow-y-auto p-3 space-y-2 min-h-[150px]">
             {cart.length === 0 ? (
               <div className="h-full flex flex-col items-center justify-center text-center text-muted-foreground py-10">
                 <ShoppingCart className="h-10 w-10 opacity-30 mb-2" />
