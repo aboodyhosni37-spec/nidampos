@@ -553,6 +553,16 @@ const POS = () => {
   );
   const total = totals.total;
 
+  // Phones/tablets: hide the floating "View cart" bar while the cart is on screen.
+  const [cartInView, setCartInView] = useState(false);
+  useEffect(() => {
+    const el = document.getElementById("pos-cart");
+    if (!el || typeof IntersectionObserver === "undefined") return;
+    const io = new IntersectionObserver(([e]) => setCartInView(e.isIntersecting), { threshold: 0.15 });
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+
   // Real-time sync to customer display (only when dual screen enabled & not in QR/paid mode)
   useEffect(() => {
     if (!receiptCfg.enableDualScreen) return;
@@ -891,9 +901,9 @@ const POS = () => {
         </div>
       </Card>
 
-      <div className="grid grid-cols-1 lg:grid-cols-[1fr_minmax(360px,420px)] xl:grid-cols-[1fr_minmax(420px,480px)] 2xl:grid-cols-[1fr_minmax(460px,520px)] gap-4 h-[calc(100vh-12rem)] min-h-[560px]">
+      <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_minmax(380px,440px)] xl:grid-cols-[minmax(0,1fr)_minmax(430px,490px)] 2xl:grid-cols-[minmax(0,1fr)_minmax(470px,530px)] gap-4 lg:h-[calc(100dvh-12rem)] lg:min-h-[560px] pb-20 lg:pb-0">
         {/* Products / Due Orders */}
-        <div className="flex flex-col gap-3 min-h-0 min-w-0">
+        <div className="flex flex-col gap-3 min-h-0 min-w-0 h-[70dvh] min-h-[420px] lg:h-auto lg:min-h-0">
           {/* Categories */}
           {leftMode === "menu" && (
             <div className="flex flex-wrap gap-1.5 pb-1 shrink-0 min-w-0">
@@ -1048,8 +1058,8 @@ const POS = () => {
         </div>
 
         {/* Cart */}
-        <Card className={cn(
-          "rounded-2xl border-2 flex flex-col overflow-hidden transition-colors min-h-0",
+        <Card id="pos-cart" className={cn(
+          "rounded-2xl border-2 flex flex-col overflow-hidden transition-colors min-h-0 min-w-0 h-[calc(100dvh-5rem)] min-h-[520px] lg:h-auto lg:min-h-0 scroll-mt-16",
           orderStatus === "Active" ? "border-primary/40" : "border-border"
         )}>
           <div className="h-14 shrink-0 px-4 border-b border-border flex items-center justify-between">
@@ -1074,13 +1084,13 @@ const POS = () => {
               <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5 mb-1.5">
                 <Users className="h-3 w-3" /> Table
               </label>
-              <div className="flex gap-1.5 overflow-x-auto pb-1">
+              <div className="flex flex-wrap gap-1.5">
                 {tables.map((t) => (
                   <button
                     key={t}
                     onClick={() => setTable(t)}
                     className={cn(
-                      "h-9 min-w-[3rem] px-3 rounded-lg text-xs font-bold transition-all",
+                      "h-9 lg:h-8 min-w-[3rem] lg:min-w-[2.6rem] px-3 lg:px-2 rounded-lg text-xs font-bold transition-all",
                       table === t
                         ? "bg-primary text-primary-foreground hover:bg-primary/90 shadow-soft"
                         : "bg-secondary hover:bg-secondary/80"
@@ -1094,7 +1104,7 @@ const POS = () => {
           </div>
 
           {/* Items - scrollable */}
-          <div className="flex-1 overflow-y-auto p-3 space-y-3 min-h-0">
+          <div className="flex-1 overflow-y-auto p-3 space-y-2 min-h-[150px]">
             {cart.length === 0 ? (
               <div className="h-full flex flex-col items-center justify-center text-center text-muted-foreground py-10">
                 <ShoppingCart className="h-10 w-10 opacity-30 mb-2" />
@@ -1144,7 +1154,7 @@ const POS = () => {
 
 
           {/* Payment - fixed bottom of cart. Bounded so the cart-items area always remains scrollable. */}
-          <div className="border-t border-border bg-card shrink-0 basis-auto max-h-[40%] overflow-y-auto p-3 space-y-2">
+          <div className="border-t border-border bg-card shrink min-h-0 basis-auto max-h-[45%] overflow-y-auto p-3 space-y-2">
             {/* Quick customer picker (for loyalty + due tracking) */}
             <div>
               <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
@@ -1476,7 +1486,9 @@ const POS = () => {
                 <span className="font-semibold">{formatMoney(effectiveDue, sys)}</span>
               </div>
             )}
-            <div className="sticky bottom-0 -mx-3 -mb-3 px-3 pb-3 pt-2 bg-card border-t border-border space-y-3">
+          </div>
+          {/* Total + checkout: always visible below the scrollable details */}
+          <div className="shrink-0 px-3 pb-3 pt-2 bg-card border-t border-border space-y-2.5 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
             <div className="flex justify-between text-xl font-bold">
               <span>Total</span>
               <span className="tabular-nums">{formatMoney(total, sys)}</span>
@@ -1501,11 +1513,23 @@ const POS = () => {
                 {submitting ? "Processing…" : "Place Order"}
               </Button>
             </div>
-            </div>
           </div>
 
         </Card>
       </div>
+
+      {/* Phones/tablets: always-visible order total that jumps to the cart */}
+      <button
+        type="button"
+        onClick={() => document.getElementById("pos-cart")?.scrollIntoView({ behavior: "smooth", block: "start" })}
+        className={cn("lg:hidden fixed inset-x-3 z-30 transition-opacity", cartInView && "opacity-0 pointer-events-none", "bottom-[max(0.75rem,env(safe-area-inset-bottom))] h-14 rounded-2xl bg-primary text-primary-foreground shadow-elegant flex items-center justify-between px-4 font-semibold")}
+      >
+        <span className="flex items-center gap-2">
+          <ShoppingCart className="h-5 w-5" />
+          View cart · {cart.reduce((s, i) => s + i.qty, 0)} items
+        </span>
+        <span className="tabular-nums text-lg font-bold">{formatMoney(total, sys)}</span>
+      </button>
 
       {completedOrder && (
         <ReceiptPreview
@@ -2046,14 +2070,15 @@ const PayBtn = ({
   <button
     onClick={onClick}
     className={cn(
-      "flex flex-col items-center gap-1 py-2 rounded-xl text-[11px] font-semibold transition-all min-h-[52px] justify-center text-center px-1",
+      "flex flex-col items-center gap-1 py-2 rounded-xl text-xs font-semibold transition-all min-h-[56px] min-w-0 justify-center text-center px-1.5 ring-offset-background",
       active
-        ? "bg-primary text-primary-foreground hover:bg-primary/90 shadow-soft"
+        ? "bg-primary text-primary-foreground hover:bg-primary/90 shadow-soft ring-2 ring-primary ring-offset-2"
         : "bg-secondary hover:bg-secondary/80 text-foreground"
     )}
+    aria-pressed={active}
   >
     <span className="h-5 flex items-center justify-center">{icon}</span>
-    <span className="leading-tight">{label}</span>
+    <span className="leading-tight break-words">{label}</span>
   </button>
 );
 

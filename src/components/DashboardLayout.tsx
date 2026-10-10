@@ -77,19 +77,19 @@ export const DashboardLayout = () => {
   if (isPosMode) {
     return (
       <div className="min-h-screen flex flex-col bg-background">
-        <header className="h-14 shrink-0 bg-card border-b border-border flex items-center justify-between px-4">
-          <div className="flex items-center gap-3">
+        <header className="h-14 shrink-0 bg-card border-b border-border flex items-center justify-between gap-2 px-3 sm:px-4 min-w-0">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
             <NidamLogo size="sm" />
-            <div className="font-semibold tracking-tight">
+            <div className="hidden sm:block font-semibold tracking-tight">
               NIDAM <span className="font-light text-muted-foreground">POS</span>
             </div>
-            <span className="ml-2 text-[10px] uppercase tracking-wider font-bold bg-primary/15 text-primary px-2 py-0.5 rounded-full">
+            <span className="hidden md:inline ml-2 text-[10px] uppercase tracking-wider font-bold bg-primary/15 text-primary px-2 py-0.5 rounded-full">
               POS Mode
             </span>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
             <ThemeToggle />
-            <div className="hidden sm:block text-right">
+            <div className="hidden md:block text-right">
               <div className="text-sm font-semibold leading-tight">{user?.name || "Cashier"}</div>
               <div className="text-xs text-muted-foreground capitalize">{user?.role}</div>
             </div>
