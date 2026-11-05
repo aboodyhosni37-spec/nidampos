@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import heroImg from "@/assets/cafe-hero.jpg";
 import aboutImg from "@/assets/cafe-about.jpg";
+import { DEFAULT_MEALS, normalizeMeals, validateMeals, type MealSettings } from "./mealSchedule";
 
 export type Highlight = { title: string; text: string };
 export type LinkItem = { label: string; href: string; visible: boolean };
@@ -25,6 +26,7 @@ export const HOME_SECTION_LABELS: Record<HomeSectionId, string> = {
 };
 
 export type SiteContent = {
+  meals: MealSettings;
   brand: {
     name: string;
     tagline: string;
@@ -122,6 +124,7 @@ export type SiteContent = {
 };
 
 export const DEFAULT_SITE_CONTENT: SiteContent = {
+  meals: DEFAULT_MEALS,
   brand: {
     name: "LamaHamar Cafe",
     tagline: "Cafe",
@@ -273,6 +276,7 @@ export const mergeContent = (stored: unknown): SiteContent => {
   ).map((x: any) => ({ id: x.id, visible: x.visible !== false }));
   for (const id of ids) if (!seen.has(id)) list.push({ id, visible: true });
   out.layout.home_sections = list;
+  out.meals = normalizeMeals(out.meals);
   return out as SiteContent;
 };
 
@@ -308,6 +312,8 @@ export const fetchSiteContent = async (): Promise<SiteContent> => {
 };
 
 export const saveSiteContent = async (content: SiteContent): Promise<void> => {
+  const invalid = validateMeals(content.meals);
+  if (invalid) throw new Error(invalid);
   const { error } = await supabase
     .from("site_content")
     .upsert({ id: "default", content: content as any });
@@ -341,10 +347,12 @@ export const useSiteContent = (): SiteContent => {
         .catch(() => {});
     };
     load();
+    const poll = window.setInterval(load, 15000);
     window.addEventListener("site-content-updated", load);
     window.addEventListener("storage", load);
     return () => {
       alive = false;
+      window.clearInterval(poll);
       window.removeEventListener("site-content-updated", load);
       window.removeEventListener("storage", load);
     };
