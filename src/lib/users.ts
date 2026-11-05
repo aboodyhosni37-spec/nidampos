@@ -17,7 +17,7 @@ export const listUsers = async (): Promise<AppUser[]> => {
     .select("id,name,username,phone,role,is_active,created_at,updated_at")
     .order("created_at", { ascending: false });
   if (error) throw error;
-  return (data ?? []) as AppUser[];
+  return (data ?? []).map(user => ({ ...user, pin: "" }));
 };
 
 export const createUser = async (input: {
@@ -40,7 +40,7 @@ export const createUser = async (input: {
     .select("id,name,username,phone,role,is_active,created_at,updated_at")
     .single();
   if (error) throw error;
-  return data as AppUser;
+  return { ...data, pin: "" };
 };
 
 export const updateUser = async (
