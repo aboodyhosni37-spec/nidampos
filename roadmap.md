@@ -1,4 +1,6 @@
 # Customer website and ordering
+- [ ] Integrate meal schedules into existing Website Management and customer menu/cart.
+- [ ] Enforce meal availability on server checkout and test configured windows and bypass protection.
 - [x] Review the reuploaded customer website brief; requirements match the ongoing implementation.
 - [x] Redesign the customer website and menu using existing restaurant content and products; verify search, details and quantities.
 - [x] Add customer checkout/status and separate staff entry routes without breaking existing links.
