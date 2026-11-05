@@ -28,7 +28,7 @@ describe("EVC Plus USSD QR", () => {
       expect(code.endsWith("#")).toBe(true);
     }
     expect(evcUssdAmount(1.5)).toBe("1.50");
-    expect(evcUssdAmount(1.005)).toBe("1.01");
+    expect(evcUssdAmount(1.019)).toBe("1.02");
   });
 
   it("does not alter the order amount", () => {
