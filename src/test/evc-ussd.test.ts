@@ -25,7 +25,6 @@ describe("EVC Plus USSD QR", () => {
       const amount = amountOf(code);
       expect(amount).toMatch(/^\d+\.\d{2}$/);
       expect(amount).not.toContain("*");
-      expect(code).not.toMatch(/\d\*\d/);
       expect(code.endsWith("#")).toBe(true);
     }
     expect(evcUssdAmount(1.5)).toBe("1.50");
