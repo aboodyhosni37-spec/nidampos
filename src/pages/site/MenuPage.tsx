@@ -9,6 +9,7 @@ import { useCustomerCart } from "@/lib/customerCart";
 import { loadMenu, type DbCategory, type DbProduct } from "@/lib/storefront";
 import { useSiteContent } from "@/lib/siteContent";
 import { fetchSettings, formatMoney } from "@/lib/systemSettings";
+import { MealHours } from "@/components/site/MealHours";
 
 const MenuPage = () => {
   const content = useSiteContent();
@@ -19,7 +20,7 @@ const MenuPage = () => {
   const [failed, setFailed] = useState(false);
   const [active, setActive] = useState(params.get("category") || "all");
   const [query, setQuery] = useState("");
-  const { add, lines, count, subtotal, increment, decrement, remove } = useCustomerCart();
+  const { add, lines, count, subtotal, increment, decrement, remove, mealSettings, now } = useCustomerCart();
   useEffect(() => {
     fetchSettings().catch(() => {});
     loadMenu().then(data => { setCategories(data.categories); setProducts(data.products); }).catch(() => setFailed(true)).finally(() => setLoading(false));
@@ -30,6 +31,7 @@ const MenuPage = () => {
   const handleAdd = (p: DbProduct, qty = 1) => { add(p, qty); toast.success(`${p.name} added to your order`); };
   return <div className="mx-auto max-w-7xl px-5 py-10 pb-28 sm:px-8 lg:px-12">
     <header className="mb-10 flex flex-col justify-between gap-6 sm:flex-row sm:items-end"><div className="space-y-3"><p className="text-sm text-muted-foreground">{content.menu.eyebrow}</p><h1 className="font-serif text-4xl sm:text-5xl">{content.menu.title}</h1><p className="max-w-xl text-sm leading-relaxed text-muted-foreground">{content.menu.description}</p></div><div className="relative w-full sm:max-w-xs"><Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" /><Input value={query} onChange={e => setQuery(e.target.value)} placeholder={content.menu.search_placeholder} aria-label="Search the menu" className="h-12 pl-10" /></div></header>
+    <MealHours settings={mealSettings} now={now} />
     <div className="grid min-w-0 items-start gap-8 lg:grid-cols-[160px_minmax(0,1fr)] xl:grid-cols-[160px_minmax(0,1fr)_280px]">
       {content.menu.show_categories && <nav aria-label="Menu categories" className="flex gap-2 overflow-x-auto pb-2 lg:sticky lg:top-28 lg:flex-col lg:overflow-visible"><Button variant={active === "all" ? "default" : "ghost"} className="h-auto min-h-11 shrink-0 justify-start whitespace-normal text-left" onClick={() => setActive("all")}>All items <span className="ml-auto text-xs">{products.length}</span></Button>{categories.map(c => <Button key={c.id} variant={active === c.id ? "default" : "ghost"} className="h-auto min-h-11 shrink-0 justify-start whitespace-normal text-left" onClick={() => setActive(c.id)}>{c.name}<span className="ml-auto text-xs">{products.filter(p => p.category_id === c.id).length}</span></Button>)}</nav>}
       <div className="min-w-0 space-y-10">

@@ -4,7 +4,7 @@ import type { DbProduct } from "@/lib/storefront";
 import { formatMoney } from "@/lib/systemSettings";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { useMealAvailability } from "@/lib/useMealAvailability";
+import { useCustomerCart } from "@/lib/customerCart";
 
 export const ProductCard = ({ product, onAdd, showImage = true }: {
   product: DbProduct; onAdd: (p: DbProduct, qty?: number) => void; showImage?: boolean;
@@ -12,7 +12,7 @@ export const ProductCard = ({ product, onAdd, showImage = true }: {
   const [open, setOpen] = useState(false);
   const [qty, setQty] = useState(1);
   const [imageFailed, setImageFailed] = useState(false);
-  const { availability } = useMealAvailability();
+  const { availability } = useCustomerCart();
   const status = availability(product);
   const image = showImage && product.image_url && !imageFailed;
   return <>
