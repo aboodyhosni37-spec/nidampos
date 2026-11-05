@@ -377,7 +377,7 @@ const POS = () => {
       } catch {}
       toast({
         title: "Payment received",
-        description: `Order #${payOrder.number} marked PAID via ${payMethodInline}.`,
+        description: `Order #${payOrder.number} marked PAID via ${paymentMethodLabel(payMethodInline)}.`,
       });
       setPayOrder(null);
       refreshUnpaid();
