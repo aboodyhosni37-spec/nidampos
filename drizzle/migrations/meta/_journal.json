@@ -71,6 +71,34 @@
       "when": 1791632863807,
       "tag": "0009_cart_display_setting",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1793893782123,
+      "tag": "0010_customer_ordering_verified_snapshot",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1793893864763,
+      "tag": "0011_private_transactional_customer_orders",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1793893969034,
+      "tag": "0012_customer_pos_tenant_access",
+      "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1793894119308,
+      "tag": "0013_preserve_pos_permissions_and_guest_tables",
+      "breakpoints": true
     }
   ]
 }

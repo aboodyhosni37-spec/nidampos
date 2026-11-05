@@ -21,7 +21,7 @@ export type OrderPaymentMethod =
   | "Split"
   | "Deposit";
 
-export type OrderWorkflowStatus = "Pending" | "Preparing" | "Completed" | "Unpaid";
+export type OrderWorkflowStatus = "Pending" | "Accepted" | "Preparing" | "Ready" | "Out for delivery" | "Completed" | "Cancelled" | "Unpaid";
 
 export type Order = {
   id: string;
@@ -46,6 +46,8 @@ export type Order = {
   orderType?: string | null;
   source?: string | null;
   notes?: string;
+  customerPhone?: string;
+  customerAddress?: string;
   rewardApplied?: "none" | "half_off" | "free_lunch";
 };
 
@@ -55,7 +57,7 @@ export const fetchOrders = async (): Promise<Order[]> => {
   const { data: invoices, error } = await supabase
     .from("invoices")
     .select(
-      "id, number, total, paid_amount, due_amount, table_label, customer_id, customer_name, payment_method, status, order_status, order_type, source, created_at, invoice_items(id, name, price, qty, product_id)"
+      "id, number, total, paid_amount, due_amount, table_label, customer_id, customer_name, customer_phone, customer_address, notes, payment_method, status, order_status, order_type, source, created_at, invoice_items(id, name, price, qty, product_id)"
     )
 
     .order("created_at", { ascending: false })
@@ -73,6 +75,9 @@ export const fetchOrders = async (): Promise<Order[]> => {
     total: Number(inv.total),
     table: inv.table_label || "—",
     customer: inv.customer_name || undefined,
+    customerPhone: inv.customer_phone || undefined,
+    customerAddress: inv.customer_address || undefined,
+    notes: inv.notes || undefined,
     customerId: inv.customer_id || null,
     paymentMethod: inv.payment_method,
     paidAmount: Number(inv.paid_amount || 0),

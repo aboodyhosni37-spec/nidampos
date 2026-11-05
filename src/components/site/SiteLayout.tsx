@@ -16,6 +16,7 @@ import { useCustomerCart } from "@/lib/customerCart";
 import { useSiteContent, type SiteContent } from "@/lib/siteContent";
 import { useForcedLightTheme } from "@/lib/theme";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 
 const NAV = [
   { to: "/", label: "Home" },
@@ -48,8 +49,8 @@ export const SiteBrand = ({
         </span>
       )}
       <span className="leading-tight">
-        <span className="block text-lg font-extrabold tracking-tight text-foreground">
-          {first}
+        <span className="block text-lg font-semibold text-foreground">
+          {name}
         </span>
         <span className="block text-[11px] uppercase tracking-[0.22em] text-primary font-semibold">
           {brand?.tagline || rest.join(" ") || "Cafe"}
@@ -66,6 +67,16 @@ const SiteLayout = () => {
   const [open, setOpen] = useState(false);
   const { pathname } = useLocation();
 
+  useEffect(() => {
+    const font = document.createElement("link");
+    font.rel = "stylesheet";
+    font.href = "https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600&family=Work+Sans:wght@400;500;600;700&display=swap";
+    document.head.appendChild(font);
+    return () => { font.remove(); };
+  }, []);
+
+  useEffect(() => { setOpen(false); }, [pathname]);
+
   // Keep every browser and crawler on the official LamaHamar Cafe favicon.
   useEffect(() => {
     let link = document.querySelector<HTMLLinkElement>("link[rel='icon']");
@@ -74,8 +85,8 @@ const SiteLayout = () => {
       link.rel = "icon";
       document.head.appendChild(link);
     }
-    link.href = "/favicon.ico";
-  }, []);
+    link.href = content.brand.favicon_url || "/favicon.png";
+  }, [content.brand.favicon_url]);
 
   const socials = [
     { url: content.contact.facebook, icon: Facebook, label: "Facebook" },
@@ -84,9 +95,9 @@ const SiteLayout = () => {
   ].filter((s) => !!s.url);
 
   return (
-    <div className="min-h-screen flex flex-col bg-background">
+    <div className="customer-site min-h-screen flex flex-col bg-background">
       <header className="sticky top-0 z-40 border-b border-border bg-background/90 backdrop-blur-xl">
-        <div className="mx-auto max-w-6xl px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
+        <div className="mx-auto max-w-7xl px-5 sm:px-8 lg:px-12 h-20 flex items-center justify-between gap-4">
           <SiteBrand content={content} />
 
           <nav className="hidden md:flex items-center gap-1">
@@ -111,7 +122,7 @@ const SiteLayout = () => {
 
           <div className="flex items-center gap-2">
             <Link
-              to="/order"
+              to="/checkout"
               className="relative inline-flex items-center gap-2 h-11 px-4 sm:px-5 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 transition-colors shadow-soft"
             >
               <ShoppingBag className="h-4 w-4" />
@@ -122,14 +133,16 @@ const SiteLayout = () => {
                 </span>
               )}
             </Link>
-            <button
-              type="button"
+            <Button
+              variant="outline"
+              size="icon"
               onClick={() => setOpen((v) => !v)}
               aria-label="Toggle menu"
+              aria-expanded={open}
               className="md:hidden h-11 w-11 rounded-xl border border-border flex items-center justify-center text-foreground"
             >
               {open ? <X className="h-5 w-5" /> : <MenuIcon className="h-5 w-5" />}
-            </button>
+            </Button>
           </div>
         </div>
 
@@ -159,7 +172,7 @@ const SiteLayout = () => {
       </main>
 
       <footer className="border-t border-border bg-secondary/40">
-        <div className="mx-auto max-w-6xl px-4 sm:px-6 py-12 grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 py-12 grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
           <div className="space-y-3">
             <SiteBrand content={content} />
             <p className="text-sm text-muted-foreground max-w-xs">
@@ -193,7 +206,7 @@ const SiteLayout = () => {
                 </li>
               ))}
               <li>
-                <Link to="/order" className="hover:text-primary transition-colors">
+                <Link to="/checkout" className="hover:text-primary transition-colors">
                   Order Now
                 </Link>
               </li>
@@ -229,11 +242,11 @@ const SiteLayout = () => {
           </div>
         </div>
         <div className="border-t border-border">
-          <div className="mx-auto max-w-6xl px-4 sm:px-6 py-5 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-muted-foreground">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 py-5 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-muted-foreground">
             <span>
               © {new Date().getFullYear()} {content.brand.name}. All rights reserved.
             </span>
-            <Link to="/login" className="hover:text-primary transition-colors">
+            <Link to="/staff/login" className="hover:text-primary transition-colors">
               Staff login
             </Link>
           </div>

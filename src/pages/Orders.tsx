@@ -51,6 +51,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { settleInvoiceLoyalty } from "@/lib/loyalty";
 import { cn } from "@/lib/utils";
+import { onlineOrderStatuses } from "@/lib/customerOrderWorkflow";
 
 
 const STATUSES: OrderWorkflowStatus[] = ["Pending", "Preparing", "Completed", "Unpaid"];
@@ -65,6 +66,10 @@ const PAY_METHODS: Exclude<PaymentMethod, "Due" | "Split">[] = [
 const statusStyles: Record<OrderWorkflowStatus, string> = {
   Pending: "bg-secondary text-foreground border-border",
   Preparing: "bg-accent text-accent-foreground border-border",
+  Accepted: "bg-secondary text-foreground border-border",
+  Ready: "bg-accent text-accent-foreground border-border",
+  "Out for delivery": "bg-accent text-accent-foreground border-border",
+  Cancelled: "bg-muted text-muted-foreground border-border",
   Completed: "bg-primary/10 text-primary border-primary/30",
   Unpaid: "bg-foreground text-background border-foreground",
 };
@@ -133,7 +138,12 @@ const Orders = () => {
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "invoices" },
-        () => refresh()
+        (payload) => {
+          if (payload.eventType === "INSERT" && payload.new.source === "online") {
+            toast({ title: `New online order #${payload.new.number}`, description: "A customer order is awaiting confirmation." });
+          }
+          refresh();
+        }
       )
       .subscribe();
     return () => {
@@ -142,6 +152,7 @@ const Orders = () => {
   }, []);
 
   const handleStatusChange = async (o: Order, status: OrderWorkflowStatus) => {
+    if (status === "Cancelled" && !window.confirm(`Cancel online order #${o.number}?`)) return;
     // Optimistic
     setOrders((prev) => prev.map((x) => (x.id === o.id ? { ...x, orderStatus: status } : x)));
     try {
@@ -375,7 +386,7 @@ const Orders = () => {
             <tbody className="divide-y divide-border">
               {filtered.map((o) => {
                 const st = (o.orderStatus ?? "Completed") as OrderWorkflowStatus;
-                const isUnpaid = st === "Unpaid" || (o.dueAmount ?? 0) > 0;
+                const isUnpaid = st !== "Cancelled" && (st === "Unpaid" || (o.dueAmount ?? 0) > 0);
                 return (
                   <tr key={o.id} className="hover:bg-secondary/40 transition-colors">
                     <td className="p-4">
@@ -387,6 +398,7 @@ const Orders = () => {
                     </td>
                     <td className="p-4 font-semibold">
                       #{o.number}
+                      {o.source === "online" && <div className="text-xs font-semibold text-primary">Online · {o.orderType === "PICKUP" ? "Pickup" : o.orderType === "DELIVERY" ? "Delivery" : "Dine-in"}</div>}
                       {o.customer && (
                         <div className="text-xs font-normal text-muted-foreground">
                           {o.customer}
@@ -400,7 +412,7 @@ const Orders = () => {
                     </td>
 
 
-                    <td className="p-4">{o.table}</td>
+                    <td className="p-4">{o.table}{o.source === "online" && <div className="mt-1 space-y-1 text-xs text-muted-foreground">{o.customerPhone && <p>{o.customerPhone}</p>}{o.customerAddress && <p className="min-w-40 max-w-60 whitespace-normal break-words">{o.customerAddress}</p>}{o.notes && <p className="min-w-40 max-w-60 whitespace-normal break-words">{o.notes}</p>}</div>}</td>
                     <td className="p-4">{o.items.length}</td>
                     <td className="p-4">{o.paymentMethod}</td>
                     <td className="p-4">
@@ -410,15 +422,15 @@ const Orders = () => {
                       >
                         <SelectTrigger
                           className={cn(
-                            "h-8 w-32 rounded-full border text-xs font-semibold",
+                            "h-8 w-40 rounded-full border text-xs font-semibold",
                             statusStyles[st]
                           )}
                         >
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          {STATUSES.map((s) => (
-                            <SelectItem key={s} value={s}>{s}</SelectItem>
+                          {(o.source === "online" ? onlineOrderStatuses(o.orderType) : STATUSES).map((s) => (
+                            <SelectItem key={s} value={s} disabled={s === "Cancelled" && (o.paidAmount ?? 0) > 0}>{s === "Accepted" ? "Accept order" : s}</SelectItem>
                           ))}
                         </SelectContent>
                       </Select>

@@ -1,253 +1,80 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowRight, Clock, Coffee, Leaf, MapPin, Star, Truck } from "lucide-react";
+import { ArrowRight, Clock, MapPin, Phone, Coffee } from "lucide-react";
 import { ProductCard } from "@/components/site/ProductCard";
+import { Button } from "@/components/ui/button";
 import { useCustomerCart } from "@/lib/customerCart";
 import { useSiteContent } from "@/lib/siteContent";
-import { loadMenu, type DbProduct } from "@/lib/storefront";
+import { loadMenu, type DbProduct, type DbCategory } from "@/lib/storefront";
 import { fetchSettings } from "@/lib/systemSettings";
 import { toast } from "sonner";
-
-const HIGHLIGHT_ICONS = [Coffee, Truck, Clock];
+import foodPhoto from "@/assets/cafe-food.jpg";
 
 const Home = () => {
   const content = useSiteContent();
-  const [featured, setFeatured] = useState<DbProduct[]>([]);
+  const [products, setProducts] = useState<DbProduct[]>([]);
+  const [categories, setCategories] = useState<DbCategory[]>([]);
+  const [loading, setLoading] = useState(true);
   const { add } = useCustomerCart();
-
   useEffect(() => {
     fetchSettings().catch(() => {});
-    loadMenu()
-      .then(({ products }) => {
-        const withImages = products.filter((p) => p.image_url);
-        const pick = (withImages.length >= 8 ? withImages : products).slice(0, 8);
-        setFeatured(pick);
-      })
-      .catch(() => {});
+    loadMenu().then(data => { setProducts(data.products); setCategories(data.categories); }).catch(() => {}).finally(() => setLoading(false));
   }, []);
-
-  const handleAdd = (p: DbProduct) => {
-    add(p);
-    toast.success(`${p.name} added to your order`);
-  };
-
+  const handleAdd = (p: DbProduct, qty = 1) => { add(p, qty); toast.success(`${p.name} added to your order`); };
   const home = content.home;
-  const hasHeroText = !!(
-    home.hero_title || home.hero_subtitle || home.hero_description || home.hero_badge ||
-    home.primary_cta_label || home.secondary_cta_label
-  );
-
-  return (
-    <>
-      {/* HERO */}
-      <section className="relative overflow-hidden bg-background">
-        {/* soft background depth */}
-        <div className="pointer-events-none absolute inset-0">
-          <div className="absolute -top-40 -left-32 h-[28rem] w-[28rem] rounded-full bg-primary/10 blur-3xl" />
-          <div className="absolute -bottom-40 right-0 h-[30rem] w-[30rem] rounded-full bg-secondary blur-3xl" />
-          <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-border to-transparent" />
-        </div>
-
-        <div className={`relative mx-auto max-w-6xl px-4 sm:px-6 pt-10 pb-20 sm:pt-16 sm:pb-24 lg:pt-20 lg:pb-32 grid gap-10 lg:gap-14 items-center ${hasHeroText ? "lg:grid-cols-[1.05fr_1fr]" : "max-w-5xl"}`}>
-          {/* Copy */}
-          {hasHeroText && (
-          <div className="order-2 lg:order-1 space-y-6 sm:space-y-7 text-center lg:text-left">
-            {home.hero_badge && (
-              <span className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-4 py-1.5 text-[11px] sm:text-xs font-semibold uppercase tracking-[0.18em] text-primary">
-                <Leaf className="h-3.5 w-3.5" /> {home.hero_badge}
-              </span>
-            )}
-            <h1 className="text-[2.4rem] leading-[1.04] sm:text-6xl lg:text-[4.25rem] font-extrabold tracking-[-0.03em] text-foreground text-balance">
-              {home.hero_title}
-            </h1>
-            <div className="mx-auto lg:mx-0 h-1 w-16 rounded-full bg-primary" />
-            <p className="mx-auto lg:mx-0 max-w-xl text-lg sm:text-xl leading-relaxed text-foreground/80">
-              {home.hero_subtitle}
-            </p>
-            {home.hero_description && (
-              <p className="mx-auto lg:mx-0 max-w-lg text-base leading-relaxed text-muted-foreground">
-                {home.hero_description}
-              </p>
-            )}
-            <div className="flex flex-col sm:flex-row justify-center lg:justify-start gap-3 pt-2">
-              {home.primary_cta_label && (
-                <Link
-                  to={home.primary_cta_href || "/menu"}
-                  className="group inline-flex items-center justify-center gap-2 h-14 px-8 rounded-full bg-primary text-primary-foreground font-semibold shadow-elegant hover:bg-primary/90 hover:-translate-y-0.5 transition-all duration-300"
-                >
-                  {home.primary_cta_label}
-                  <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-                </Link>
-              )}
-              {home.secondary_cta_label && (
-                <Link
-                  to={home.secondary_cta_href || "/about"}
-                  className="inline-flex items-center justify-center gap-2 h-14 px-8 rounded-full border border-border bg-card text-foreground font-semibold shadow-soft hover:border-primary/40 hover:-translate-y-0.5 transition-all duration-300"
-                >
-                  {home.secondary_cta_label}
-                </Link>
-              )}
-            </div>
-          </div>
-          )}
-
-          {/* Image */}
-          <div className="order-1 lg:order-2 relative">
-            <div className="absolute -inset-3 sm:-inset-4 rounded-[2.25rem] border border-border/70 rotate-1" />
-            <div className={`relative rounded-[2rem] overflow-hidden border border-border bg-card shadow-elegant ${hasHeroText ? "aspect-[4/3] lg:aspect-[4/5]" : "aspect-[16/10] sm:aspect-[16/8]"}`}>
-              <img
-                src={home.hero_image}
-                alt={`${content.brand.name} interior`}
-                width={1600}
-                height={1100}
-                className="h-full w-full object-cover"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-foreground/40 via-transparent to-transparent" />
-            </div>
-            {content.contact.address && (
-              <div className="relative mt-4 sm:mt-0 sm:absolute sm:-bottom-5 sm:left-6 rounded-2xl border border-border bg-card/95 backdrop-blur px-4 py-3 shadow-elegant flex items-center gap-3">
-                <span className="h-10 w-10 shrink-0 rounded-xl bg-primary text-primary-foreground flex items-center justify-center">
-                  <MapPin className="h-4 w-4" />
-                </span>
-                <span className="leading-tight min-w-0">
-                  <span className="block text-sm font-bold text-foreground truncate">{content.brand.name}</span>
-                  <span className="block text-xs text-muted-foreground truncate">{content.contact.address}</span>
-                </span>
-              </div>
-            )}
+  const pictured = products.filter(p => p.image_url);
+  const featured = (pictured.length ? pictured : products).slice(0, 4);
+  const traditional = products.filter(p => /breakfast|lunch|dinner/i.test(p.category_name)).slice(4, 8);
+  const drinks = products.filter(p => /hot drinks|coffee|fresh/i.test(p.category_name)).slice(0, 4);
+  const heroPhoto = pictured.find(p => /lunch/i.test(p.category_name)) || pictured[0];
+  return <>
+    <section className="relative isolate overflow-hidden bg-primary text-primary-foreground">
+      <img src={heroPhoto?.image_url || foodPhoto} alt={heroPhoto?.name || content.brand.name} className="absolute inset-0 h-full w-full object-cover" fetchPriority="high" />
+      <div className="customer-hero-shade absolute inset-0" />
+      <div className="relative mx-auto flex min-h-[480px] max-w-7xl items-center px-5 py-16 sm:min-h-[560px] sm:px-8 lg:min-h-[580px] lg:px-12">
+        <div className="max-w-xl space-y-6">
+          <p className="text-sm font-medium">{content.brand.tagline || "Cuntada Dalka"} · {content.contact.address}</p>
+          <h1 className="font-serif text-5xl leading-[1.08] sm:text-6xl lg:text-7xl">{content.brand.name}</h1>
+          {(home.hero_subtitle || home.hero_description) && <p className="max-w-lg text-base leading-relaxed sm:text-lg">{home.hero_subtitle || home.hero_description}</p>}
+          <div className="flex flex-wrap gap-3 pt-3">
+            <Button asChild size="lg" className="h-12 rounded-full bg-background px-7 text-foreground hover:bg-background/90"><Link to="/menu">Order Now <ArrowRight /></Link></Button>
+            <Button asChild variant="outline" size="lg" className="h-12 rounded-full border-primary-foreground/50 bg-transparent px-7 text-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground"><Link to="/about">{home.secondary_cta_label || "Our story"}</Link></Button>
           </div>
         </div>
-      </section>
-
-      {/* HIGHLIGHTS */}
-      {home.highlights.length > 0 && (
-        <section className="mx-auto max-w-6xl px-4 sm:px-6 -mt-10 relative z-10">
-          <div className="grid gap-4 sm:grid-cols-3">
-            {home.highlights.map((p, i) => {
-              const Icon = HIGHLIGHT_ICONS[i % HIGHLIGHT_ICONS.length];
-              return (
-                <div
-                  key={`${p.title}-${i}`}
-                  className="rounded-2xl border border-border bg-card p-5 shadow-soft flex items-start gap-3"
-                >
-                  <span className="h-11 w-11 shrink-0 rounded-xl bg-secondary text-primary flex items-center justify-center">
-                    <Icon className="h-5 w-5" />
-                  </span>
-                  <div>
-                    <h3 className="font-bold">{p.title}</h3>
-                    <p className="text-sm text-muted-foreground">{p.text}</p>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </section>
-      )}
-
-      {/* FEATURED */}
-      <section className="mx-auto max-w-6xl px-4 sm:px-6 py-16 sm:py-20">
-        <div className="flex flex-wrap items-end justify-between gap-4 mb-8">
-          <div>
-            <span className="text-xs font-bold uppercase tracking-[0.2em] text-primary">
-              {home.featured_eyebrow}
-            </span>
-            <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight mt-2">
-              {home.featured_title}
-            </h2>
-          </div>
-          <Link
-            to="/menu"
-            className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary hover:gap-2.5 transition-all"
-          >
-            View full menu <ArrowRight className="h-4 w-4" />
-          </Link>
+      </div>
+      <div className="relative border-t border-primary-foreground/20">
+        <div className="mx-auto flex max-w-7xl flex-wrap gap-x-8 gap-y-3 px-5 py-4 text-sm sm:px-8 lg:px-12">
+          <span className="flex items-center gap-2"><MapPin className="h-4 w-4" />{content.contact.address}</span>
+          <span className="flex items-center gap-2"><Clock className="h-4 w-4" />{content.contact.hours_value}</span>
         </div>
-
-        {featured.length === 0 ? (
-          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-            {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="rounded-2xl border border-border bg-card overflow-hidden">
-                <div className="aspect-[4/3] bg-secondary animate-pulse" />
-                <div className="p-4 space-y-3">
-                  <div className="h-4 w-3/4 bg-secondary rounded animate-pulse" />
-                  <div className="h-8 w-1/2 bg-secondary rounded animate-pulse" />
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-            {featured.map((p) => (
-              <ProductCard
-                key={p.id}
-                product={p}
-                onAdd={handleAdd}
-                showImage={content.menu.show_images}
-              />
-            ))}
-          </div>
-        )}
-      </section>
-
-      {/* ABOUT PREVIEW */}
-      <section className="bg-secondary/40 border-y border-border">
-        <div className="mx-auto max-w-6xl px-4 sm:px-6 py-16 sm:py-20 grid gap-10 lg:grid-cols-2 items-center">
-          <div className="rounded-3xl overflow-hidden shadow-elegant">
-            <img
-              src={home.about_image}
-              alt={`Inside ${content.brand.name}`}
-              loading="lazy"
-              width={1200}
-              height={900}
-              className="w-full h-full object-cover"
-            />
-          </div>
-          <div className="space-y-5">
-            <span className="text-xs font-bold uppercase tracking-[0.2em] text-primary">
-              {home.about_eyebrow}
-            </span>
-            <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight">
-              {home.about_title}
-            </h2>
-            <p className="text-muted-foreground leading-relaxed whitespace-pre-line">
-              {home.about_text}
-            </p>
-            <div className="flex items-center gap-2 text-sm font-medium">
-              <Star className="h-4 w-4 text-primary fill-primary" />
-              Loved by guests across {content.contact.address}
-            </div>
-            <Link
-              to="/about"
-              className="inline-flex items-center gap-2 h-12 px-6 rounded-xl bg-primary text-primary-foreground font-semibold hover:bg-primary/90 transition-colors"
-            >
-              Read our story <ArrowRight className="h-4 w-4" />
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* CTA */}
-      <section className="mx-auto max-w-6xl px-4 sm:px-6 py-16 sm:py-20">
-        <div className="rounded-3xl bg-primary text-primary-foreground p-8 sm:p-12 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-8">
-          <div className="space-y-3 max-w-xl">
-            <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight">
-              {home.cta_title}
-            </h2>
-            <p className="text-primary-foreground/80">{home.cta_text}</p>
-            <p className="inline-flex items-center gap-2 text-sm text-primary-foreground/80">
-              <MapPin className="h-4 w-4" /> {content.contact.address}
-            </p>
-          </div>
-          <Link
-            to="/menu"
-            className="inline-flex items-center gap-2 h-12 px-7 rounded-xl bg-background text-foreground font-semibold hover:bg-background/90 transition-colors shrink-0"
-          >
-            {home.cta_button_label} <ArrowRight className="h-4 w-4" />
-          </Link>
-        </div>
-      </section>
-    </>
-  );
+      </div>
+    </section>
+    <section className="mx-auto max-w-7xl px-5 py-12 sm:px-8 sm:py-16 lg:px-12">
+      <div className="mb-8 flex flex-wrap items-end justify-between gap-4"><div><p className="mb-2 text-sm text-muted-foreground">The menu</p><h2 className="font-serif text-3xl sm:text-4xl">Find your favourites</h2></div><Button asChild variant="link"><Link to="/menu">Full menu <ArrowRight /></Link></Button></div>
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        {categories.filter(c => products.some(p => p.category_id === c.id)).map(c => {
+          const image = products.find(p => p.category_id === c.id && p.image_url)?.image_url;
+          return <Link key={c.id} to={`/menu?category=${encodeURIComponent(c.id)}`} className="group relative flex min-h-28 items-end overflow-hidden rounded-lg bg-primary p-4 text-primary-foreground sm:min-h-36">
+            {image && <img src={image} alt="" loading="lazy" className="absolute inset-0 h-full w-full object-cover motion-safe:transition-transform motion-safe:group-hover:scale-105" />}
+            <span className="customer-category-shade absolute inset-0" /><span className="relative flex w-full items-center justify-between gap-2 text-sm font-semibold">{c.name}<ArrowRight className="h-4 w-4 shrink-0" /></span>
+          </Link>;
+        })}
+      </div>
+    </section>
+    <section className="border-y border-border bg-secondary/50">
+      <div className="mx-auto max-w-7xl px-5 py-12 sm:px-8 sm:py-16 lg:px-12">
+        <div className="mb-8 flex flex-wrap items-end justify-between gap-4"><div><p className="mb-2 text-sm text-muted-foreground">From our kitchen</p><h2 className="font-serif text-3xl sm:text-4xl">{home.featured_title || "Featured menu"}</h2></div><Button asChild variant="link"><Link to="/menu">View all <ArrowRight /></Link></Button></div>
+        <div className="grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-4">{featured.map(p => <ProductCard key={p.id} product={p} onAdd={handleAdd} showImage={content.menu.show_images} />)}</div>
+        {!loading && !products.length && <p className="py-8 text-muted-foreground">The menu is temporarily unavailable. Please try again shortly.</p>}
+      </div>
+    </section>
+    {traditional.length > 0 && <section className="mx-auto max-w-7xl px-5 py-12 sm:px-8 sm:py-16 lg:px-12"><div className="mb-8"><p className="mb-2 text-sm text-muted-foreground">Cuntada Dalka</p><h2 className="font-serif text-3xl sm:text-4xl">Somali food, at your table</h2></div><div className="grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-4">{traditional.map(p => <ProductCard key={p.id} product={p} onAdd={handleAdd} showImage={content.menu.show_images} />)}</div></section>}
+    <section className="border-y border-border bg-secondary/50"><div className="mx-auto grid max-w-7xl items-center gap-10 px-5 py-12 sm:px-8 sm:py-16 lg:grid-cols-2 lg:px-12">
+      {home.about_image && <img src={home.about_image} alt={content.brand.name} loading="lazy" className="aspect-[4/3] w-full rounded-lg object-cover" />}
+      <div className="space-y-5"><p className="text-sm text-muted-foreground">{home.about_eyebrow}</p><h2 className="font-serif text-3xl leading-tight sm:text-4xl">{home.about_title}</h2><p className="whitespace-pre-line leading-relaxed text-muted-foreground">{home.about_text}</p><Button asChild variant="outline" className="h-12 rounded-full px-6"><Link to="/about">Read our story <ArrowRight /></Link></Button></div>
+    </div></section>
+    {drinks.length > 0 && <section className="mx-auto max-w-7xl px-5 py-12 sm:px-8 sm:py-16 lg:px-12"><div className="mb-8 flex items-center gap-4"><Coffee className="h-7 w-7" /><h2 className="font-serif text-3xl sm:text-4xl">Coffee & beverages</h2></div><div className="grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-4">{drinks.map(p => <ProductCard key={p.id} product={p} onAdd={handleAdd} showImage={content.menu.show_images} />)}</div></section>}
+    <section className="bg-primary text-primary-foreground"><div className="mx-auto flex max-w-7xl flex-col justify-between gap-8 px-5 py-12 sm:px-8 sm:py-16 lg:flex-row lg:items-center lg:px-12"><div className="space-y-4"><h2 className="font-serif text-3xl sm:text-4xl">Visit {content.brand.name}</h2><p className="flex items-center gap-2"><MapPin className="h-4 w-4" />{content.contact.address}</p><p className="flex items-center gap-2"><Clock className="h-4 w-4" />{content.contact.hours_label} · {content.contact.hours_value}</p></div><div className="flex flex-wrap gap-3"><Button asChild className="h-12 rounded-full bg-background px-6 text-foreground hover:bg-background/90"><Link to="/menu">Order Now <ArrowRight /></Link></Button><Button asChild variant="outline" className="h-12 rounded-full border-primary-foreground/50 bg-transparent px-6 text-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground"><a href={`tel:${content.contact.phone}`}><Phone />Contact us</a></Button></div></div></section>
+  </>;
 };
-
 export default Home;
