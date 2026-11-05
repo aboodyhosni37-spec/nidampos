@@ -125,6 +125,11 @@ export const endPosSession = async (reason = "sign-out"): Promise<void> => {
 
 // ---------- Heartbeat: proves the session is still open ----------
 let hbTimer: ReturnType<typeof setInterval> | null = null;
+let sessionAccessToken: string | null = null;
+
+const rememberAccessToken = () => {
+  void supabase.auth.getSession().then(({ data }) => { sessionAccessToken = data.session?.access_token ?? null; });
+};
 
 const beat = async () => {
   const id = getCurrentSessionId();
@@ -139,6 +144,7 @@ const beat = async () => {
 };
 
 export const startHeartbeat = () => {
+  rememberAccessToken();
   if (hbTimer) return;
   void beat();
   hbTimer = setInterval(beat, HEARTBEAT_MS);
@@ -157,7 +163,7 @@ const endSessionOnUnload = (reason = "window-closed") => {
   if (!id) return;
   const url = import.meta.env.VITE_SUPABASE_URL;
   const key = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
-  if (!url || !key) return;
+  if (!url || !key || !sessionAccessToken) return;
   try {
     fetch(
       `${url}/rest/v1/pos_sessions?id=eq.${encodeURIComponent(id)}&ended_at=is.null`,
@@ -167,7 +173,7 @@ const endSessionOnUnload = (reason = "window-closed") => {
         headers: {
           "Content-Type": "application/json",
           apikey: key as string,
-          Authorization: `Bearer ${key}`,
+          Authorization: `Bearer ${sessionAccessToken}`,
           Prefer: "return=minimal",
         },
         body: JSON.stringify({
@@ -209,6 +215,10 @@ export const reapStaleSessions = async (): Promise<void> => {
 
 // Installed once at app start. Returns a cleanup function.
 export const installSessionLifecycle = (): (() => void) => {
+  rememberAccessToken();
+  const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
+    sessionAccessToken = session?.access_token ?? null;
+  });
   const onPageHide = (e: PageTransitionEvent) => {
     // A cached (back/forward) page is not a real close.
     if ((e as any).persisted) return;
@@ -227,6 +237,7 @@ export const installSessionLifecycle = (): (() => void) => {
     window.removeEventListener("pagehide", onPageHide);
     document.removeEventListener("visibilitychange", onVisibility);
     stopHeartbeat();
+    authListener.subscription.unsubscribe();
   };
 };
 

@@ -49,6 +49,7 @@ const OrderPage = () => {
   const navigate = useNavigate();
   const { lines, increment, decrement, remove, clear } = useCustomerCart();
   const [store, setStore] = useState<StoreSettings>(DEFAULT_STORE_SETTINGS);
+  const [settingsLoaded, setSettingsLoaded] = useState(false);
   const [orderType, setOrderType] = useState<OrderType>("DELIVERY");
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
@@ -66,7 +67,7 @@ const OrderPage = () => {
   const inFlight = useRef(false);
 
   useEffect(() => {
-    fetchSettings().catch(() => {});
+    fetchSettings().then(() => setSettingsLoaded(true)).catch(() => {});
     fetchStoreSettings()
       .then((s) => {
         setStore(s);
@@ -78,7 +79,7 @@ const OrderPage = () => {
   // Delivery fee is fixed by the selected Banadir district — never editable.
   const deliveryFee =
     orderType === "DELIVERY" ? deliveryFeeForDistrict(district) : 0;
-  const totals = useMemo(() => computeOrderTotals(lines, deliveryFee), [lines, deliveryFee]);
+  const totals = useMemo(() => computeOrderTotals(lines, deliveryFee), [lines, deliveryFee, settingsLoaded]);
 
   const submit = async () => {
     if (inFlight.current || submitting) return;
@@ -204,7 +205,7 @@ const OrderPage = () => {
                       {formatMoney(l.price)} each
                     </p>
                   </div>
-                  <div className="flex items-center gap-1.5 shrink-0">
+                  <div className="col-span-2 flex items-center gap-1.5 shrink-0 sm:col-span-1">
                     <Button
                       type="button"
                       variant="outline"
@@ -226,8 +227,10 @@ const OrderPage = () => {
                     >
                       <Plus className="h-4 w-4" />
                     </Button>
+                    <span className="ml-auto text-right font-bold tabular-nums sm:hidden">{formatMoney(l.price * l.qty)}</span>
+                    <Button type="button" variant="ghost" size="icon" className="h-10 w-10 shrink-0 text-muted-foreground sm:hidden" aria-label={`Remove ${l.name}`} onClick={() => remove(l.product_id)}><Trash2 className="h-4 w-4" /></Button>
                   </div>
-                  <span className="w-auto text-right font-bold tabular-nums sm:w-20 sm:shrink-0">
+                  <span className="hidden w-auto text-right font-bold tabular-nums sm:block sm:w-20 sm:shrink-0">
                     {formatMoney(l.price * l.qty)}
                   </span>
                   <Button
@@ -236,7 +239,7 @@ const OrderPage = () => {
                     size="icon"
                     aria-label={`Remove ${l.name}`}
                     onClick={() => remove(l.product_id)}
-                    className="h-10 w-10 shrink-0 rounded-lg flex items-center justify-center text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                    className="hidden h-10 w-10 shrink-0 rounded-lg items-center justify-center text-muted-foreground hover:text-destructive hover:bg-destructive/10 sm:flex"
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>
@@ -403,7 +406,7 @@ const OrderPage = () => {
           <Button
             type="button"
             onClick={submit}
-            disabled={submitting}
+            disabled={submitting || !settingsLoaded}
             className="w-full min-h-[52px] rounded-lg bg-primary text-primary-foreground font-bold hover:bg-primary/90 transition-colors disabled:opacity-70 inline-flex items-center justify-center gap-2"
           >
             {submitting ? (

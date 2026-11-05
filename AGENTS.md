@@ -3,3 +3,5 @@
 
 - Customer presentation is scoped under customer-site and uses the separate customer cart; staff styles and POS handlers remain independent.
 - Customer ordering must use authoritative transactional server logic and private per-order tracking credentials; browser prices, restaurant parameters, and order numbers are not authorization.
+- POS tenant access uses server-minted staff identity and live membership/status checks; public guests have menu-only reads and narrowly validated order operations.
+- Online fulfillment stages do not settle payments; cancellation uses existing void exclusions and paid orders require existing payment handling first.
