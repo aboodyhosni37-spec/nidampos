@@ -37,7 +37,7 @@ Deno.serve(async req => {
     const input = parsed.data;
     const result = input.action === "status"
       ? await admin.rpc("get_customer_order", { tracking_token: input.tracking_token })
-      : await admin.rpc("submit_customer_order", { payload: input });
+      : await admin.rpc("submit_customer_order", { payload: { ...input, table_label: input.order_type === "DINE-IN" && /^T([1-9]|1[0-2])$/.test(input.table_label || "") ? `Table ${input.table_label?.slice(1)}` : input.table_label } });
     if (result.error) return respond({ error: input.action === "status" ? "Order not found or tracking link expired." : "Could not place this order. Check availability and your details, then try again." }, 400);
     return respond(result.data);
   } catch { return respond({ error: "Could not process this request. Please try again." }, 400); }
