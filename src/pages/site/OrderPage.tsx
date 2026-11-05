@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import {
   ArrowRight,
@@ -34,7 +34,19 @@ const newRef = () =>
     ? crypto.randomUUID()
     : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
 
+const getCheckoutRef = () => {
+  try {
+    const existing = sessionStorage.getItem("lamahamar_checkout_ref");
+    if (existing) return JSON.parse(existing) as { ref: string; token: string };
+  } catch {}
+  const bytes = crypto.getRandomValues(new Uint8Array(32));
+  const value = { ref: newRef(), token: Array.from(bytes, b => b.toString(16).padStart(2, "0")).join("") };
+  sessionStorage.setItem("lamahamar_checkout_ref", JSON.stringify(value));
+  return value;
+};
+
 const OrderPage = () => {
+  const navigate = useNavigate();
   const { lines, increment, decrement, remove, clear } = useCustomerCart();
   const [store, setStore] = useState<StoreSettings>(DEFAULT_STORE_SETTINGS);
   const [orderType, setOrderType] = useState<OrderType>("DELIVERY");
@@ -50,7 +62,7 @@ const OrderPage = () => {
   // One checkout = one order: this reference is created once and reused for
   // every retry of the same checkout, so refreshes or repeated clicks can
   // never create a second order.
-  const clientRef = useRef(newRef());
+  const clientRef = useRef(getCheckoutRef());
   const inFlight = useRef(false);
 
   useEffect(() => {
@@ -58,7 +70,7 @@ const OrderPage = () => {
     fetchStoreSettings()
       .then((s) => {
         setStore(s);
-        if (!s.delivery_enabled) setOrderType("DINE-IN");
+        if (!s.delivery_enabled) setOrderType("PICKUP");
       })
       .catch(() => {});
   }, []);
@@ -91,11 +103,14 @@ const OrderPage = () => {
         table_label: orderType === "DINE-IN" ? table : undefined,
         items: lines,
         delivery_fee: deliveryFee,
-        client_ref: clientRef.current,
+        client_ref: clientRef.current.ref,
+        tracking_token: clientRef.current.token,
       });
       setPlaced(res);
       clear();
-      clientRef.current = newRef();
+      localStorage.setItem("lamahamar_last_order_tracking", clientRef.current.token);
+      sessionStorage.removeItem("lamahamar_checkout_ref");
+      navigate(`/order-status#track=${clientRef.current.token}`);
     } catch (e) {
       toast.error(
         e instanceof Error ? e.message : "Could not send your order. Please try again."
@@ -162,7 +177,7 @@ const OrderPage = () => {
     <div className="mx-auto max-w-6xl px-4 sm:px-6 py-10 sm:py-14">
       <h1 className="text-3xl sm:text-4xl font-serif">Your order</h1>
       <p className="mt-2 text-muted-foreground">
-        Check your items, choose delivery or dine-in, and we will take it from there.
+        Check your items and choose pickup, delivery or dine-in.
       </p>
 
       <div className="mt-8 grid gap-6 lg:grid-cols-[minmax(0,1fr)_380px] xl:grid-cols-[minmax(0,1fr)_420px] items-start">
@@ -225,10 +240,11 @@ const OrderPage = () => {
 
           <section className="space-y-5 py-5">
             <h2 className="font-bold">How would you like it?</h2>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-3 gap-2">
               {(
                 [
                   { key: "DELIVERY" as OrderType, label: "Delivery", icon: Bike, hint: "To your address" },
+                  { key: "PICKUP" as OrderType, label: "Pickup", icon: ShoppingBag, hint: "At the cafe" },
                   { key: "DINE-IN" as OrderType, label: "Dine-in", icon: UtensilsCrossed, hint: "At a table" },
                 ]
               ).map((o) => {
@@ -240,7 +256,7 @@ const OrderPage = () => {
                     disabled={disabled}
                     onClick={() => setOrderType(o.key)}
                     className={cn(
-                      "rounded-lg border p-4 text-left transition-colors min-h-[76px]",
+                      "flex h-auto min-h-[92px] flex-col items-start whitespace-normal rounded-lg border p-3 text-left transition-colors",
                       orderType === o.key
                         ? "border-primary bg-secondary"
                         : "border-border hover:bg-secondary/50",
@@ -304,7 +320,7 @@ const OrderPage = () => {
                     />
                   </label>
                 </>
-              ) : (
+              ) : orderType === "DINE-IN" ? (
                 <label className="space-y-1.5 sm:col-span-2">
                   <span className="text-sm font-medium">Table</span>
                   <select
@@ -319,7 +335,7 @@ const OrderPage = () => {
                     ))}
                   </select>
                 </label>
-              )}
+              ) : null}
               <label className="space-y-1.5 sm:col-span-2">
                 <span className="text-sm font-medium">Notes (optional)</span>
                 <textarea
