@@ -1132,7 +1132,7 @@ const POS = () => {
             {/* Quick customer picker (for loyalty + due tracking) */}
             <div>
               <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
-                <Users className="h-3 w-3" /> Customer (optional)
+                <Users className="h-3 w-3" /> Customer
               </div>
               <div className="flex gap-2">
                 <Select
@@ -1164,148 +1164,6 @@ const POS = () => {
                 </Button>
               </div>
             </div>
-
-            <div>
-              <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1.5">
-                Payment Method
-              </div>
-              <div className="grid grid-cols-3 gap-1.5">
-                {ALL_PAYMENT_METHODS.map((m) => (
-                  <PayBtn
-                    key={m}
-                    active={payment === m}
-                    onClick={() => {
-                      setPayment(m);
-                      if (m === "Due") {
-                        setSplitDue(false);
-                        setDueAmount("");
-                      }
-                      if (!MOBILE_METHODS.includes(m) && m !== "Due") {
-                        setSplitDue(false);
-                        setDueAmount("");
-                      }
-                    }}
-                    icon={methodIcon(m)}
-                    label={m}
-                  />
-                ))}
-              </div>
-              {selectedCustomer && Number(selectedCustomer.deposit_balance || 0) > 0 && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setPayment("Deposit");
-                    setSplitDue(false);
-                    setDueAmount("");
-                  }}
-                  className={cn(
-                    "mt-1.5 w-full flex items-center justify-between gap-2 px-3 py-2 rounded-xl text-xs font-semibold transition-all",
-                    isDepositPayment
-                      ? "bg-primary text-primary-foreground hover:bg-primary/90 shadow-soft"
-                      : "bg-secondary hover:bg-secondary/80 text-foreground"
-                  )}
-                >
-                  <span className="flex items-center gap-1.5">
-                    <PiggyBank className="h-4 w-4" /> Pay from Deposit
-                  </span>
-                  <span className="tabular-nums">
-                    ${Number(selectedCustomer.deposit_balance || 0).toFixed(2)} available
-                  </span>
-                </button>
-              )}
-            </div>
-
-
-            {showSplitToggle && (
-              <div className="rounded-xl border border-border p-3 space-y-2 bg-secondary/30">
-                <label className="flex items-center justify-between text-sm font-medium cursor-pointer">
-                  <span>Split with Due</span>
-                  <input
-                    type="checkbox"
-                    className="h-4 w-4 accent-primary"
-                    checked={splitDue}
-                    onChange={(e) => setSplitDue(e.target.checked)}
-                  />
-                </label>
-                {splitDue && (
-                  <div className="space-y-1.5">
-                    <Label className="text-xs text-muted-foreground">Amount on credit (Due)</Label>
-                    <Input
-                      type="number"
-                      inputMode="decimal"
-                      min={0}
-                      max={total}
-                      step="0.01"
-                      placeholder="0.00"
-                      value={dueAmount}
-                      onChange={(e) => setDueAmount(e.target.value)}
-                      className="rounded-lg h-9 text-sm"
-                    />
-                    <div className="flex justify-between text-xs text-muted-foreground">
-                      <span>Paid via {payment}: <b>${effectivePaid.toFixed(2)}</b></span>
-                      <span>On Due: <b>${effectiveDue.toFixed(2)}</b></span>
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {effectiveDue > 0 && (
-              <>
-              <div className="rounded-lg bg-secondary text-foreground px-3 py-2 text-[11px] font-medium">
-                Walk-in customer is OK. Optionally select a customer to track this credit by name.
-              </div>
-              <div className="rounded-xl border border-border p-3 space-y-2 bg-secondary/30">
-                <Label className="text-xs text-muted-foreground">Customer (for credit)</Label>
-                <div className="flex gap-2">
-                  <Select
-                    value={selectedCustomerId}
-                    onValueChange={(v) => setSelectedCustomerId(v)}
-                  >
-                    <SelectTrigger className="flex-1 rounded-lg h-9">
-                      <SelectValue placeholder="Select customer…" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {customers.length === 0 && (
-                        <div className="px-3 py-2 text-xs text-muted-foreground">
-                          No customers yet
-                        </div>
-                      )}
-                      {customers.map((c) => (
-                        <SelectItem key={c.id} value={c.id}>
-                          {c.name}
-                          {c.due_balance > 0 ? ` · $${c.due_balance.toFixed(2)} due` : ""}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="icon"
-                    onClick={() => setNewCustomerOpen(true)}
-                    className="rounded-lg h-9 w-9 shrink-0"
-                    title="Add customer"
-                  >
-                    <UserPlus className="h-4 w-4" />
-                  </Button>
-                </div>
-                {selectedCustomer && selectedCustomer.due_balance >= HIGH_DEBT_THRESHOLD && (
-                  <div className="flex items-start gap-2 rounded-lg bg-secondary text-foreground p-2 text-xs">
-                    <AlertTriangle className="h-3.5 w-3.5 mt-0.5 shrink-0" />
-                    <span>
-                      High outstanding debt: <b>${selectedCustomer.due_balance.toFixed(2)}</b>
-                    </span>
-                  </div>
-                )}
-                {selectedCustomer && selectedCustomer.due_balance > 0 && selectedCustomer.due_balance < HIGH_DEBT_THRESHOLD && (
-                  <div className="text-xs text-muted-foreground">
-                    Existing balance: <b>${selectedCustomer.due_balance.toFixed(2)}</b>
-                  </div>
-                )}
-              </div>
-              </>
-            )}
 
             {/* Customer Loyalty (when a customer is selected) */}
             {selectedCustomer && (
@@ -1431,6 +1289,109 @@ const POS = () => {
               </div>
             )}
 
+            <div>
+              <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1.5">
+                Payment Method
+              </div>
+              <div className="grid grid-cols-3 gap-1.5">
+                {ALL_PAYMENT_METHODS.map((m) => (
+                  <PayBtn
+                    key={m}
+                    active={payment === m}
+                    onClick={() => {
+                      setPayment(m);
+                      if (m === "Due") {
+                        setSplitDue(false);
+                        setDueAmount("");
+                      }
+                      if (!MOBILE_METHODS.includes(m) && m !== "Due") {
+                        setSplitDue(false);
+                        setDueAmount("");
+                      }
+                    }}
+                    icon={methodIcon(m)}
+                    label={m}
+                  />
+                ))}
+              </div>
+              {selectedCustomer && Number(selectedCustomer.deposit_balance || 0) > 0 && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setPayment("Deposit");
+                    setSplitDue(false);
+                    setDueAmount("");
+                  }}
+                  className={cn(
+                    "mt-1.5 w-full flex items-center justify-between gap-2 px-3 py-2 rounded-xl text-xs font-semibold transition-all",
+                    isDepositPayment
+                      ? "bg-primary text-primary-foreground hover:bg-primary/90 shadow-soft"
+                      : "bg-secondary hover:bg-secondary/80 text-foreground"
+                  )}
+                >
+                  <span className="flex items-center gap-1.5">
+                    <PiggyBank className="h-4 w-4" /> Pay from Deposit
+                  </span>
+                  <span className="tabular-nums">
+                    ${Number(selectedCustomer.deposit_balance || 0).toFixed(2)} available
+                  </span>
+                </button>
+              )}
+            </div>
+
+
+            {showSplitToggle && (
+              <div className="rounded-xl border border-border p-3 space-y-2 bg-secondary/30">
+                <label className="flex items-center justify-between text-sm font-medium cursor-pointer">
+                  <span>Split with Due</span>
+                  <input
+                    type="checkbox"
+                    className="h-4 w-4 accent-primary"
+                    checked={splitDue}
+                    onChange={(e) => setSplitDue(e.target.checked)}
+                  />
+                </label>
+                {splitDue && (
+                  <div className="space-y-1.5">
+                    <Label className="text-xs text-muted-foreground">Amount on credit (Due)</Label>
+                    <Input
+                      type="number"
+                      inputMode="decimal"
+                      min={0}
+                      max={total}
+                      step="0.01"
+                      placeholder="0.00"
+                      value={dueAmount}
+                      onChange={(e) => setDueAmount(e.target.value)}
+                      className="rounded-lg h-9 text-sm"
+                    />
+                    <div className="flex justify-between text-xs text-muted-foreground">
+                      <span>Paid via {payment}: <b>${effectivePaid.toFixed(2)}</b></span>
+                      <span>On Due: <b>${effectiveDue.toFixed(2)}</b></span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {effectiveDue > 0 && selectedCustomer && selectedCustomer.due_balance > 0 && (
+              <div className="space-y-1">
+                {selectedCustomer && selectedCustomer.due_balance >= HIGH_DEBT_THRESHOLD && (
+                  <div className="flex items-start gap-2 rounded-lg bg-secondary text-foreground p-2 text-xs">
+                    <AlertTriangle className="h-3.5 w-3.5 mt-0.5 shrink-0" />
+                    <span>
+                      High outstanding debt: <b>${selectedCustomer.due_balance.toFixed(2)}</b>
+                    </span>
+                  </div>
+                )}
+                {selectedCustomer && selectedCustomer.due_balance > 0 && selectedCustomer.due_balance < HIGH_DEBT_THRESHOLD && (
+                  <div className="text-xs text-muted-foreground">
+                    Existing balance: <b>${selectedCustomer.due_balance.toFixed(2)}</b>
+                  </div>
+                )}
+              </div>
+            )}
+
             </div>
           </div>
           {/* Summary and checkout remain accessible while order details scroll. */}
@@ -1443,6 +1404,7 @@ const POS = () => {
               total={formatMoney(total, sys)}
               paid={formatMoney(effectivePaid, sys)}
               due={formatMoney(effectiveDue, sys)}
+              showBalance={effectiveDue > 0}
             />
 
             <div className="grid grid-cols-2 gap-2">
