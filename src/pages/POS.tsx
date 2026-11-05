@@ -31,6 +31,7 @@ import {
 } from "lucide-react";
 
 import { QRCodeSVG } from "qrcode.react";
+import { evcUssdCode, evcUssdTelLink } from "@/lib/evcUssd";
 import {
   loadReceiptSettings,
   type ReceiptSettings,
@@ -592,23 +593,21 @@ const POS = () => {
     });
   }, [cart, totals.subtotal, totals.discount, totals.tax, total, sys.currency_symbol, receiptCfg.enableDualScreen, receiptCfg.businessName, qrOpen]);
 
-  const qrPayload = useMemo(
-    () =>
-      `PAY TO: ${receiptCfg.merchantNumber || "N/A"}, AMOUNT: ${total.toFixed(2)}, ORDER: ${orderId}`,
-    [receiptCfg.merchantNumber, total, orderId]
-  );
+  // EVC Plus USSD QR: regenerates whenever the grand total changes.
+  const ussdCode = useMemo(() => evcUssdCode(total), [total]);
+  const qrPayload = useMemo(() => evcUssdTelLink(total), [total]);
+  const copyUssd = async () => {
+    try {
+      await navigator.clipboard.writeText(ussdCode);
+      toast({ title: "Code copied", description: ussdCode });
+    } catch {
+      toast({ title: "Copy failed", description: `Dial ${ussdCode} manually.`, variant: "destructive" });
+    }
+  };
 
   const openQrPayment = () => {
     if (cart.length === 0) {
       toast({ title: "Cart is empty", description: "Add items before requesting payment." });
-      return;
-    }
-    if (!receiptCfg.merchantNumber) {
-      toast({
-        title: "Merchant number missing",
-        description: "Set it in Settings → Printer & Receipt before using QR payments.",
-        variant: "destructive",
-      });
       return;
     }
     setQrOpen(true);
@@ -623,7 +622,7 @@ const POS = () => {
         currencySymbol: sys.currency_symbol || "$",
         businessName: receiptCfg.businessName,
         qrPayload,
-        merchantNumber: receiptCfg.merchantNumber,
+        merchantNumber: ussdCode,
         orderId,
       });
     }
@@ -1929,24 +1928,30 @@ const POS = () => {
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <QrCode className="h-5 w-5 text-primary" /> Scan to Pay
+              <QrCode className="h-5 w-5 text-primary" /> EVC Plus QR Pay
             </DialogTitle>
             <DialogDescription>
-              Customer scans this QR with their mobile money app to pay.
+              Customer scans with their phone camera to open the dialer with the code filled in.
             </DialogDescription>
           </DialogHeader>
-          <div className="flex flex-col items-center gap-4 py-2">
+          <div className="flex flex-col items-center gap-3 py-2">
+            <div className="text-lg font-bold text-center">
+              Pay <span className="tabular-nums">{formatMoney(total, sys)}</span> using EVC Plus
+            </div>
             <div className="bg-white p-5 rounded-2xl shadow-elegant">
-              <QRCodeSVG value={qrPayload} size={240} level="H" />
+              <QRCodeSVG key={qrPayload} value={qrPayload} size={240} level="H" />
             </div>
-            <div className="text-center space-y-1">
-              <div className="text-xs uppercase tracking-wider text-muted-foreground">Pay To</div>
-              <div className="text-base font-bold">{receiptCfg.merchantNumber || "—"}</div>
-              <div className="text-3xl font-extrabold text-primary tabular-nums">
-                {formatMoney(total, sys)}
-              </div>
-              <div className="text-[11px] text-muted-foreground">Order {orderId}</div>
+            <div className="flex items-center gap-2">
+              <code className="text-base font-bold tabular-nums px-3 py-1.5 rounded-lg bg-muted select-all">{ussdCode}</code>
+              <Button type="button" size="sm" variant="outline" onClick={copyUssd} className="rounded-lg">Copy</Button>
             </div>
+            <Button asChild variant="outline" className="rounded-xl w-full">
+              <a href={qrPayload}>Open dialer</a>
+            </Button>
+            <p className="text-[11px] text-muted-foreground text-center max-w-xs">
+              If the phone doesn't open the dialer (some iPhones block USSD links), open the Phone app and dial the code above manually. Order {orderId}.
+            </p>
+            <p className="text-[11px] font-medium text-center">Only confirm after you see the EVC Plus payment message.</p>
           </div>
           <DialogFooter className="flex-col sm:flex-row gap-2">
             <Button variant="outline" onClick={() => setQrOpen(false)} className="rounded-xl">
