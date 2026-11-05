@@ -38,6 +38,8 @@ import {
 } from "@/lib/customerDisplay";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
+import { CartItems } from "@/components/pos/CartItems";
+import { CartSummary } from "@/components/pos/CartSummary";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import {
@@ -921,7 +923,7 @@ const POS = () => {
         </div>
       </Card>
 
-      <div className={cn("grid grid-cols-1 gap-4 lg:h-[calc(100dvh-12rem)] lg:min-h-[560px] pb-20 lg:pb-0", desktopCartVisible ? "lg:grid-cols-[minmax(0,1fr)_minmax(440px,480px)] xl:grid-cols-[minmax(0,1fr)_minmax(470px,520px)] 2xl:grid-cols-[minmax(0,1fr)_minmax(500px,560px)]" : "lg:grid-cols-1")}>
+      <div className={cn("grid grid-cols-1 gap-4 lg:h-[calc(100dvh-12rem)] lg:min-h-[460px] pb-20 lg:pb-0", desktopCartVisible ? "lg:grid-cols-[minmax(0,1fr)_minmax(480px,0.95fr)] xl:grid-cols-[minmax(0,1fr)_minmax(500px,0.85fr)] 2xl:grid-cols-[minmax(0,1fr)_minmax(520px,0.8fr)]" : "lg:grid-cols-1")}>
         {/* Products / Due Orders */}
         <div className="flex flex-col gap-3 min-h-0 min-w-0 h-[calc(100dvh-13rem)] min-h-[420px] lg:h-auto lg:min-h-0">
           {/* Categories */}
@@ -1084,36 +1086,19 @@ const POS = () => {
             ? "flex fixed inset-0 z-50 h-[100dvh] rounded-none border-0 pt-[env(safe-area-inset-top)]"
             : "hidden",
           desktopCartVisible
-            ? "lg:flex lg:static lg:inset-auto lg:z-auto lg:h-auto lg:rounded-2xl lg:border-2 lg:pt-0"
+            ? "lg:flex lg:static lg:inset-auto lg:z-auto lg:h-auto lg:rounded-lg lg:border lg:pt-0"
             : "lg:hidden",
           orderStatus === "Active" ? "border-primary/40" : "border-border"
         )}>
-          <div className="h-11 shrink-0 px-3 border-b border-border flex items-center justify-between">
-            <div className="flex items-center gap-2 font-semibold">
-              <ShoppingCart className="h-4 w-4" />
+          <div className="shrink-0 px-3 py-1.5 border-b border-border flex flex-wrap items-center justify-between gap-1">
+            <div className="flex min-w-0 items-center gap-2 text-sm font-semibold">
+              <ShoppingCart className="h-4 w-4 shrink-0" />
               <span>Order</span>
-              <span className="text-xs font-mono text-muted-foreground">{orderId}</span>
+              <span className="text-xs font-mono text-muted-foreground break-all">{orderId}</span>
             </div>
             <div className="flex items-center gap-1">
-              {cart.length > 0 && (
-                <button
-                  onClick={handleClearCart}
-                  className="h-9 px-2.5 rounded-lg text-xs text-muted-foreground hover:text-destructive hover:bg-destructive/10 font-medium"
-                >
-                  Clear
-                </button>
-              )}
-              <button
-                type="button"
-                onClick={closeCart}
-                aria-label="Close cart"
-                className={cn(
-                  "h-9 px-3 rounded-lg border border-border text-xs font-semibold hover:bg-secondary inline-flex items-center gap-1",
-                  cartMode === "always" && "lg:hidden"
-                )}
-              >
-                <X className="h-4 w-4" /> Close
-              </button>
+              {cart.length > 0 && <Button variant="ghost" size="sm" onClick={handleClearCart} className="h-8 px-2 text-xs text-muted-foreground">Clear</Button>}
+              <Button variant="ghost" size="icon" onClick={closeCart} aria-label="Close cart" title="Close cart" className={cn("h-8 w-8", cartMode === "always" && "lg:hidden")}><X className="h-4 w-4" /></Button>
             </div>
           </div>
 
@@ -1142,77 +1127,10 @@ const POS = () => {
             </div>
           </div>
 
-          {/* Items — table on wider screens, compact rows on phones */}
-          <div className="flex-1 overflow-y-auto min-h-[150px]">
-            {cart.length === 0 ? (
-              <div className="h-full flex flex-col items-center justify-center text-center text-muted-foreground py-10">
-                <ShoppingCart className="h-10 w-10 opacity-30 mb-2" />
-                <div className="text-sm">Cart is empty</div>
-                <div className="text-xs">Tap a product to add it</div>
-              </div>
-            ) : (
-              <>
-                <div className="hidden sm:grid grid-cols-[minmax(0,1fr)_56px_108px_68px_36px] gap-2 px-3 h-9 items-center sticky top-0 z-10 bg-secondary text-[11px] font-semibold uppercase tracking-wider text-muted-foreground border-b border-border">
-                  <span>Item</span>
-                  <span className="text-right">Price</span>
-                  <span className="text-center">Qty</span>
-                  <span className="text-right">Total</span>
-                  <span className="sr-only">Action</span>
-                </div>
-                <ul className="divide-y divide-border">
-                  {cart.map((it) => (
-                    <li
-                      key={it.id}
-                      className="px-3 py-2.5 grid grid-cols-[minmax(0,1fr)_auto] sm:grid-cols-[minmax(0,1fr)_56px_108px_68px_36px] gap-x-2 gap-y-2 items-center min-h-[56px]"
-                    >
-                      <div className="col-start-1 row-start-1 min-w-0">
-                        <div className="font-semibold text-sm leading-snug break-words">{it.name}</div>
-                        <div className="sm:hidden text-xs text-muted-foreground tabular-nums">
-                          {formatMoney(it.price, sys)} each
-                        </div>
-                      </div>
-                      <div className="hidden sm:block sm:col-start-2 sm:row-start-1 text-right text-sm tabular-nums text-muted-foreground">
-                        {formatMoney(it.price, sys)}
-                      </div>
-                      <div className="col-start-1 row-start-2 sm:col-start-3 sm:row-start-1 flex sm:justify-center">
-                        <div className="inline-flex items-center rounded-lg border border-border bg-card">
-                          <button
-                            onClick={() => updateQty(it.id, -1)}
-                            aria-label={`Decrease ${it.name}`}
-                            className="h-9 w-9 flex items-center justify-center rounded-l-lg hover:bg-secondary transition-colors"
-                          >
-                            <Minus className="h-4 w-4" />
-                          </button>
-                          <span className="w-8 text-center text-sm font-bold tabular-nums">{it.qty}</span>
-                          <button
-                            onClick={() => updateQty(it.id, 1)}
-                            aria-label={`Increase ${it.name}`}
-                            className="h-9 w-9 flex items-center justify-center rounded-r-lg hover:bg-secondary transition-colors"
-                          >
-                            <Plus className="h-4 w-4" />
-                          </button>
-                        </div>
-                      </div>
-                      <div className="col-start-2 row-start-2 sm:col-start-4 sm:row-start-1 text-right font-bold text-sm tabular-nums">
-                        {formatMoney(it.price * it.qty, sys)}
-                      </div>
-                      <button
-                        onClick={() => removeItem(it.id)}
-                        aria-label={`Remove ${it.name}`}
-                        className="col-start-2 row-start-1 sm:col-start-5 justify-self-end h-9 w-9 rounded-lg inline-flex items-center justify-center text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              </>
-            )}
-          </div>
-
-
-          {/* Payment - fixed bottom of cart. Bounded so the cart-items area always remains scrollable. */}
-          <div className="border-t border-border bg-card shrink min-h-0 basis-auto max-h-[45%] overflow-y-auto p-3 space-y-2">
+          {/* Items and order details share one scroll area; checkout stays outside it. */}
+          <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain">
+            <CartItems items={cart} money={(value) => formatMoney(value, sys)} onQuantity={updateQty} onRemove={removeItem} />
+            <div className="border-t border-border bg-card p-3 space-y-3">
             {/* Quick customer picker (for loyalty + due tracking) */}
             <div>
               <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
@@ -1515,42 +1433,19 @@ const POS = () => {
               </div>
             )}
 
-            <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Subtotal</span>
-              <span className="font-medium">{formatMoney(totals.subtotal, sys)}</span>
             </div>
-            {totals.discount > 0 && (
-              <div className="flex justify-between text-sm text-primary">
-                <span className="flex items-center gap-1">
-                  <Percent className="h-3 w-3" /> Discount
-                  {appliedReward !== "none" && (
-                    <span className="text-[10px] uppercase font-bold">· Reward</span>
-                  )}
-                </span>
-                <span className="font-semibold">− {formatMoney(totals.discount, sys)}</span>
-              </div>
-            )}
-            {sys.tax_enabled && totals.tax > 0 && (
-              <div className="flex justify-between text-sm text-muted-foreground">
-                <span>
-                  Tax {sys.tax_inclusive ? "(incl.)" : ""} {sys.tax_rate}%
-                </span>
-                <span>{formatMoney(totals.tax, sys)}</span>
-              </div>
-            )}
-            {effectiveDue > 0 && (
-              <div className="flex justify-between text-sm text-foreground">
-                <span>On Credit (Due)</span>
-                <span className="font-semibold">{formatMoney(effectiveDue, sys)}</span>
-              </div>
-            )}
           </div>
-          {/* Total + checkout: always visible below the scrollable details */}
-          <div className="shrink-0 px-3 pb-3 pt-2 bg-card border-t border-border space-y-2.5 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
-            <div className="flex justify-between text-xl font-bold">
-              <span>Total</span>
-              <span className="tabular-nums">{formatMoney(total, sys)}</span>
-            </div>
+          {/* Summary and checkout remain accessible while order details scroll. */}
+          <div className="shrink-0 px-3 pt-2 bg-card border-t border-border space-y-2 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+            <CartSummary
+              subtotal={formatMoney(totals.subtotal, sys)}
+              discount={totals.discount > 0 ? `− ${formatMoney(totals.discount, sys)}` : formatMoney(0, sys)}
+              tax={formatMoney(totals.tax, sys)}
+              taxLabel={sys.tax_enabled ? `Tax${sys.tax_inclusive ? " (incl.)" : ""} ${sys.tax_rate}%` : "Tax"}
+              total={formatMoney(total, sys)}
+              paid={formatMoney(effectivePaid, sys)}
+              due={formatMoney(effectiveDue, sys)}
+            />
 
             <div className="grid grid-cols-2 gap-2">
 
@@ -1559,14 +1454,14 @@ const POS = () => {
                 variant="outline"
                 onClick={openQrPayment}
                 disabled={cart.length === 0}
-                className="h-12 rounded-xl font-semibold"
+                className="h-11 rounded-lg font-semibold"
               >
                 <QrCode className="h-4 w-4 mr-1.5" /> QR Pay
               </Button>
               <Button
                 onClick={placeOrder}
                 disabled={cart.length === 0 || submitting}
-                className="h-12 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 font-semibold shadow-soft hover:shadow-elegant transition-all disabled:opacity-50"
+                className="h-11 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 font-semibold shadow-soft hover:shadow-elegant transition-all disabled:opacity-50"
               >
                 {submitting ? "Processing…" : "Place Order"}
               </Button>
@@ -2126,10 +2021,11 @@ const PayBtn = ({
   icon: React.ReactNode;
   label: string;
 }) => (
-  <button
+  <Button
+    variant="ghost"
     onClick={onClick}
     className={cn(
-      "flex flex-col items-center gap-1 py-2 rounded-xl text-xs font-semibold transition-all min-h-[56px] min-w-0 justify-center text-center px-1.5 ring-offset-background",
+      "flex items-center gap-1.5 h-auto min-h-11 py-2 rounded-md text-xs font-semibold transition-all min-w-0 justify-center text-center px-2 ring-offset-background whitespace-normal",
       active
         ? "bg-primary text-primary-foreground hover:bg-primary/90 shadow-soft ring-2 ring-primary ring-offset-2"
         : "bg-secondary hover:bg-secondary/80 text-foreground"
@@ -2138,7 +2034,7 @@ const PayBtn = ({
   >
     <span className="h-5 flex items-center justify-center">{icon}</span>
     <span className="leading-tight break-words">{label}</span>
-  </button>
+  </Button>
 );
 
 export default POS;
