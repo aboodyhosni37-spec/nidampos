@@ -90,10 +90,9 @@ const CustomerDisplay = () => {
 
       {state?.type === "qr" && (
         <div className="flex-1 flex flex-col items-center justify-center p-10 text-center">
-          <div className="text-2xl font-semibold mb-2">Scan to Pay</div>
+          <div className="text-2xl font-semibold mb-2">Pay {fmt(state.total, sym)} using EVC Plus</div>
           <div className="text-muted-foreground mb-6">
-            {state.merchantNumber ? `Merchant: ${state.merchantNumber} · ` : ""}
-            Total <b className="text-foreground">{fmt(state.total, sym)}</b>
+            Scan with your phone camera, or dial <b className="text-foreground tabular-nums">{state.merchantNumber}</b>
           </div>
           <div className="bg-white p-8 rounded-3xl shadow-elegant">
             <QRCodeSVG
@@ -104,7 +103,7 @@ const CustomerDisplay = () => {
             />
           </div>
           <div className="mt-6 text-sm text-muted-foreground max-w-md">
-            Open your mobile money app, scan this code, and confirm the payment.
+            The dialer opens with the code filled in. If it does not, dial the code above manually and enter your PIN on your phone.
           </div>
         </div>
       )}
