@@ -204,7 +204,7 @@ const OrderPage = () => {
                       {formatMoney(l.price)} each
                     </p>
                   </div>
-                  <div className="flex items-center gap-1.5 shrink-0">
+                  <div className="col-span-2 flex items-center gap-1.5 shrink-0 sm:col-span-1">
                     <Button
                       type="button"
                       variant="outline"
@@ -226,8 +226,10 @@ const OrderPage = () => {
                     >
                       <Plus className="h-4 w-4" />
                     </Button>
+                    <span className="ml-auto text-right font-bold tabular-nums sm:hidden">{formatMoney(l.price * l.qty)}</span>
+                    <Button type="button" variant="ghost" size="icon" className="h-10 w-10 shrink-0 text-muted-foreground sm:hidden" aria-label={`Remove ${l.name}`} onClick={() => remove(l.product_id)}><Trash2 className="h-4 w-4" /></Button>
                   </div>
-                  <span className="w-auto text-right font-bold tabular-nums sm:w-20 sm:shrink-0">
+                  <span className="hidden w-auto text-right font-bold tabular-nums sm:block sm:w-20 sm:shrink-0">
                     {formatMoney(l.price * l.qty)}
                   </span>
                   <Button
@@ -236,7 +238,7 @@ const OrderPage = () => {
                     size="icon"
                     aria-label={`Remove ${l.name}`}
                     onClick={() => remove(l.product_id)}
-                    className="h-10 w-10 shrink-0 rounded-lg flex items-center justify-center text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                    className="hidden h-10 w-10 shrink-0 rounded-lg items-center justify-center text-muted-foreground hover:text-destructive hover:bg-destructive/10 sm:flex"
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>
