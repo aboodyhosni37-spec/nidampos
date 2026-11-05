@@ -4,6 +4,7 @@ import type { DbProduct } from "@/lib/storefront";
 import { formatMoney } from "@/lib/systemSettings";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { useMealAvailability } from "@/lib/useMealAvailability";
 
 export const ProductCard = ({ product, onAdd, showImage = true }: {
   product: DbProduct; onAdd: (p: DbProduct, qty?: number) => void; showImage?: boolean;
@@ -11,6 +12,8 @@ export const ProductCard = ({ product, onAdd, showImage = true }: {
   const [open, setOpen] = useState(false);
   const [qty, setQty] = useState(1);
   const [imageFailed, setImageFailed] = useState(false);
+  const { availability } = useMealAvailability();
+  const status = availability(product);
   const image = showImage && product.image_url && !imageFailed;
   return <>
     <article className="group flex min-w-0 flex-col overflow-hidden rounded-lg border border-border bg-card transition-shadow hover:shadow-elegant">
@@ -21,10 +24,11 @@ export const ProductCard = ({ product, onAdd, showImage = true }: {
       </Button>
       <div className="flex flex-1 flex-col gap-3 p-4">
         <p className="text-xs text-muted-foreground">{product.category_name}</p>
+        {status.message && <p className="text-xs text-muted-foreground" role="status">{status.message}</p>}
         <Button variant="link" className="h-auto justify-start whitespace-normal p-0 text-left font-semibold leading-relaxed" onClick={() => { setQty(1); setOpen(true); }}>{product.name}</Button>
         <div className="mt-auto flex items-center justify-between gap-2 pt-2">
           <span className="font-semibold tabular-nums">{formatMoney(product.price)}</span>
-          <Button size="icon" className="h-11 w-11 rounded-full" aria-label={`Add ${product.name}`} onClick={() => onAdd(product)}><Plus /></Button>
+          <Button size="icon" disabled={!status.available} className="h-11 w-11 rounded-full" aria-label={`Add ${product.name}`} onClick={() => { if (status.available) onAdd(product); }}><Plus /></Button>
         </div>
       </div>
     </article>
@@ -35,13 +39,14 @@ export const ProductCard = ({ product, onAdd, showImage = true }: {
           <DialogDescription>{product.category_name}</DialogDescription>
           <DialogTitle className="font-serif text-3xl leading-tight">{product.name}</DialogTitle>
           <p className="text-lg font-semibold tabular-nums">{formatMoney(product.price)}</p>
+          {status.message && <p role="status" className="text-sm text-muted-foreground">{status.message}</p>}
           <div className="flex items-center justify-between gap-4">
             <div className="flex shrink-0 items-center gap-3 rounded-lg border border-border p-1">
               <Button size="icon" variant="ghost" aria-label="Decrease quantity" disabled={qty <= 1} onClick={() => setQty(qty - 1)}><Minus /></Button>
               <span className="w-6 text-center font-semibold tabular-nums">{qty}</span>
               <Button size="icon" variant="ghost" aria-label="Increase quantity" disabled={qty >= 99} onClick={() => setQty(qty + 1)}><Plus /></Button>
             </div>
-            <Button className="h-12 flex-1 whitespace-normal" onClick={() => { onAdd(product, qty); setOpen(false); }}>Add · {formatMoney(product.price * qty)}</Button>
+            <Button disabled={!status.available} className="h-12 flex-1 whitespace-normal" onClick={() => { if (status.available) { onAdd(product, qty); setOpen(false); } }}>Add · {formatMoney(product.price * qty)}</Button>
           </div>
         </div>
       </DialogContent>

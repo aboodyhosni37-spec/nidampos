@@ -8,6 +8,7 @@ import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/hooks/use-toast";
+import { MealTimeEditor } from "@/components/site/MealTimeEditor";
 import {
   DEFAULT_SITE_CONTENT,
   HOME_SECTION_LABELS,
@@ -453,9 +454,13 @@ const WebsiteEditor = () => {
           <TabsTrigger value="home">Homepage</TabsTrigger>
           <TabsTrigger value="about">About page</TabsTrigger>
           <TabsTrigger value="menu">Menu page</TabsTrigger>
+          <TabsTrigger value="meals">Meal times</TabsTrigger>
           <TabsTrigger value="contact">Contact page</TabsTrigger>
         </TabsList>
 
+        <TabsContent value="meals" className="space-y-4 pt-4">
+          <MealTimeEditor value={content.meals} onChange={v => set("meals", "periods", v.periods)} />
+        </TabsContent>
         <TabsContent value="layout" className="space-y-4 pt-4">
           <Card className="p-6 rounded-2xl space-y-5">
             <div>
