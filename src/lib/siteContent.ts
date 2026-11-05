@@ -7,6 +7,22 @@ import heroImg from "@/assets/cafe-hero.jpg";
 import aboutImg from "@/assets/cafe-about.jpg";
 
 export type Highlight = { title: string; text: string };
+export type LinkItem = { label: string; href: string; visible: boolean };
+export type GalleryImage = { url: string; caption: string };
+export type HoursRow = { label: string; value: string };
+export type HomeSectionId =
+  | "hero" | "categories" | "featured" | "traditional" | "about" | "gallery" | "drinks" | "visit";
+export type HomeSection = { id: HomeSectionId; visible: boolean };
+export const HOME_SECTION_LABELS: Record<HomeSectionId, string> = {
+  hero: "Hero banner",
+  categories: "Menu categories",
+  featured: "Featured menu",
+  traditional: "Somali food",
+  about: "About section",
+  gallery: "Gallery",
+  drinks: "Coffee & beverages",
+  visit: "Visit us banner",
+};
 
 export type SiteContent = {
   brand: {
@@ -24,8 +40,28 @@ export type SiteContent = {
     facebook: string;
     instagram: string;
     whatsapp: string;
+    tiktok: string;
+    extra_hours: HoursRow[];
   };
+  layout: { home_sections: HomeSection[] };
+  nav: { links: LinkItem[]; order_button_label: string; show_staff_login: boolean };
+  footer: { explore_title: string; visit_title: string; hours_title: string; copyright: string; show_order_link: boolean };
+  gallery: { eyebrow: string; title: string; images: GalleryImage[] };
+  theme: { hero_shade: number; alt_backgrounds: boolean; accent: "none" | "gold" | "orange" };
   home: {
+    hero_custom_image: string;
+    categories_eyebrow: string;
+    categories_title: string;
+    categories_link_label: string;
+    featured_link_label: string;
+    traditional_eyebrow: string;
+    traditional_title: string;
+    about_button_label: string;
+    about_button_href: string;
+    drinks_title: string;
+    visit_title: string;
+    visit_order_label: string;
+    visit_contact_label: string;
     hero_badge: string;
     hero_title: string;
     hero_subtitle: string;
@@ -48,6 +84,9 @@ export type SiteContent = {
     footer_text: string;
   };
   about: {
+    eyebrow: string;
+    button_label: string;
+    button_href: string;
     hero_image: string;
     title: string;
     intro: string;
@@ -64,8 +103,16 @@ export type SiteContent = {
     description: string;
     show_images: boolean;
     show_categories: boolean;
+    search_placeholder: string;
   };
   contact_page: {
+    eyebrow: string;
+    visit_title: string;
+    call_title: string;
+    email_title: string;
+    hours_title: string;
+    cta_button_label: string;
+    cta_button_href: string;
     title: string;
     description: string;
     cta_title: string;
@@ -90,9 +137,40 @@ export const DEFAULT_SITE_CONTENT: SiteContent = {
     facebook: "",
     instagram: "",
     whatsapp: "",
+    tiktok: "",
+    extra_hours: [],
   },
+  layout: {
+    home_sections: (["hero", "categories", "featured", "traditional", "about", "gallery", "drinks", "visit"] as HomeSectionId[]).map((id) => ({ id, visible: true })),
+  },
+  nav: {
+    links: [
+      { label: "Home", href: "/", visible: true },
+      { label: "About", href: "/about", visible: true },
+      { label: "Menu", href: "/menu", visible: true },
+      { label: "Contact", href: "/contact", visible: true },
+    ],
+    order_button_label: "Order Now",
+    show_staff_login: true,
+  },
+  footer: { explore_title: "Explore", visit_title: "Visit us", hours_title: "Opening hours", copyright: "", show_order_link: true },
+  gallery: { eyebrow: "Gallery", title: "Inside the cafe", images: [] },
+  theme: { hero_shade: 100, alt_backgrounds: true, accent: "none" },
   home: {
-    hero_badge: "Fresh · Local · Roasted daily",
+    hero_custom_image: "",
+    categories_eyebrow: "The menu",
+    categories_title: "Find your favourites",
+    categories_link_label: "Full menu",
+    featured_link_label: "View all",
+    traditional_eyebrow: "Cuntada Dalka",
+    traditional_title: "Somali food, at your table",
+    about_button_label: "Read our story",
+    about_button_href: "/about",
+    drinks_title: "Coffee & beverages",
+    visit_title: "",
+    visit_order_label: "Order Now",
+    visit_contact_label: "Contact us",
+    hero_badge: "",
     hero_title: "LamaHamar Cafe",
     hero_subtitle:
       "A warm corner of Mogadishu for great coffee, fresh food and unhurried conversation.",
@@ -108,7 +186,7 @@ export const DEFAULT_SITE_CONTENT: SiteContent = {
       { title: "Fast delivery", text: "Hot orders across the city." },
       { title: "Open every day", text: "6:00 AM – 10:00 PM." },
     ],
-    featured_eyebrow: "Popular right now",
+    featured_eyebrow: "From our kitchen",
     featured_title: "Featured favourites",
     about_eyebrow: "About us",
     about_title: "Made by hand, served with care",
@@ -122,6 +200,9 @@ export const DEFAULT_SITE_CONTENT: SiteContent = {
     footer_text: "Freshly brewed coffee, honest food and a warm welcome — every single day.",
   },
   about: {
+    eyebrow: "About",
+    button_label: "Explore the menu",
+    button_href: "/menu",
     hero_image: heroImg,
     title: "Our story",
     intro:
@@ -147,8 +228,16 @@ export const DEFAULT_SITE_CONTENT: SiteContent = {
       "Browse by category or search for what you are craving, then add it straight to your order.",
     show_images: true,
     show_categories: true,
+    search_placeholder: "Search the menu…",
   },
   contact_page: {
+    eyebrow: "Contact",
+    visit_title: "Visit",
+    call_title: "Call",
+    email_title: "Email",
+    hours_title: "Opening hours",
+    cta_button_label: "Order Now",
+    cta_button_href: "/menu",
     title: "Come say hello",
     description:
       "Questions about an order, a booking or a large group? Call us or drop by the cafe — we are happy to help.",
@@ -176,8 +265,32 @@ export const mergeContent = (stored: unknown): SiteContent => {
       }
     }
   }
+  // Keep every homepage section in the list, even ones added after the content was saved.
+  const ids = DEFAULT_SITE_CONTENT.layout.home_sections.map((x) => x.id);
+  const seen = new Set<string>();
+  const list = (Array.isArray(out.layout.home_sections) ? out.layout.home_sections : []).filter(
+    (x: any) => x && ids.includes(x.id) && !seen.has(x.id) && seen.add(x.id)
+  ).map((x: any) => ({ id: x.id, visible: x.visible !== false }));
+  for (const id of ids) if (!seen.has(id)) list.push({ id, visible: true });
+  out.layout.home_sections = list;
   return out as SiteContent;
 };
+
+/* Draft & preview: unpublished edits stay in this browser until Publish. */
+const DRAFT_KEY = "lamahamar_site_draft_v1";
+const PREVIEW_FLAG = "lamahamar_site_preview";
+export const saveDraft = (c: SiteContent) => localStorage.setItem(DRAFT_KEY, JSON.stringify(c));
+export const loadDraft = (): SiteContent | null => {
+  try { const raw = localStorage.getItem(DRAFT_KEY); return raw ? mergeContent(JSON.parse(raw)) : null; } catch { return null; }
+};
+export const clearDraft = () => localStorage.removeItem(DRAFT_KEY);
+export const isPreviewMode = (): boolean => {
+  try {
+    if (new URLSearchParams(window.location.search).get("preview") === "1") sessionStorage.setItem(PREVIEW_FLAG, "1");
+    return sessionStorage.getItem(PREVIEW_FLAG) === "1" && !!localStorage.getItem(DRAFT_KEY);
+  } catch { return false; }
+};
+export const exitPreview = () => { sessionStorage.removeItem(PREVIEW_FLAG); window.location.href = window.location.pathname; };
 
 let cache: SiteContent | null = null;
 export const getCachedContent = (): SiteContent => cache ?? DEFAULT_SITE_CONTENT;
@@ -222,15 +335,18 @@ export const useSiteContent = (): SiteContent => {
   useEffect(() => {
     let alive = true;
     const load = () => {
+      if (isPreviewMode()) { const d = loadDraft(); if (d) { setContent(d); return; } }
       fetchSiteContent()
         .then((c) => alive && setContent(c))
         .catch(() => {});
     };
     load();
     window.addEventListener("site-content-updated", load);
+    window.addEventListener("storage", load);
     return () => {
       alive = false;
       window.removeEventListener("site-content-updated", load);
+      window.removeEventListener("storage", load);
     };
   }, []);
 
