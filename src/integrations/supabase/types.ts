@@ -1127,6 +1127,10 @@ export type Database = {
         Args: { district: string; order_type: string }
         Returns: number
       }
+      customer_meal_available: {
+        Args: { at_time?: string; cid: string; config: Json; pid: string }
+        Returns: boolean
+      }
       get_customer_order: { Args: { tracking_token: string }; Returns: Json }
       has_role: {
         Args: {
