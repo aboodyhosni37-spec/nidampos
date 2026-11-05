@@ -47,7 +47,8 @@ const getCheckoutRef = () => {
 
 const OrderPage = () => {
   const navigate = useNavigate();
-  const { lines, increment, decrement, remove, clear } = useCustomerCart();
+  const { lines, increment, decrement, remove, clear, lineAvailability } = useCustomerCart();
+  const blocked = lines.filter(l => !lineAvailability(l.product_id).available);
   const [store, setStore] = useState<StoreSettings>(DEFAULT_STORE_SETTINGS);
   const [settingsLoaded, setSettingsLoaded] = useState(false);
   const [orderType, setOrderType] = useState<OrderType>("DELIVERY");
@@ -84,6 +85,7 @@ const OrderPage = () => {
   const submit = async () => {
     if (inFlight.current || submitting) return;
     if (lines.length === 0) return;
+    if (blocked.length) return toast.error(`${blocked[0].name}: ${lineAvailability(blocked[0].product_id).message}`);
     if (!name.trim()) return toast.error("Please enter your name.");
     if (!phone.trim()) return toast.error("Please enter your phone number.");
     if (orderType === "DELIVERY" && !district)
@@ -202,13 +204,14 @@ const OrderPage = () => {
                   <div className="min-w-0 col-span-2 sm:col-span-1">
                     <p className="font-semibold leading-snug break-words">{l.name}</p>
                     <p className="text-sm text-muted-foreground tabular-nums">{formatMoney(l.price)} each</p>
+                    {!lineAvailability(l.product_id).available && <p role="status" className="text-xs text-destructive">{lineAvailability(l.product_id).message}</p>}
                   </div>
                   <div className="flex items-center rounded-full border border-border">
                     <Button type="button" variant="ghost" size="icon" aria-label={`Decrease ${l.name}`} onClick={() => decrement(l.product_id)} className="h-9 w-9 rounded-full">
                       <Minus className="h-4 w-4" />
                     </Button>
                     <span className="w-8 text-center font-bold tabular-nums">{l.qty}</span>
-                    <Button type="button" variant="ghost" size="icon" aria-label={`Increase ${l.name}`} onClick={() => increment(l.product_id)} className="h-9 w-9 rounded-full">
+                    <Button type="button" variant="ghost" size="icon" disabled={!lineAvailability(l.product_id).available} aria-label={`Increase ${l.name}`} onClick={() => increment(l.product_id)} className="h-9 w-9 rounded-full">
                       <Plus className="h-4 w-4" />
                     </Button>
                   </div>
@@ -383,7 +386,7 @@ const OrderPage = () => {
           <Button
             type="button"
             onClick={submit}
-            disabled={submitting || !settingsLoaded}
+            disabled={submitting || !settingsLoaded || blocked.length > 0}
             className="w-full min-h-[52px] rounded-lg bg-primary text-primary-foreground font-bold hover:bg-primary/90 transition-colors disabled:opacity-70 inline-flex items-center justify-center gap-2"
           >
             {submitting ? (
@@ -396,6 +399,7 @@ const OrderPage = () => {
               </>
             )}
           </Button>
+          {blocked.length > 0 && <p role="alert" className="text-sm text-destructive">Remove unavailable items before placing your order. Your saved orders are unchanged.</p>}
           <p className="text-xs text-muted-foreground text-center">
             You pay on delivery or at the cafe. Nothing is charged online.
           </p>

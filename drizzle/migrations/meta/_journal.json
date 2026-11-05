@@ -120,6 +120,27 @@
       "when": 1793895723469,
       "tag": "0016_table_selection_setting",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1793898179504,
+      "tag": "0017_customer_meal_schedule_validation",
+      "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1793898228549,
+      "tag": "0018_verify_customer_meal_boundaries",
+      "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1793898285774,
+      "tag": "0019_website_content_live_updates",
+      "breakpoints": true
     }
   ]
 }

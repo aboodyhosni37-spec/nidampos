@@ -1,4 +1,7 @@
 # Customer website and ordering
+- [x] Integrate meal schedules into existing Website Management and customer menu/cart; verified live cart controls and draft-only blocked checkout at desktop/mobile.
+- [x] Enforce meal availability on server checkout; frontend and database boundary tests passed, service-only checkout privileges retained.
+- [ ] Verify admin schedule publishing and a real meal-blocked checkout request; blocked by unavailable authorized staff PIN session, leaving live business schedules unchanged.
 - [x] Review the reuploaded customer website brief; requirements match the ongoing implementation.
 - [x] Redesign the customer website and menu using existing restaurant content and products; verify search, details and quantities.
 - [x] Add customer checkout/status and separate staff entry routes without breaking existing links.

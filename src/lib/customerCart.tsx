@@ -8,10 +8,17 @@ import {
   useState,
 } from "react";
 import type { CustomerCartLine, DbProduct } from "./storefront";
+import { loadMenu } from "./storefront";
+import { useMealAvailability } from "./useMealAvailability";
+import type { MealAvailability, MealSettings } from "./mealSchedule";
 
 const KEY = "lamahamar_customer_cart_v1";
 
 type Ctx = {
+  availability: (p: { id: string; category_id: string | null }) => MealAvailability;
+  lineAvailability: (id: string) => MealAvailability;
+  mealSettings: MealSettings;
+  now: Date;
   lines: CustomerCartLine[];
   count: number;
   subtotal: number;
@@ -41,6 +48,13 @@ const read = (): CustomerCartLine[] => {
 
 export const CustomerCartProvider = ({ children }: { children: React.ReactNode }) => {
   const [lines, setLines] = useState<CustomerCartLine[]>(() => read());
+  const { settings: mealSettings, now, availability } = useMealAvailability();
+  const [products, setProducts] = useState<DbProduct[] | null>(null);
+  useEffect(() => { loadMenu().then(m => setProducts(m.products)).catch(() => {}); }, []);
+  const lineAvailability = (id: string): MealAvailability => {
+    const p = products?.find(p => p.id === id);
+    return p ? availability(p) : { available: false, message: products ? "This item is no longer available." : "Checking availability…", periods: [] };
+  };
 
   useEffect(() => {
     try {
@@ -49,6 +63,7 @@ export const CustomerCartProvider = ({ children }: { children: React.ReactNode }
   }, [lines]);
 
   const add = useCallback((p: DbProduct, qty = 1) => {
+    if (!availability(p).available) return;
     setLines((prev) => {
       const i = prev.findIndex((l) => l.product_id === p.id);
       if (i >= 0) {
@@ -61,13 +76,14 @@ export const CustomerCartProvider = ({ children }: { children: React.ReactNode }
         { product_id: p.id, name: p.name, price: Number(p.price), qty },
       ];
     });
-  }, []);
+  }, [mealSettings, now]);
 
   const increment = useCallback((id: string) => {
+    if (!lineAvailability(id).available) return;
     setLines((prev) =>
       prev.map((l) => (l.product_id === id ? { ...l, qty: l.qty + 1 } : l))
     );
-  }, []);
+  }, [products, mealSettings, now]);
 
   const decrement = useCallback((id: string) => {
     setLines((prev) =>
@@ -85,6 +101,7 @@ export const CustomerCartProvider = ({ children }: { children: React.ReactNode }
 
   const value = useMemo<Ctx>(
     () => ({
+      availability, lineAvailability, mealSettings, now,
       lines,
       count: lines.reduce((s, l) => s + l.qty, 0),
       subtotal: lines.reduce((s, l) => s + l.price * l.qty, 0),
@@ -94,7 +111,7 @@ export const CustomerCartProvider = ({ children }: { children: React.ReactNode }
       remove,
       clear,
     }),
-    [lines, add, increment, decrement, remove, clear]
+    [lines, add, increment, decrement, remove, clear, products, mealSettings, now]
   );
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
