@@ -1,1 +1,2 @@
 - Super Admin panel (/super-admin) uses Lovable Cloud email auth + user_roles/has_role, separate from POS PIN sessions — keeps platform admin isolated from staff logins.
+- Cart item rows and summary are presentation-only components; POS retains all state, calculations and action handlers so visual redesigns do not change order behavior.
