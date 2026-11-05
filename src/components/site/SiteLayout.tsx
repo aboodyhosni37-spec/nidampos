@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 import { useCustomerCart } from "@/lib/customerCart";
 import { exitPreview, isPreviewMode, useSiteContent, type SiteContent } from "@/lib/siteContent";
-import { useForcedLightTheme } from "@/lib/theme";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
@@ -55,7 +55,6 @@ export const SiteBrand = ({
 };
 
 const SiteLayout = () => {
-  useForcedLightTheme();
   const content = useSiteContent();
   const { count } = useCustomerCart();
   const [open, setOpen] = useState(false);
@@ -101,7 +100,7 @@ const SiteLayout = () => {
         </div>
       )}
       <header className="sticky top-0 z-40 border-b border-border bg-background/90 backdrop-blur-xl">
-        <div className="mx-auto max-w-7xl px-5 sm:px-8 lg:px-12 h-20 flex items-center justify-between gap-4">
+        <div className="mx-auto max-w-7xl px-4 sm:px-8 lg:px-12 min-h-20 py-3 flex flex-wrap items-center justify-between gap-3">
           <SiteBrand content={content} />
 
           <nav className="hidden md:flex items-center gap-1">
@@ -125,6 +124,7 @@ const SiteLayout = () => {
           </nav>
 
           <div className="flex items-center gap-2">
+            <ThemeToggle compact />
             <Link
               to="/checkout"
               className="relative inline-flex items-center gap-2 h-11 px-4 sm:px-5 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 transition-colors shadow-soft"

@@ -1,4 +1,5 @@
 # Customer website and ordering
+- [x] Add customer Light/Dark/System controls through existing theme provider; verified persistence, device changes, customer pages/dialogs, cart controls, mobile widths and staff preference isolation.
 - [x] Integrate meal schedules into existing Website Management and customer menu/cart; verified live cart controls and draft-only blocked checkout at desktop/mobile.
 - [x] Enforce meal availability on server checkout; frontend and database boundary tests passed, service-only checkout privileges retained.
 - [ ] Verify admin schedule publishing and a real meal-blocked checkout request; blocked by unavailable authorized staff PIN session, leaving live business schedules unchanged.
