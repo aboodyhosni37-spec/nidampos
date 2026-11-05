@@ -22,6 +22,27 @@ export const ALL_PAYMENT_METHODS: PaymentMethod[] = [
   "Card",
 ];
 
+/**
+ * UI-only display names. Stored/sent values stay exactly as they are
+ * (e.g. "EVC-Plus"), so records, reports and integrations keep working.
+ */
+export const PAYMENT_METHOD_LABELS: Record<PaymentMethod, string> = {
+  Due: "Due",
+  "EVC-Plus": "EVC Plus",
+  "E-Dahab": "E-Dahab",
+  "Premier Wallet": "Premier Wallet",
+  Cash: "Cash",
+  Card: "Card",
+  Split: "Split",
+  Deposit: "Deposit",
+};
+
+/** Full display name for a payment method; unknown values fall back to the raw value. */
+export function paymentMethodLabel(method: PaymentMethod | string | null | undefined): string {
+  if (!method) return "";
+  return PAYMENT_METHOD_LABELS[method as PaymentMethod] ?? String(method);
+}
+
 export type Customer = {
   id: string;
   name: string;
