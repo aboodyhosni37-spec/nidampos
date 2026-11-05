@@ -10,20 +10,14 @@ import {
   MessageCircle,
   Phone,
   ShoppingBag,
+  Music2,
   X,
 } from "lucide-react";
 import { useCustomerCart } from "@/lib/customerCart";
-import { useSiteContent, type SiteContent } from "@/lib/siteContent";
+import { exitPreview, isPreviewMode, useSiteContent, type SiteContent } from "@/lib/siteContent";
 import { useForcedLightTheme } from "@/lib/theme";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-
-const NAV = [
-  { to: "/", label: "Home" },
-  { to: "/about", label: "About" },
-  { to: "/menu", label: "Menu" },
-  { to: "/contact", label: "Contact" },
-];
 
 export const SiteBrand = ({
   className,
@@ -88,14 +82,24 @@ const SiteLayout = () => {
     link.href = content.brand.favicon_url || "/favicon.png";
   }, [content.brand.favicon_url]);
 
+  const NAV = content.nav.links.filter((n) => n.visible && n.label && n.href).map((n) => ({ to: n.href, label: n.label }));
+  const preview = isPreviewMode();
+  const hours = [{ label: content.contact.hours_label, value: content.contact.hours_value }, ...content.contact.extra_hours].filter((h) => h.label || h.value);
   const socials = [
     { url: content.contact.facebook, icon: Facebook, label: "Facebook" },
     { url: content.contact.instagram, icon: Instagram, label: "Instagram" },
     { url: content.contact.whatsapp, icon: MessageCircle, label: "WhatsApp" },
+    { url: content.contact.tiktok, icon: Music2, label: "TikTok" },
   ].filter((s) => !!s.url);
 
   return (
     <div className="customer-site min-h-screen flex flex-col bg-background">
+      {preview && (
+        <div className="bg-foreground text-background text-xs text-center py-2 px-4">
+          Preview of unpublished changes —{" "}
+          <button type="button" className="underline font-semibold" onClick={exitPreview}>exit preview</button>
+        </div>
+      )}
       <header className="sticky top-0 z-40 border-b border-border bg-background/90 backdrop-blur-xl">
         <div className="mx-auto max-w-7xl px-5 sm:px-8 lg:px-12 h-20 flex items-center justify-between gap-4">
           <SiteBrand content={content} />
@@ -126,7 +130,7 @@ const SiteLayout = () => {
               className="relative inline-flex items-center gap-2 h-11 px-4 sm:px-5 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 transition-colors shadow-soft"
             >
               <ShoppingBag className="h-4 w-4" />
-              <span className="hidden sm:inline">Order Now</span>
+              <span className="hidden sm:inline">{content.nav.order_button_label || "Order Now"}</span>
               {count > 0 && (
                 <span className="absolute -top-1.5 -right-1.5 min-w-5 h-5 px-1 rounded-full bg-foreground text-background text-[11px] font-bold flex items-center justify-center">
                   {count}
@@ -196,7 +200,7 @@ const SiteLayout = () => {
             )}
           </div>
           <div>
-            <h3 className="text-sm font-bold mb-3">Explore</h3>
+            <h3 className="text-sm font-bold mb-3">{content.footer.explore_title}</h3>
             <ul className="space-y-2 text-sm text-muted-foreground">
               {NAV.map((n) => (
                 <li key={n.to}>
@@ -205,15 +209,17 @@ const SiteLayout = () => {
                   </Link>
                 </li>
               ))}
-              <li>
-                <Link to="/checkout" className="hover:text-primary transition-colors">
-                  Order Now
-                </Link>
-              </li>
+              {content.footer.show_order_link && (
+                <li>
+                  <Link to="/checkout" className="hover:text-primary transition-colors">
+                    {content.nav.order_button_label || "Order Now"}
+                  </Link>
+                </li>
+              )}
             </ul>
           </div>
           <div>
-            <h3 className="text-sm font-bold mb-3">Visit us</h3>
+            <h3 className="text-sm font-bold mb-3">{content.footer.visit_title}</h3>
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li className="flex items-start gap-2">
                 <MapPin className="h-4 w-4 mt-0.5 text-primary shrink-0" />
@@ -230,25 +236,27 @@ const SiteLayout = () => {
             </ul>
           </div>
           <div>
-            <h3 className="text-sm font-bold mb-3">Opening hours</h3>
+            <h3 className="text-sm font-bold mb-3">{content.footer.hours_title}</h3>
             <ul className="space-y-2 text-sm text-muted-foreground">
-              <li className="flex justify-between gap-4">
-                <span>{content.contact.hours_label}</span>
-                <span className="font-medium text-foreground">
-                  {content.contact.hours_value}
-                </span>
-              </li>
+              {hours.map((h, i) => (
+                <li key={i} className="flex justify-between gap-4">
+                  <span>{h.label}</span>
+                  <span className="font-medium text-foreground">{h.value}</span>
+                </li>
+              ))}
             </ul>
           </div>
         </div>
         <div className="border-t border-border">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 py-5 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-muted-foreground">
             <span>
-              © {new Date().getFullYear()} {content.brand.name}. All rights reserved.
+              {content.footer.copyright || `© ${new Date().getFullYear()} ${content.brand.name}. All rights reserved.`}
             </span>
-            <Link to="/staff/login" className="hover:text-primary transition-colors">
-              Staff login
-            </Link>
+            {content.nav.show_staff_login && (
+              <Link to="/staff/login" className="hover:text-primary transition-colors">
+                Staff login
+              </Link>
+            )}
           </div>
         </div>
       </footer>

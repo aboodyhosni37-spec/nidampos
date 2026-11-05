@@ -170,7 +170,7 @@ export const DEFAULT_SITE_CONTENT: SiteContent = {
     visit_title: "",
     visit_order_label: "Order Now",
     visit_contact_label: "Contact us",
-    hero_badge: "Fresh · Local · Roasted daily",
+    hero_badge: "",
     hero_title: "LamaHamar Cafe",
     hero_subtitle:
       "A warm corner of Mogadishu for great coffee, fresh food and unhurried conversation.",

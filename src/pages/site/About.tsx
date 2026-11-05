@@ -18,11 +18,11 @@ const About = () => {
             className="h-full w-full object-cover"
             loading="lazy"
           />
-          <div className="absolute inset-0 bg-foreground/70" />
+          <div className="absolute inset-0 bg-foreground/70" style={{ opacity: Math.max(0, Math.min(100, content.theme.hero_shade)) / 100 }} />
         </div>
         <div className="relative mx-auto max-w-6xl px-4 sm:px-6 py-20 sm:py-28 text-background">
           <span className="text-xs font-bold uppercase tracking-[0.22em] text-background/70">
-            About
+            {about.eyebrow}
           </span>
           <h1 className="mt-3 text-4xl sm:text-5xl font-extrabold tracking-tight">
             {about.title}
@@ -44,12 +44,12 @@ const About = () => {
               {about.story_text_2}
             </p>
           )}
-          <Link
-            to="/menu"
+          {about.button_label && <Link
+            to={about.button_href || "/menu"}
             className="inline-flex items-center gap-2 h-12 px-6 rounded-xl bg-primary text-primary-foreground font-semibold hover:bg-primary/90 transition-colors"
           >
-            Explore the menu <ArrowRight className="h-4 w-4" />
-          </Link>
+            {about.button_label} <ArrowRight className="h-4 w-4" />
+          </Link>}
         </div>
         <div className="rounded-3xl overflow-hidden shadow-elegant">
           <img
