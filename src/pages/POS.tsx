@@ -1949,7 +1949,7 @@ const POS = () => {
               <a href={qrPayload}>Open dialer</a>
             </Button>
             <p className="text-[11px] text-muted-foreground text-center max-w-xs">
-              If the phone doesn't open the dialer (some iPhones block USSD links), open the Phone app and dial the code above manually. Order {orderId}.
+              If scanning opens a search page or nothing happens, the phone or scanner doesn't support USSD links: open the Phone app, dial the code above, and press Call. Order {orderId}.
             </p>
             <p className="text-[11px] font-medium text-center">Only confirm after you see the EVC Plus payment message.</p>
           </div>

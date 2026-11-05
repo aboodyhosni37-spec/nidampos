@@ -7,7 +7,12 @@ export function evcUssdCode(total: number): string {
   return `*789*${EVC_USSD_MERCHANT}*${amount}#`;
 }
 
-/** tel: link for the dialer. `#` must be percent-encoded or phones drop it. */
+/**
+ * tel: deep link for the dialer. Only `*` and `#` are percent-encoded
+ * (digits and "." stay literal). Raw `*` makes some QR scanners treat the
+ * content as plain text and offer a web search; raw `#` is cut off as a
+ * URL fragment.
+ */
 export function evcUssdTelLink(total: number): string {
-  return `tel:${evcUssdCode(total).replace(/#/g, "%23")}`;
+  return `tel:${evcUssdCode(total).replace(/\*/g, "%2A").replace(/#/g, "%23")}`;
 }
