@@ -1966,7 +1966,7 @@ const POS = () => {
   );
 };
 
-const methodIcon = (m: PaymentMethod) => {
+export const methodIcon = (m: PaymentMethod) => {
   if (m === "Cash") return <Banknote className="h-4 w-4" />;
   if (m === "Card") return <CreditCard className="h-4 w-4" />;
   if (m === "Due") return <Wallet className="h-4 w-4" />;
@@ -1977,7 +1977,7 @@ const methodIcon = (m: PaymentMethod) => {
   return <Wallet className="h-4 w-4" />;
 };
 
-const PayBtn = ({
+export const PayBtn = ({
   active,
   onClick,
   icon,
