@@ -17,28 +17,30 @@ export function CartItems({ items, money, onQuantity, onRemove }: CartItemsProps
     </div>;
   }
 
-  return <div>
-    <div className="sticky top-0 z-10 hidden grid-cols-[minmax(0,1fr)_72px_116px_80px_40px] items-center gap-2 border-b border-border bg-secondary px-3 py-2 text-xs font-medium text-muted-foreground sm:grid">
-      <span>Product</span><span className="text-right">Unit Price</span>
-      <span className="text-center">Quantity</span><span className="text-right">Total</span>
+  return <div className="cart-items">
+    <div className="cart-table-head sticky top-0 z-10 border-b border-border bg-secondary text-xs font-medium text-muted-foreground">
+      <span>Item</span>
+      <span className="text-right">Price</span>
+      <span className="text-center">Qty</span>
+      <span className="text-right">Total</span>
       <span className="text-center"><Trash2 className="mx-auto h-3.5 w-3.5" aria-label="Remove" /></span>
     </div>
     <ul className="divide-y divide-border">
-      {items.map(item => <li key={item.id} className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-2 gap-y-2 px-3 py-3 sm:grid-cols-[minmax(0,1fr)_72px_116px_80px_40px] sm:py-2.5">
-        <div className="min-w-0 text-sm font-medium leading-5 [overflow-wrap:anywhere]">
+      {items.map(item => <li key={item.id} className="cart-row">
+        <div className="cart-name min-w-0 text-sm font-medium leading-5 [overflow-wrap:anywhere]">
           {item.name}
-          <div className="mt-1 text-xs font-normal tabular-nums text-muted-foreground sm:hidden">{money(item.price)} each</div>
+          <div className="cart-each mt-1 text-xs font-normal tabular-nums text-muted-foreground">{money(item.price)} each</div>
         </div>
-        <span className="hidden break-words text-right text-sm tabular-nums text-muted-foreground sm:block">{money(item.price)}</span>
-        <div className="col-start-1 row-start-2 flex items-center sm:col-start-3 sm:row-start-1 sm:justify-center">
+        <span className="cart-unit text-sm tabular-nums text-muted-foreground [overflow-wrap:anywhere]">{money(item.price)}</span>
+        <div className="cart-qty">
           <div className="inline-flex items-center overflow-hidden rounded-md border border-border bg-card">
-            <Button variant="ghost" size="icon" className="h-10 w-9 shrink-0 rounded-none" aria-label={`Decrease ${item.name}`} onClick={() => onQuantity(item.id, -1)}><Minus className="h-4 w-4" /></Button>
-            <span className="min-w-9 px-1 text-center text-sm font-semibold tabular-nums">{item.qty}</span>
-            <Button variant="ghost" size="icon" className="h-10 w-9 shrink-0 rounded-none" aria-label={`Increase ${item.name}`} onClick={() => onQuantity(item.id, 1)}><Plus className="h-4 w-4" /></Button>
+            <Button variant="ghost" size="icon" className="h-9 w-9 shrink-0 rounded-none" aria-label={`Decrease ${item.name}`} onClick={() => onQuantity(item.id, -1)}><Minus className="h-4 w-4" /></Button>
+            <span className="min-w-8 px-1 text-center text-sm font-semibold tabular-nums">{item.qty}</span>
+            <Button variant="ghost" size="icon" className="h-9 w-9 shrink-0 rounded-none" aria-label={`Increase ${item.name}`} onClick={() => onQuantity(item.id, 1)}><Plus className="h-4 w-4" /></Button>
           </div>
         </div>
-        <span className="col-start-2 row-start-2 justify-self-end text-right text-sm font-semibold tabular-nums sm:col-start-4 sm:row-start-1 [overflow-wrap:anywhere]">{money(item.price * item.qty)}</span>
-        <Button variant="ghost" size="icon" className="col-start-2 row-start-1 h-10 w-10 justify-self-end rounded-md text-muted-foreground hover:bg-destructive/10 hover:text-destructive sm:col-start-5" aria-label={`Remove ${item.name}`} onClick={() => onRemove(item.id)}><Trash2 className="h-4 w-4" /></Button>
+        <span className="cart-total text-sm font-semibold tabular-nums [overflow-wrap:anywhere]">{money(item.price * item.qty)}</span>
+        <Button variant="ghost" size="icon" className="cart-remove h-8 w-8 rounded-md text-muted-foreground hover:bg-destructive/10 hover:text-destructive" aria-label={`Remove ${item.name}`} onClick={() => onRemove(item.id)}><Trash2 className="h-4 w-4" /></Button>
       </li>)}
     </ul>
   </div>;
