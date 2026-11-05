@@ -220,3 +220,10 @@
 
 }
 
+
+/* Customer-only presentation: never inherited by the staff POS. */
+.customer-site { font-family: 'Work Sans', 'Segoe UI', sans-serif; letter-spacing: 0; }
+.customer-site .font-serif { font-family: 'Lora', Georgia, serif; font-weight: 500; letter-spacing: 0; }
+.customer-hero-shade { background: linear-gradient(90deg, hsl(var(--primary) / .86), hsl(var(--primary) / .52) 55%, hsl(var(--primary) / .1)); }
+.customer-category-shade { background: linear-gradient(0deg, hsl(var(--primary) / .82), hsl(var(--primary) / .05)); }
+@media (prefers-reduced-motion: reduce) { .customer-site *, .customer-site *::before, .customer-site *::after { animation: none !important; transition: none !important; } }

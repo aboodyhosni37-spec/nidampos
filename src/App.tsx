@@ -58,10 +58,14 @@ const App = () => (
             <Route path="/menu" element={<MenuPage />} />
             <Route path="/contact" element={<ContactPage />} />
             <Route path="/order" element={<OrderPage />} />
+            <Route path="/checkout" element={<OrderPage />} />
           </Route>
 
           {/* Staff area (unchanged) */}
           <Route path="/login" element={<Index />} />
+          <Route path="/staff/login" element={<Index />} />
+          <Route path="/staff/pos" element={<Navigate to="/dashboard/pos" replace />} />
+          <Route path="/staff/dashboard" element={<Navigate to="/dashboard" replace />} />
           <Route path="/staff" element={<Navigate to="/login" replace />} />
           <Route path="/staff/website" element={<Navigate to="/dashboard/website" replace />} />
           <Route path="/pos" element={<Navigate to="/dashboard/pos" replace />} />
