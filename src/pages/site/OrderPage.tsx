@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
 import {
   ArrowRight,
   Bike,
@@ -108,16 +109,16 @@ const OrderPage = () => {
   if (placed) {
     return (
       <div className="mx-auto max-w-xl px-4 sm:px-6 py-20 text-center">
-        <span className="mx-auto h-16 w-16 rounded-2xl bg-secondary text-primary flex items-center justify-center">
+        <span className="mx-auto h-16 w-16 rounded-lg bg-secondary text-primary flex items-center justify-center">
           <CheckCircle2 className="h-8 w-8" />
         </span>
-        <h1 className="mt-6 text-3xl font-extrabold tracking-tight">Order received</h1>
+        <h1 className="mt-6 text-3xl font-serif">Order received</h1>
         <p className="mt-3 text-muted-foreground">
           Your order number is{" "}
           <span className="font-bold text-foreground">#{placed.number}</span>. Our team has
           it now and will confirm with you shortly.
         </p>
-        <div className="mt-6 rounded-2xl border border-border bg-card p-5 text-left space-y-2 text-sm">
+        <div className="mt-6 rounded-lg border border-border bg-card p-5 text-left space-y-2 text-sm">
           <div className="flex justify-between">
             <span className="text-muted-foreground">Amount to pay</span>
             <span className="font-bold tabular-nums">{formatMoney(placed.total)}</span>
@@ -129,7 +130,7 @@ const OrderPage = () => {
         </div>
         <Link
           to="/menu"
-          className="mt-8 inline-flex items-center gap-2 h-12 px-6 rounded-xl bg-primary text-primary-foreground font-semibold hover:bg-primary/90 transition-colors"
+          className="mt-8 inline-flex items-center gap-2 h-12 px-6 rounded-lg bg-primary text-primary-foreground font-semibold hover:bg-primary/90 transition-colors"
         >
           Order something else <ArrowRight className="h-4 w-4" />
         </Link>
@@ -140,16 +141,16 @@ const OrderPage = () => {
   if (lines.length === 0) {
     return (
       <div className="mx-auto max-w-xl px-4 sm:px-6 py-20 text-center">
-        <span className="mx-auto h-16 w-16 rounded-2xl bg-secondary text-primary flex items-center justify-center">
+        <span className="mx-auto h-16 w-16 rounded-lg bg-secondary text-primary flex items-center justify-center">
           <ShoppingBag className="h-8 w-8" />
         </span>
-        <h1 className="mt-6 text-3xl font-extrabold tracking-tight">Your order is empty</h1>
+        <h1 className="mt-6 text-3xl font-serif">Your order is empty</h1>
         <p className="mt-3 text-muted-foreground">
           Add a few items from the menu and they will show up here.
         </p>
         <Link
           to="/menu"
-          className="mt-8 inline-flex items-center gap-2 h-12 px-6 rounded-xl bg-primary text-primary-foreground font-semibold hover:bg-primary/90 transition-colors"
+          className="mt-8 inline-flex items-center gap-2 h-12 px-6 rounded-lg bg-primary text-primary-foreground font-semibold hover:bg-primary/90 transition-colors"
         >
           Browse the menu <ArrowRight className="h-4 w-4" />
         </Link>
@@ -159,7 +160,7 @@ const OrderPage = () => {
 
   return (
     <div className="mx-auto max-w-6xl px-4 sm:px-6 py-10 sm:py-14">
-      <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight">Your order</h1>
+      <h1 className="text-3xl sm:text-4xl font-serif">Your order</h1>
       <p className="mt-2 text-muted-foreground">
         Check your items, choose delivery or dine-in, and we will take it from there.
       </p>
@@ -167,62 +168,62 @@ const OrderPage = () => {
       <div className="mt-8 grid gap-6 lg:grid-cols-[minmax(0,1fr)_380px] xl:grid-cols-[minmax(0,1fr)_420px] items-start">
         {/* ITEMS + DETAILS */}
         <div className="space-y-6">
-          <section className="rounded-2xl border border-border bg-card shadow-soft overflow-hidden">
+          <section className="overflow-hidden border-b border-border">
             <header className="h-14 px-5 border-b border-border flex items-center justify-between">
               <h2 className="font-bold">Items</h2>
-              <button
+              <Button
                 type="button"
                 onClick={clear}
                 className="text-xs font-semibold text-muted-foreground hover:text-destructive"
               >
                 Clear all
-              </button>
+              </Button>
             </header>
             <ul className="divide-y divide-border">
               {lines.map((l) => (
-                <li key={l.product_id} className="p-4 sm:p-5 flex items-center gap-4">
-                  <div className="min-w-0 flex-1">
+                <li key={l.product_id} className="grid grid-cols-[minmax(0,1fr)_auto] gap-3 p-4 sm:flex sm:items-center sm:gap-4 sm:p-5">
+                  <div className="col-span-2 min-w-0 flex-1">
                     <p className="font-semibold leading-snug break-words">{l.name}</p>
                     <p className="text-sm text-muted-foreground tabular-nums">
                       {formatMoney(l.price)} each
                     </p>
                   </div>
                   <div className="flex items-center gap-1.5 shrink-0">
-                    <button
+                    <Button
                       type="button"
                       aria-label={`Decrease ${l.name}`}
                       onClick={() => decrement(l.product_id)}
-                      className="h-10 w-10 rounded-xl border border-border flex items-center justify-center hover:bg-secondary"
+                      className="h-10 w-10 rounded-lg border border-border flex items-center justify-center hover:bg-secondary"
                     >
                       <Minus className="h-4 w-4" />
-                    </button>
+                    </Button>
                     <span className="w-8 text-center font-bold tabular-nums">{l.qty}</span>
-                    <button
+                    <Button
                       type="button"
                       aria-label={`Increase ${l.name}`}
                       onClick={() => increment(l.product_id)}
-                      className="h-10 w-10 rounded-xl border border-border flex items-center justify-center hover:bg-secondary"
+                      className="h-10 w-10 rounded-lg border border-border flex items-center justify-center hover:bg-secondary"
                     >
                       <Plus className="h-4 w-4" />
-                    </button>
+                    </Button>
                   </div>
-                  <span className="w-20 text-right font-bold tabular-nums shrink-0">
+                  <span className="w-auto text-right font-bold tabular-nums sm:w-20 sm:shrink-0">
                     {formatMoney(l.price * l.qty)}
                   </span>
-                  <button
+                  <Button
                     type="button"
                     aria-label={`Remove ${l.name}`}
                     onClick={() => remove(l.product_id)}
-                    className="h-10 w-10 shrink-0 rounded-xl flex items-center justify-center text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                    className="h-10 w-10 shrink-0 rounded-lg flex items-center justify-center text-muted-foreground hover:text-destructive hover:bg-destructive/10"
                   >
                     <Trash2 className="h-4 w-4" />
-                  </button>
+                  </Button>
                 </li>
               ))}
             </ul>
           </section>
 
-          <section className="rounded-2xl border border-border bg-card shadow-soft p-5 sm:p-6 space-y-5">
+          <section className="space-y-5 py-5">
             <h2 className="font-bold">How would you like it?</h2>
             <div className="grid grid-cols-2 gap-3">
               {(
@@ -233,13 +234,13 @@ const OrderPage = () => {
               ).map((o) => {
                 const disabled = o.key === "DELIVERY" && !store.delivery_enabled;
                 return (
-                  <button
+                  <Button
                     key={o.key}
                     type="button"
                     disabled={disabled}
                     onClick={() => setOrderType(o.key)}
                     className={cn(
-                      "rounded-xl border p-4 text-left transition-colors min-h-[76px]",
+                      "rounded-lg border p-4 text-left transition-colors min-h-[76px]",
                       orderType === o.key
                         ? "border-primary bg-secondary"
                         : "border-border hover:bg-secondary/50",
@@ -251,7 +252,7 @@ const OrderPage = () => {
                     <p className="text-xs text-muted-foreground">
                       {disabled ? "Unavailable" : o.hint}
                     </p>
-                  </button>
+                  </Button>
                 );
               })}
             </div>
@@ -262,7 +263,7 @@ const OrderPage = () => {
                 <input
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="w-full h-12 px-3.5 rounded-xl border border-input bg-background text-sm outline-none focus:ring-2 focus:ring-ring/40"
+                  className="w-full h-12 px-3.5 rounded-lg border border-input bg-background text-sm outline-none focus:ring-2 focus:ring-ring/40"
                   placeholder="Your name"
                 />
               </label>
@@ -272,7 +273,7 @@ const OrderPage = () => {
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   inputMode="tel"
-                  className="w-full h-12 px-3.5 rounded-xl border border-input bg-background text-sm outline-none focus:ring-2 focus:ring-ring/40"
+                  className="w-full h-12 px-3.5 rounded-lg border border-input bg-background text-sm outline-none focus:ring-2 focus:ring-ring/40"
                   placeholder="+252 …"
                 />
               </label>
@@ -283,7 +284,7 @@ const OrderPage = () => {
                     <select
                       value={district}
                       onChange={(e) => setDistrict(e.target.value)}
-                      className="w-full h-12 px-3.5 rounded-xl border border-input bg-background text-sm outline-none focus:ring-2 focus:ring-ring/40"
+                      className="w-full h-12 px-3.5 rounded-lg border border-input bg-background text-sm outline-none focus:ring-2 focus:ring-ring/40"
                     >
                       <option value="">Select your district…</option>
                       {BANADIR_DISTRICTS.map((d) => (
@@ -298,7 +299,7 @@ const OrderPage = () => {
                     <input
                       value={address}
                       onChange={(e) => setAddress(e.target.value)}
-                      className="w-full h-12 px-3.5 rounded-xl border border-input bg-background text-sm outline-none focus:ring-2 focus:ring-ring/40"
+                      className="w-full h-12 px-3.5 rounded-lg border border-input bg-background text-sm outline-none focus:ring-2 focus:ring-ring/40"
                       placeholder="Street, neighborhood, landmark"
                     />
                   </label>
@@ -309,7 +310,7 @@ const OrderPage = () => {
                   <select
                     value={table}
                     onChange={(e) => setTable(e.target.value)}
-                    className="w-full h-12 px-3.5 rounded-xl border border-input bg-background text-sm outline-none focus:ring-2 focus:ring-ring/40"
+                    className="w-full h-12 px-3.5 rounded-lg border border-input bg-background text-sm outline-none focus:ring-2 focus:ring-ring/40"
                   >
                     {tables.map((t) => (
                       <option key={t} value={t}>
@@ -325,7 +326,7 @@ const OrderPage = () => {
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
                   rows={3}
-                  className="w-full p-3.5 rounded-xl border border-input bg-background text-sm outline-none focus:ring-2 focus:ring-ring/40 resize-none"
+                  className="w-full p-3.5 rounded-lg border border-input bg-background text-sm outline-none focus:ring-2 focus:ring-ring/40 resize-none"
                   placeholder="Anything we should know?"
                 />
               </label>
@@ -334,7 +335,7 @@ const OrderPage = () => {
         </div>
 
         {/* SUMMARY */}
-        <aside className="rounded-2xl border border-border bg-card shadow-soft p-5 sm:p-6 space-y-4 lg:sticky lg:top-24">
+        <aside className="space-y-4 rounded-lg border border-border bg-secondary/40 p-5 sm:p-6 lg:sticky lg:top-24">
           <h2 className="font-bold">Summary</h2>
           <dl className="space-y-2.5 text-sm">
             <div className="flex justify-between">
@@ -376,11 +377,11 @@ const OrderPage = () => {
               {formatMoney(totals.total)}
             </span>
           </div>
-          <button
+          <Button
             type="button"
             onClick={submit}
             disabled={submitting}
-            className="w-full min-h-[52px] rounded-xl bg-primary text-primary-foreground font-bold hover:bg-primary/90 transition-colors disabled:opacity-70 inline-flex items-center justify-center gap-2"
+            className="w-full min-h-[52px] rounded-lg bg-primary text-primary-foreground font-bold hover:bg-primary/90 transition-colors disabled:opacity-70 inline-flex items-center justify-center gap-2"
           >
             {submitting ? (
               <>
@@ -391,7 +392,7 @@ const OrderPage = () => {
                 Place order <ArrowRight className="h-4 w-4" />
               </>
             )}
-          </button>
+          </Button>
           <p className="text-xs text-muted-foreground text-center">
             You pay on delivery or at the cafe. Nothing is charged online.
           </p>
