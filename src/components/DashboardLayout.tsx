@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard,
@@ -33,6 +33,7 @@ import {
 } from "@/components/ui/alert-dialog";
 
 import type { Permission } from "@/lib/permissions";
+import { supabase } from "@/integrations/supabase/client";
 
 const nav: { to: string; label: string; icon: any; perm?: Permission }[] = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -54,6 +55,17 @@ export const DashboardLayout = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [exitConfirm, setExitConfirm] = useState(false);
   const user = getSession();
+
+  useEffect(() => {
+    if (!user?.id || !user.permissions?.access_orders || location.pathname === "/dashboard/orders") return;
+    const channel = supabase.channel(`staff-online-orders-${crypto.randomUUID()}`).on(
+      "postgres_changes", { event: "INSERT", schema: "public", table: "invoices" },
+      ({ new: order }) => {
+        if (order.source === "online") toast({ title: `New online order #${order.number}`, description: "A customer order is awaiting confirmation in Orders." });
+      },
+    ).subscribe();
+    return () => { void supabase.removeChannel(channel); };
+  }, [user?.id, user?.permissions?.access_orders, location.pathname]);
 
   const isOwner = user?.role === "admin" || user?.role === "owner";
   const visibleNav = nav.filter(
