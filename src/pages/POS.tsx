@@ -596,14 +596,6 @@ const POS = () => {
   // EVC Plus USSD QR: regenerates whenever the grand total changes.
   const ussdCode = useMemo(() => evcUssdCode(total), [total]);
   const qrPayload = useMemo(() => evcUssdTelLink(total), [total]);
-  const copyUssd = async () => {
-    try {
-      await navigator.clipboard.writeText(ussdCode);
-      toast({ title: "Code copied", description: ussdCode });
-    } catch {
-      toast({ title: "Copy failed", description: `Dial ${ussdCode} manually.`, variant: "destructive" });
-    }
-  };
 
   const openQrPayment = () => {
     if (cart.length === 0) {
@@ -1941,17 +1933,7 @@ const POS = () => {
             <div className="bg-white p-5 rounded-2xl shadow-elegant">
               <QRCodeSVG key={qrPayload} value={qrPayload} size={240} level="H" />
             </div>
-            <div className="flex items-center gap-2">
-              <code className="text-base font-bold tabular-nums px-3 py-1.5 rounded-lg bg-muted select-all">{ussdCode}</code>
-              <Button type="button" size="sm" variant="outline" onClick={copyUssd} className="rounded-lg">Copy</Button>
-            </div>
-            <Button asChild variant="outline" className="rounded-xl w-full">
-              <a href={qrPayload}>Open dialer</a>
-            </Button>
-            <p className="text-[11px] text-muted-foreground text-center max-w-xs">
-              If scanning opens a search page or nothing happens, the phone or scanner doesn't support USSD links: open the Phone app, dial the code above, and press Call. Order {orderId}.
-            </p>
-            <p className="text-[11px] font-medium text-center">Only confirm after you see the EVC Plus payment message.</p>
+            <code className="text-base font-bold tabular-nums px-3 py-1.5 rounded-lg bg-muted">{ussdCode}</code>
           </div>
           <DialogFooter className="flex-col sm:flex-row gap-2">
             <Button variant="outline" onClick={() => setQrOpen(false)} className="rounded-xl">
