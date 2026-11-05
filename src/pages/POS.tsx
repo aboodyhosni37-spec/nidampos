@@ -923,7 +923,7 @@ const POS = () => {
         </div>
       </Card>
 
-      <div className={cn("grid grid-cols-1 gap-4 lg:h-[calc(100dvh-12rem)] lg:min-h-[460px] pb-20 lg:pb-0", desktopCartVisible ? "lg:grid-cols-[minmax(0,1fr)_minmax(360px,0.58fr)] xl:grid-cols-[minmax(0,1fr)_minmax(380px,0.5fr)] 2xl:grid-cols-[minmax(0,1fr)_minmax(400px,0.44fr)]" : "lg:grid-cols-1")}>
+      <div className={cn("grid grid-cols-1 gap-4 lg:h-[calc(100dvh-12rem)] lg:min-h-[460px] pb-20 lg:pb-0", desktopCartVisible ? "lg:grid-cols-[minmax(0,1fr)_minmax(380px,0.52fr)] xl:grid-cols-[minmax(0,1fr)_minmax(400px,0.46fr)] 2xl:grid-cols-[minmax(0,1fr)_minmax(420px,0.4fr)]" : "lg:grid-cols-1")}>
         {/* Products / Due Orders */}
         <div className="flex flex-col gap-3 min-h-0 min-w-0 h-[calc(100dvh-13rem)] min-h-[420px] lg:h-auto lg:min-h-0">
           {/* Categories */}
@@ -1081,7 +1081,7 @@ const POS = () => {
 
         {/* Cart */}
         <Card id="pos-cart" role="region" aria-label="Order cart" className={cn(
-          "flex-col overflow-hidden transition-colors min-h-0 min-w-0",
+          "pos-cart-container flex-col overflow-hidden transition-colors min-h-0 min-w-0",
           mobileCartOpen
             ? "flex fixed inset-0 z-50 h-[100dvh] rounded-none border-0 pt-[env(safe-area-inset-top)]"
             : "hidden",
