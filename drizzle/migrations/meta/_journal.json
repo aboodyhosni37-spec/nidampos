@@ -92,6 +92,13 @@
       "when": 1793893969034,
       "tag": "0012_customer_pos_tenant_access",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1793894119308,
+      "tag": "0013_preserve_pos_permissions_and_guest_tables",
+      "breakpoints": true
     }
   ]
 }

@@ -1139,6 +1139,7 @@ export type Database = {
       pos_restaurant_access: { Args: { rid: string }; Returns: boolean }
       resequence_invoice_numbers: { Args: never; Returns: number }
       submit_customer_order: { Args: { payload: Json }; Returns: Json }
+      validate_customer_table: { Args: { payload: Json }; Returns: Json }
     }
     Enums: {
       app_role: "super_admin" | "admin"
