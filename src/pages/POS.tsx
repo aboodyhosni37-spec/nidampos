@@ -1081,9 +1081,10 @@ const POS = () => {
 
         {/* Cart */}
         <Card id="pos-cart" role="region" aria-label="Order cart" className={cn(
-          "pos-cart-container flex-col overflow-hidden transition-colors min-h-0 min-w-0",
+          "flex-col overflow-hidden transition-colors min-h-0 min-w-0",
+          !mobileCartOpen && "pos-cart-container",
           mobileCartOpen
-            ? "flex fixed inset-0 z-50 h-[100dvh] rounded-none border-0 pt-[env(safe-area-inset-top)] [container-type:normal]"
+            ? "flex fixed inset-0 z-50 h-[100dvh] rounded-none border-0 pt-[env(safe-area-inset-top)]"
             : "hidden",
           desktopCartVisible
             ? "lg:flex lg:static lg:inset-auto lg:z-auto lg:h-auto lg:rounded-lg lg:border lg:pt-0"
