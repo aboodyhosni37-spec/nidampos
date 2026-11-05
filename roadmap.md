@@ -1,4 +1,5 @@
-# Cart redesign
+# Customer website and ordering
+- [x] Review the reuploaded customer website brief; requirements match the ongoing implementation.
 - [ ] Redesign the customer website and menu using existing restaurant content and products.
 - [ ] Add customer checkout/status and separate staff entry routes without breaking existing links.
 - [ ] Connect and verify guest orders and staff workflow safely; confirm backend availability and tenant security first.
