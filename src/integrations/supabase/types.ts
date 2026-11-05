@@ -1119,6 +1119,7 @@ export type Database = {
     }
     Functions: {
       claim_first_super_admin: { Args: never; Returns: boolean }
+      current_pos_restaurant: { Args: never; Returns: string }
       customer_delivery_fee: {
         Args: { district: string; order_type: string }
         Returns: number
