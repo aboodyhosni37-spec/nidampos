@@ -18,13 +18,13 @@ export function CartItems({ items, money, onQuantity, onRemove }: CartItemsProps
   }
 
   return <div>
-    <div className="sticky top-0 z-10 hidden grid-cols-[minmax(0,1fr)_72px_116px_80px_40px] items-center gap-2 border-b border-border bg-secondary px-3 py-2 text-xs font-medium text-muted-foreground sm:grid">
+    <div className="sticky top-0 z-10 hidden grid-cols-[minmax(0,1fr)_70px_110px_76px_36px] items-center gap-1.5 border-b border-border bg-secondary px-2.5 py-2 text-xs font-medium text-muted-foreground sm:grid">
       <span>Product</span><span className="text-right">Unit Price</span>
       <span className="text-center">Quantity</span><span className="text-right">Total</span>
       <span className="text-center"><Trash2 className="mx-auto h-3.5 w-3.5" aria-label="Remove" /></span>
     </div>
     <ul className="divide-y divide-border">
-      {items.map(item => <li key={item.id} className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-2 gap-y-2 px-3 py-3 sm:grid-cols-[minmax(0,1fr)_72px_116px_80px_40px] sm:py-2.5">
+      {items.map(item => <li key={item.id} className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-2 gap-y-2 px-3 py-3 sm:grid-cols-[minmax(0,1fr)_70px_110px_76px_36px] sm:gap-x-1.5 sm:px-2.5 sm:py-2.5">
         <div className="min-w-0 text-sm font-medium leading-5 [overflow-wrap:anywhere]">
           {item.name}
           <div className="mt-1 text-xs font-normal tabular-nums text-muted-foreground sm:hidden">{money(item.price)} each</div>
