@@ -1,5 +1,5 @@
 # Customer website and ordering
-- [ ] Integrate real Hormuud EVC Plus merchant checkout for merchant 622761; blocked by missing official API contract and merchant credentials. Preserve existing checkout until both are verified.
+- [ ] Integrate real Hormuud EVC Plus merchant checkout for merchant 622761; blocked by missing official payment API contract and merchant credentials. Supplied Documentation.pdf verified as SMS-only, not payment authorization or settlement documentation. Preserve existing checkout until both are verified.
 - [x] Add customer Light/Dark/System controls through existing theme provider; verified persistence, device changes, customer pages/dialogs, cart controls, mobile widths and staff preference isolation.
 - [x] Integrate meal schedules into existing Website Management and customer menu/cart; verified live cart controls and draft-only blocked checkout at desktop/mobile.
 - [x] Enforce meal availability on server checkout; frontend and database boundary tests passed, service-only checkout privileges retained.
