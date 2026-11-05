@@ -25,6 +25,9 @@ import {
   QrCode,
   Loader2,
   PiggyBank,
+  Smartphone,
+  Send,
+  Coins,
 } from "lucide-react";
 
 import { QRCodeSVG } from "qrcode.react";
@@ -85,6 +88,7 @@ import { toast } from "@/hooks/use-toast";
 import {
   ALL_PAYMENT_METHODS,
   MOBILE_METHODS,
+  paymentMethodLabel,
   createCustomer,
   createInvoice,
   listCustomers,
@@ -1310,7 +1314,7 @@ const POS = () => {
                       }
                     }}
                     icon={methodIcon(m)}
-                    label={m}
+                    label={paymentMethodLabel(m)}
                   />
                 ))}
               </div>
@@ -1366,7 +1370,7 @@ const POS = () => {
                       className="rounded-lg h-9 text-sm"
                     />
                     <div className="flex justify-between text-xs text-muted-foreground">
-                      <span>Paid via {payment}: <b>${effectivePaid.toFixed(2)}</b></span>
+                      <span>Paid via {paymentMethodLabel(payment)}: <b>${effectivePaid.toFixed(2)}</b></span>
                       <span>On Due: <b>${effectiveDue.toFixed(2)}</b></span>
                     </div>
                   </div>
@@ -1880,7 +1884,7 @@ const POS = () => {
                           : "bg-card border-border hover:border-primary/40"
                       )}
                     >
-                      {m}
+                      {paymentMethodLabel(m)}
                     </button>
                   ))}
                 </div>
@@ -1967,7 +1971,10 @@ const methodIcon = (m: PaymentMethod) => {
   if (m === "Card") return <CreditCard className="h-4 w-4" />;
   if (m === "Due") return <Wallet className="h-4 w-4" />;
   if (m === "Deposit") return <PiggyBank className="h-4 w-4" />;
-  return <span className="text-[10px] font-bold">{m === "EVC-Plus" ? "EVC" : m === "Premier Wallet" ? "PRM" : "EDH"}</span>;
+  if (m === "EVC-Plus") return <Smartphone className="h-4 w-4" />;
+  if (m === "E-Dahab") return <Send className="h-4 w-4" />;
+  if (m === "Premier Wallet") return <Coins className="h-4 w-4" />;
+  return <Wallet className="h-4 w-4" />;
 };
 
 const PayBtn = ({
