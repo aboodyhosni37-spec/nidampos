@@ -795,7 +795,18 @@ const Settings = () => {
               <Switch
                 checked={sys.table_selection_enabled}
                 disabled={!canManageSystem}
-                onCheckedChange={(v) => setSysField("table_selection_enabled", v)}
+                onCheckedChange={async (v) => {
+                  const prev = sys;
+                  const next = { ...sys, table_selection_enabled: v };
+                  setSys(next);
+                  try {
+                    await saveSettings(next);
+                    toast({ title: v ? "Table selection turned on" : "Table selection turned off" });
+                  } catch (e: any) {
+                    setSys(prev);
+                    toast({ title: "Save failed", description: e.message, variant: "destructive" });
+                  }
+                }}
                 aria-label="Table Selection"
               />
             </div>
