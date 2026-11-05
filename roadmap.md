@@ -1,8 +1,10 @@
 # Customer website and ordering
 - [x] Review the reuploaded customer website brief; requirements match the ongoing implementation.
-- [ ] Redesign the customer website and menu using existing restaurant content and products.
-- [ ] Add customer checkout/status and separate staff entry routes without breaking existing links.
-- [ ] Connect and verify guest orders and staff workflow safely; confirm backend availability and tenant security first.
+- [x] Redesign the customer website and menu using existing restaurant content and products; verify search, details and quantities.
+- [x] Add customer checkout/status and separate staff entry routes without breaking existing links.
+- [x] Verify a real guest checkout saves one unpaid order; retries are idempotent and tracking is private; remove marked test records.
+- [x] Add online order indicators, notifications and fulfillment stages with cancellation safeguards.
+- [ ] Verify staff fulfillment transitions, notifications, payment/printer and tenant views through the actual POS; blocked by unavailable staff PIN session.
 - [x] Rebuild Cart items, compact controls and persistent summary without changing business logic.
 - [x] Inspect isolated POS at all five sizes with one/five products and presentation components with sixteen items, long names, varied quantities and discount/payment values.
 - [x] Verify current preview compilation and mobile toggle retention; existing visibility state and handlers unchanged.

@@ -49,6 +49,7 @@ const OrderPage = () => {
   const navigate = useNavigate();
   const { lines, increment, decrement, remove, clear } = useCustomerCart();
   const [store, setStore] = useState<StoreSettings>(DEFAULT_STORE_SETTINGS);
+  const [settingsLoaded, setSettingsLoaded] = useState(false);
   const [orderType, setOrderType] = useState<OrderType>("DELIVERY");
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
@@ -66,7 +67,7 @@ const OrderPage = () => {
   const inFlight = useRef(false);
 
   useEffect(() => {
-    fetchSettings().catch(() => {});
+    fetchSettings().then(() => setSettingsLoaded(true)).catch(() => {});
     fetchStoreSettings()
       .then((s) => {
         setStore(s);
@@ -78,7 +79,7 @@ const OrderPage = () => {
   // Delivery fee is fixed by the selected Banadir district — never editable.
   const deliveryFee =
     orderType === "DELIVERY" ? deliveryFeeForDistrict(district) : 0;
-  const totals = useMemo(() => computeOrderTotals(lines, deliveryFee), [lines, deliveryFee]);
+  const totals = useMemo(() => computeOrderTotals(lines, deliveryFee), [lines, deliveryFee, settingsLoaded]);
 
   const submit = async () => {
     if (inFlight.current || submitting) return;
@@ -405,7 +406,7 @@ const OrderPage = () => {
           <Button
             type="button"
             onClick={submit}
-            disabled={submitting}
+            disabled={submitting || !settingsLoaded}
             className="w-full min-h-[52px] rounded-lg bg-primary text-primary-foreground font-bold hover:bg-primary/90 transition-colors disabled:opacity-70 inline-flex items-center justify-center gap-2"
           >
             {submitting ? (
