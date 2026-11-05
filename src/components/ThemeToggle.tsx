@@ -1,6 +1,8 @@
 import { Monitor, Moon, Sun } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useTheme, type ThemeMode } from "@/lib/theme";
+import { Button } from "@/components/ui/button";
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuRadioGroup, DropdownMenuRadioItem } from "@/components/ui/dropdown-menu";
 
 const options: { value: ThemeMode; label: string; icon: any }[] = [
   { value: "light", label: "Light", icon: Sun },
@@ -11,11 +13,22 @@ const options: { value: ThemeMode; label: string; icon: any }[] = [
 export const ThemeToggle = ({
   className,
   showLabels = false,
+  compact = false,
 }: {
   className?: string;
   showLabels?: boolean;
+  compact?: boolean;
 }) => {
-  const { theme, setTheme } = useTheme();
+  const { theme, resolved, setTheme } = useTheme();
+
+  if (compact) return <DropdownMenu>
+    <DropdownMenuTrigger asChild><Button variant="outline" size="icon" className={cn("h-11 w-11 shrink-0 rounded-lg", className)} aria-label="Website appearance" title="Website appearance">{resolved === "dark" ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}</Button></DropdownMenuTrigger>
+    <DropdownMenuContent align="end" className="min-w-44">
+      <DropdownMenuRadioGroup value={theme} onValueChange={v => { if (v === "light" || v === "dark" || v === "system") setTheme(v); }}>
+        {options.map(o => <DropdownMenuRadioItem key={o.value} value={o.value} className="gap-2"><o.icon className="h-4 w-4" />{o.value === "system" ? "System Default" : `${o.label} Mode`}</DropdownMenuRadioItem>)}
+      </DropdownMenuRadioGroup>
+    </DropdownMenuContent>
+  </DropdownMenu>;
 
   return (
     <div

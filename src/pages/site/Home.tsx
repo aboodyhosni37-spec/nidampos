@@ -34,7 +34,7 @@ const Home = () => {
   const heroSrc = home.hero_custom_image || heroPhoto?.image_url || foodPhoto;
   const gallery = content.gallery.images.filter(g => g.url);
   const sections: Record<HomeSectionId, React.ReactNode> = {
-    hero: <section className="relative isolate overflow-hidden bg-primary text-primary-foreground">
+    hero: <section className="customer-photo-surface relative isolate overflow-hidden bg-primary text-primary-foreground">
       <img src={heroSrc} alt={heroPhoto?.name || content.brand.name} className="absolute inset-0 h-full w-full object-cover" fetchPriority="high" />
       <div className="customer-hero-shade absolute inset-0" style={{ opacity: Math.max(0, Math.min(100, theme.hero_shade)) / 100 }} />
       <div className="relative mx-auto flex min-h-[480px] max-w-7xl items-center px-5 py-16 sm:min-h-[560px] sm:px-8 lg:min-h-[580px] lg:px-12">
@@ -60,7 +60,7 @@ const Home = () => {
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         {categories.filter(c => products.some(p => p.category_id === c.id)).map(c => {
           const image = products.find(p => p.category_id === c.id && p.image_url)?.image_url;
-          return <Link key={c.id} to={`/menu?category=${encodeURIComponent(c.id)}`} className="group relative flex min-h-28 items-end overflow-hidden rounded-lg bg-primary p-4 text-primary-foreground sm:min-h-36">
+          return <Link key={c.id} to={`/menu?category=${encodeURIComponent(c.id)}`} className="customer-photo-surface group relative flex min-h-28 items-end overflow-hidden rounded-lg bg-primary p-4 text-primary-foreground sm:min-h-36">
             {image && content.menu.show_images && <img src={image} alt="" loading="lazy" className="absolute inset-0 h-full w-full object-cover motion-safe:transition-transform motion-safe:group-hover:scale-105" />}
             <span className="customer-category-shade absolute inset-0" /><span className="relative flex w-full items-center justify-between gap-2 text-sm font-semibold">{c.name}<ArrowRight className="h-4 w-4 shrink-0" /></span>
           </Link>;
