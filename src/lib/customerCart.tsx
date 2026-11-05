@@ -29,7 +29,11 @@ const read = (): CustomerCartLine[] => {
     const raw = localStorage.getItem(KEY);
     if (!raw) return [];
     const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed : [];
+    return Array.isArray(parsed)
+      ? parsed.filter(
+          (l) => l && typeof l.product_id === "string" && Number.isFinite(Number(l.price)) && Number(l.qty) > 0
+        ).map((l) => ({ ...l, price: Number(l.price), qty: Math.floor(Number(l.qty)) }))
+      : [];
   } catch {
     return [];
   }

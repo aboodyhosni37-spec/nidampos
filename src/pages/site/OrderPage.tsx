@@ -198,51 +198,26 @@ const OrderPage = () => {
             </header>
             <ul className="divide-y divide-border">
               {lines.map((l) => (
-                <li key={l.product_id} className="grid grid-cols-[minmax(0,1fr)_auto] gap-3 p-4 sm:flex sm:items-center sm:gap-4 sm:p-5">
-                  <div className="col-span-2 min-w-0 flex-1">
+                <li key={l.product_id} className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-2 px-4 py-3 sm:grid-cols-[minmax(0,1fr)_auto_5.5rem_auto] sm:px-5">
+                  <div className="min-w-0 col-span-2 sm:col-span-1">
                     <p className="font-semibold leading-snug break-words">{l.name}</p>
-                    <p className="text-sm text-muted-foreground tabular-nums">
-                      {formatMoney(l.price)} each
-                    </p>
+                    <p className="text-sm text-muted-foreground tabular-nums">{formatMoney(l.price)} each</p>
                   </div>
-                  <div className="col-span-2 flex items-center gap-1.5 shrink-0 sm:col-span-1">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="icon"
-                      aria-label={`Decrease ${l.name}`}
-                      onClick={() => decrement(l.product_id)}
-                      className="h-10 w-10 rounded-lg border border-border flex items-center justify-center hover:bg-secondary"
-                    >
+                  <div className="flex items-center rounded-full border border-border">
+                    <Button type="button" variant="ghost" size="icon" aria-label={`Decrease ${l.name}`} onClick={() => decrement(l.product_id)} className="h-9 w-9 rounded-full">
                       <Minus className="h-4 w-4" />
                     </Button>
                     <span className="w-8 text-center font-bold tabular-nums">{l.qty}</span>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="icon"
-                      aria-label={`Increase ${l.name}`}
-                      onClick={() => increment(l.product_id)}
-                      className="h-10 w-10 rounded-lg border border-border flex items-center justify-center hover:bg-secondary"
-                    >
+                    <Button type="button" variant="ghost" size="icon" aria-label={`Increase ${l.name}`} onClick={() => increment(l.product_id)} className="h-9 w-9 rounded-full">
                       <Plus className="h-4 w-4" />
                     </Button>
-                    <span className="ml-auto text-right font-bold tabular-nums sm:hidden">{formatMoney(l.price * l.qty)}</span>
-                    <Button type="button" variant="ghost" size="icon" className="h-10 w-10 shrink-0 text-muted-foreground sm:hidden" aria-label={`Remove ${l.name}`} onClick={() => remove(l.product_id)}><Trash2 className="h-4 w-4" /></Button>
                   </div>
-                  <span className="hidden w-auto text-right font-bold tabular-nums sm:block sm:w-20 sm:shrink-0">
-                    {formatMoney(l.price * l.qty)}
-                  </span>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    aria-label={`Remove ${l.name}`}
-                    onClick={() => remove(l.product_id)}
-                    className="hidden h-10 w-10 shrink-0 rounded-lg items-center justify-center text-muted-foreground hover:text-destructive hover:bg-destructive/10 sm:flex"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
+                  <div className="flex items-center justify-end gap-1 sm:contents">
+                    <span className="text-right font-bold tabular-nums">{formatMoney(l.price * l.qty)}</span>
+                    <Button type="button" variant="ghost" size="icon" aria-label={`Remove ${l.name}`} onClick={() => remove(l.product_id)} className="h-9 w-9 text-muted-foreground hover:text-destructive hover:bg-destructive/10">
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </li>
               ))}
             </ul>
@@ -260,25 +235,27 @@ const OrderPage = () => {
               ).map((o) => {
                 const disabled = o.key === "DELIVERY" && !store.delivery_enabled;
                 return (
-                  <Button
+                  <button
                     key={o.key}
                     type="button"
                     disabled={disabled}
+                    aria-pressed={orderType === o.key}
                     onClick={() => setOrderType(o.key)}
                     className={cn(
-                      "flex h-auto min-h-[92px] flex-col items-start whitespace-normal rounded-lg border p-3 text-left transition-colors",
+                      "relative flex min-h-[92px] flex-col items-start rounded-xl border p-3 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                       orderType === o.key
-                        ? "border-primary bg-secondary"
-                        : "border-border hover:bg-secondary/50",
+                        ? "border-foreground bg-foreground text-background shadow-sm"
+                        : "border-border bg-background text-foreground hover:border-foreground/40",
                       disabled && "opacity-50 cursor-not-allowed"
                     )}
                   >
-                    <o.icon className="h-5 w-5 text-primary" />
+                    {orderType === o.key && <span className="absolute right-3 top-3 h-2 w-2 rounded-full bg-amber-400" aria-hidden />}
+                    <o.icon className="h-5 w-5" />
                     <p className="mt-2 font-semibold text-sm">{o.label}</p>
-                    <p className="text-xs text-muted-foreground">
+                    <p className={cn("text-xs", orderType === o.key ? "text-background/70" : "text-muted-foreground")}>
                       {disabled ? "Unavailable" : o.hint}
                     </p>
-                  </Button>
+                  </button>
                 );
               })}
             </div>
