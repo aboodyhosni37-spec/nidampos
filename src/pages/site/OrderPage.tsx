@@ -188,6 +188,7 @@ const OrderPage = () => {
               <h2 className="font-bold">Items</h2>
               <Button
                 type="button"
+                variant="ghost"
                 onClick={clear}
                 className="text-xs font-semibold text-muted-foreground hover:text-destructive"
               >
@@ -206,6 +207,8 @@ const OrderPage = () => {
                   <div className="flex items-center gap-1.5 shrink-0">
                     <Button
                       type="button"
+                      variant="outline"
+                      size="icon"
                       aria-label={`Decrease ${l.name}`}
                       onClick={() => decrement(l.product_id)}
                       className="h-10 w-10 rounded-lg border border-border flex items-center justify-center hover:bg-secondary"
@@ -215,6 +218,8 @@ const OrderPage = () => {
                     <span className="w-8 text-center font-bold tabular-nums">{l.qty}</span>
                     <Button
                       type="button"
+                      variant="outline"
+                      size="icon"
                       aria-label={`Increase ${l.name}`}
                       onClick={() => increment(l.product_id)}
                       className="h-10 w-10 rounded-lg border border-border flex items-center justify-center hover:bg-secondary"
@@ -227,6 +232,8 @@ const OrderPage = () => {
                   </span>
                   <Button
                     type="button"
+                    variant="ghost"
+                    size="icon"
                     aria-label={`Remove ${l.name}`}
                     onClick={() => remove(l.product_id)}
                     className="h-10 w-10 shrink-0 rounded-lg flex items-center justify-center text-muted-foreground hover:text-destructive hover:bg-destructive/10"

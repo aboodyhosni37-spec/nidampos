@@ -14,7 +14,7 @@ export type AppUser = {
 export const listUsers = async (): Promise<AppUser[]> => {
   const { data, error } = await supabase
     .from("app_users")
-    .select("*")
+    .select("id,name,username,phone,role,is_active,created_at,updated_at")
     .order("created_at", { ascending: false });
   if (error) throw error;
   return (data ?? []) as AppUser[];
@@ -37,7 +37,7 @@ export const createUser = async (input: {
       pin: input.pin,
       role: input.role,
     })
-    .select("*")
+    .select("id,name,username,phone,role,is_active,created_at,updated_at")
     .single();
   if (error) throw error;
   return data as AppUser;
@@ -98,38 +98,7 @@ export const secureLogin = async (pin: string, username?: string): Promise<AppUs
   return { ...data.user, pin: "", phone: null, is_active: true } as AppUser;
 };
 
-export const findUserByPin = async (pin: string): Promise<AppUser | null> => {
-  const { data, error } = await supabase
-    .from("app_users")
-    .select("*")
-    .eq("pin", pin)
-    .eq("is_active", true)
-    .limit(1)
-    .maybeSingle();
-  if (error) throw error;
-  return (data as AppUser) ?? null;
-};
-
-export const findUserByPhonePin = async (phone: string, pin: string): Promise<AppUser | null> => {
-  const { data, error } = await supabase
-    .from("app_users")
-    .select("*")
-    .eq("phone", phone)
-    .eq("pin", pin)
-    .eq("is_active", true)
-    .maybeSingle();
-  if (error) throw error;
-  return (data as AppUser) ?? null;
-};
-
-export const findUserByUsernamePin = async (username: string, pin: string): Promise<AppUser | null> => {
-  const { data, error } = await supabase
-    .from("app_users")
-    .select("*")
-    .eq("username", username)
-    .eq("pin", pin)
-    .eq("is_active", true)
-    .maybeSingle();
-  if (error) throw error;
-  return (data as AppUser) ?? null;
-};
+// Legacy callers also use the server-validated login; never query stored PINs.
+export const findUserByPin = secureLogin;
+export const findUserByUsernamePin = (username: string, pin: string) => secureLogin(pin, username);
+export const findUserByPhonePin = (phone: string, pin: string) => secureLogin(pin, phone);

@@ -3,7 +3,7 @@
 // invoice_items / payments tables the Staff POS already uses.
 import { supabase } from "@/integrations/supabase/client";
 import { listCategories, listProducts, type DbCategory, type DbProduct } from "./menu";
-import { computeTotals, fetchSettings, getCachedSettings } from "./systemSettings";
+import { computeTotals, getCachedSettings } from "./systemSettings";
 
 export type { DbCategory, DbProduct };
 
@@ -12,10 +12,12 @@ export const loadMenu = async (): Promise<{
   products: DbProduct[];
 }> => {
   const [categories, products] = await Promise.all([
-    listCategories(),
-    listProducts({ visibleOn: "web" }),
+    supabase.from("categories").select("*").eq("restaurant_id", "7f85d056-9247-4ef2-bba0-70ee79addb7b").order("sort_order"),
+    supabase.from("products").select("*").eq("restaurant_id", "7f85d056-9247-4ef2-bba0-70ee79addb7b").eq("is_active", true).eq("show_on_web", true).order("category_name").order("name"),
   ]);
-  return { categories, products };
+  if (categories.error) throw categories.error;
+  if (products.error) throw products.error;
+  return { categories: categories.data || [], products: products.data || [] };
 };
 
 export type StoreSettings = {

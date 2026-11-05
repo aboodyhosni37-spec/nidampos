@@ -85,8 +85,8 @@ const SiteLayout = () => {
       link.rel = "icon";
       document.head.appendChild(link);
     }
-    link.href = "/favicon.ico";
-  }, []);
+    link.href = content.brand.favicon_url || "/favicon.png";
+  }, [content.brand.favicon_url]);
 
   const socials = [
     { url: content.contact.facebook, icon: Facebook, label: "Facebook" },

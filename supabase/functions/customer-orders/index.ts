@@ -38,7 +38,7 @@ Deno.serve(async req => {
     const result = input.action === "status"
       ? await admin.rpc("get_customer_order", { tracking_token: input.tracking_token })
       : await admin.rpc("submit_customer_order", { payload: input });
-    if (result.error) return respond({ error: input.action === "status" ? "Order not found or tracking link expired." : result.error.message }, 400);
+    if (result.error) return respond({ error: input.action === "status" ? "Order not found or tracking link expired." : "Could not place this order. Check availability and your details, then try again." }, 400);
     return respond(result.data);
   } catch { return respond({ error: "Could not process this request. Please try again." }, 400); }
 });
