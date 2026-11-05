@@ -947,6 +947,28 @@ const POS = () => {
             </div>
 
           )}
+          {sys.table_selection_enabled && leftMode === "menu" && (
+            <div className="flex flex-wrap items-center gap-1.5 shrink-0 min-w-0">
+              <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1 mr-1">
+                <Users className="h-3 w-3" /> Table
+              </span>
+              {tables.map((t) => (
+                <button
+                  key={t}
+                  onClick={() => setTable(t)}
+                  aria-pressed={table === t}
+                  className={cn(
+                    "h-8 min-w-[2.6rem] px-2.5 rounded-lg text-xs font-bold transition-all",
+                    table === t
+                      ? "bg-primary text-primary-foreground hover:bg-primary/90 shadow-soft"
+                      : "bg-card border border-border hover:bg-secondary"
+                  )}
+                >
+                  {t}
+                </button>
+              ))}
+            </div>
+          )}
           {/* Quick-tabs */}
           <div className="flex items-center gap-2">
             <button
@@ -1100,31 +1122,6 @@ const POS = () => {
             <div className="flex items-center gap-1">
               {cart.length > 0 && <Button variant="ghost" size="sm" onClick={handleClearCart} className="h-8 px-2 text-xs text-muted-foreground">Clear</Button>}
               <Button variant="ghost" size="icon" onClick={closeCart} aria-label="Close cart" title="Close cart" className={cn("h-8 w-8", cartMode === "always" && "lg:hidden")}><X className="h-4 w-4" /></Button>
-            </div>
-          </div>
-
-          {/* Table */}
-          <div className="px-3 py-2 border-b border-border">
-            <div className="flex items-center gap-2">
-              <label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1 shrink-0">
-                <Users className="h-3 w-3" /> Table
-              </label>
-              <div className="flex flex-wrap gap-1">
-                {tables.map((t) => (
-                  <button
-                    key={t}
-                    onClick={() => setTable(t)}
-                    className={cn(
-                      "h-7 min-w-[2.4rem] px-2 rounded-md text-[11px] font-bold transition-all",
-                      table === t
-                        ? "bg-primary text-primary-foreground hover:bg-primary/90 shadow-soft"
-                        : "bg-secondary hover:bg-secondary/80"
-                    )}
-                  >
-                    {t}
-                  </button>
-                ))}
-              </div>
             </div>
           </div>
 

@@ -113,6 +113,13 @@
       "when": 1793894559028,
       "tag": "0015_customer_menu_staff_context_guard",
       "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "7",
+      "when": 1793895723469,
+      "tag": "0016_table_selection_setting",
+      "breakpoints": true
     }
   ]
 }

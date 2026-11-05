@@ -787,6 +787,29 @@ const Settings = () => {
                 </button>
               ))}
             </div>
+            <div className="flex items-center justify-between gap-4 p-3 rounded-xl bg-secondary/40">
+              <div>
+                <div className="font-medium text-sm">Table Selection</div>
+                <div className="text-xs text-muted-foreground">Show the table picker above the products on the POS screen</div>
+              </div>
+              <Switch
+                checked={sys.table_selection_enabled}
+                disabled={!canManageSystem}
+                onCheckedChange={async (v) => {
+                  const prev = sys;
+                  const next = { ...sys, table_selection_enabled: v };
+                  setSys(next);
+                  try {
+                    await saveSettings(next);
+                    toast({ title: v ? "Table selection turned on" : "Table selection turned off" });
+                  } catch (e: any) {
+                    setSys(prev);
+                    toast({ title: "Save failed", description: e.message, variant: "destructive" });
+                  }
+                }}
+                aria-label="Table Selection"
+              />
+            </div>
           </Card>
 
           <Card className="p-6 rounded-2xl border-border space-y-5">

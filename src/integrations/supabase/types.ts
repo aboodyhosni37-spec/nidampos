@@ -1055,6 +1055,7 @@ export type Database = {
           loyalty_enabled: boolean
           loyalty_reward: string
           loyalty_threshold: number
+          table_selection_enabled: boolean
           tax_enabled: boolean
           tax_inclusive: boolean
           tax_rate: number
@@ -1070,6 +1071,7 @@ export type Database = {
           loyalty_enabled?: boolean
           loyalty_reward?: string
           loyalty_threshold?: number
+          table_selection_enabled?: boolean
           tax_enabled?: boolean
           tax_inclusive?: boolean
           tax_rate?: number
@@ -1085,6 +1087,7 @@ export type Database = {
           loyalty_enabled?: boolean
           loyalty_reward?: string
           loyalty_threshold?: number
+          table_selection_enabled?: boolean
           tax_enabled?: boolean
           tax_inclusive?: boolean
           tax_rate?: number
