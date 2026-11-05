@@ -202,6 +202,48 @@ export type Database = {
           },
         ]
       }
+      customer_order_tracking: {
+        Row: {
+          created_at: string
+          expires_at: string
+          invoice_id: string
+          request_hash: string
+          restaurant_id: string
+          token_hash: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at?: string
+          invoice_id: string
+          request_hash: string
+          restaurant_id: string
+          token_hash: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string
+          invoice_id?: string
+          request_hash?: string
+          restaurant_id?: string
+          token_hash?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customer_order_tracking_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: true
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customer_order_tracking_restaurant_id_fkey"
+            columns: ["restaurant_id"]
+            isOneToOne: false
+            referencedRelation: "restaurants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       customers: {
         Row: {
           address: string | null
@@ -1077,6 +1119,11 @@ export type Database = {
     }
     Functions: {
       claim_first_super_admin: { Args: never; Returns: boolean }
+      customer_delivery_fee: {
+        Args: { district: string; order_type: string }
+        Returns: number
+      }
+      get_customer_order: { Args: { tracking_token: string }; Returns: Json }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -1084,7 +1131,13 @@ export type Database = {
         }
         Returns: boolean
       }
+      pos_has_permission: {
+        Args: { perm: string; rid: string }
+        Returns: boolean
+      }
+      pos_restaurant_access: { Args: { rid: string }; Returns: boolean }
       resequence_invoice_numbers: { Args: never; Returns: number }
+      submit_customer_order: { Args: { payload: Json }; Returns: Json }
     }
     Enums: {
       app_role: "super_admin" | "admin"

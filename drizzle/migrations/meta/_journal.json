@@ -78,6 +78,13 @@
       "when": 1793893782123,
       "tag": "0010_customer_ordering_verified_snapshot",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1793893864763,
+      "tag": "0011_private_transactional_customer_orders",
+      "breakpoints": true
     }
   ]
 }
