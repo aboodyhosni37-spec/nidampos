@@ -348,11 +348,15 @@ export const useSiteContent = (): SiteContent => {
     };
     load();
     const poll = window.setInterval(load, 15000);
+    const channel = supabase.channel(`website-content-${crypto.randomUUID()}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "site_content", filter: "id=eq.default" }, load)
+      .subscribe();
     window.addEventListener("site-content-updated", load);
     window.addEventListener("storage", load);
     return () => {
       alive = false;
       window.clearInterval(poll);
+      void supabase.removeChannel(channel);
       window.removeEventListener("site-content-updated", load);
       window.removeEventListener("storage", load);
     };
