@@ -1,9 +1,18 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { essentialImages, waitForImage } from "@/lib/customerLoading";
+import { essentialImages, loadingProgress, waitForImage } from "@/lib/customerLoading";
 
 afterEach(() => { vi.restoreAllMocks(); document.body.innerHTML = ""; });
 
 describe("customer startup image readiness", () => {
+  it("starts at zero and cannot reach 100 before all content and images settle", () => {
+    expect(loadingProgress(false, false)).toBe(0);
+    expect(loadingProgress(true, false, 4, 4)).toBeLessThan(100);
+    expect(loadingProgress(false, true, 4, 4)).toBeLessThan(100);
+    expect(loadingProgress(true, true)).toBeLessThan(100);
+    expect(loadingProgress(true, true, 3, 4)).toBeLessThan(100);
+    expect(loadingProgress(true, true, 4, 4)).toBe(100);
+    expect(loadingProgress(true, true, 0, 0)).toBe(100);
+  });
   it("waits for a pending image to load", async () => {
     const image = document.createElement("img");
     Object.defineProperty(image, "complete", { value: false });
