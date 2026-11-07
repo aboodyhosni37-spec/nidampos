@@ -62,7 +62,10 @@ export function CustomerLoadingBoundary({ ready, children }: { ready: boolean; c
     let frame = 0;
     if (ready && !pageLoading) {
       frame = requestAnimationFrame(() => {
-        void Promise.all(essentialImages(site).map(waitForImage)).then(() => {
+        const logo = overlay.querySelector<HTMLImageElement>("img");
+        const images = essentialImages(site);
+        if (logo) images.push(logo);
+        void Promise.all(images.map(waitForImage)).then(() => {
           if (alive) dismiss();
         });
       });
