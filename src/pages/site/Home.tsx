@@ -9,12 +9,14 @@ import { loadMenu, type DbProduct, type DbCategory } from "@/lib/storefront";
 import { fetchSettings } from "@/lib/systemSettings";
 import { toast } from "sonner";
 import foodPhoto from "@/assets/cafe-food.jpg";
+import { useCustomerPageLoading } from "@/lib/customerLoading";
 
 const Home = () => {
   const content = useSiteContent();
   const [products, setProducts] = useState<DbProduct[]>([]);
   const [categories, setCategories] = useState<DbCategory[]>([]);
   const [loading, setLoading] = useState(true);
+  useCustomerPageLoading(loading);
   const { add } = useCustomerCart();
   useEffect(() => {
     fetchSettings().catch(() => {});

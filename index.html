@@ -3,6 +3,19 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script>
+      if (["/", "/about", "/menu", "/contact", "/order", "/checkout", "/order-status"].includes(location.pathname.replace(/\/$/, "") || "/")) {
+        document.documentElement.classList.add("customer-boot");
+        // Also recover if application scripts cannot start at all.
+        window.setTimeout(function () {
+          document.documentElement.classList.remove("customer-boot");
+          var screen = document.getElementById("customer-loading");
+          if (screen) screen.remove();
+        }, 15000);
+      }
+    </script>
+    <link rel="stylesheet" href="/customer-loading.css" />
+    <link rel="preload" href="/android-chrome-512x512.png" as="image" />
     <title>LamaHamar Cafe — Cuntada Dalka</title>
     <meta name="description" content="LamaHamar Cafe in Mogadishu: freshly brewed coffee, breakfast, sandwiches and desserts. Browse the menu and order for delivery or dine-in.">
     <meta name="author" content="LamaHamar Cafe" />
@@ -25,6 +38,13 @@
 </head>
 
   <body>
+    <div id="customer-loading" class="customer-loading" role="status" aria-live="polite" aria-label="Loading LamaHamar Cafe">
+      <div class="customer-loading-content">
+        <img class="customer-loading-logo" src="/android-chrome-512x512.png" alt="LamaHamar Cafe" width="176" height="176" fetchpriority="high" />
+        <p class="customer-loading-title">Welcome to LamaHamar Cafe</p>
+        <div class="customer-loading-rule" aria-hidden="true"></div>
+      </div>
+    </div>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

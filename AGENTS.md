@@ -8,3 +8,4 @@
 - Online fulfillment stages do not settle payments; cancellation uses existing void exclusions and paid orders require existing payment handling first.
 - Meal schedules live in the existing website content JSON; customer cart and authoritative guest checkout share inclusive-opening/exclusive-closing Mogadishu windows, while staff order paths remain unaffected.
 - The existing global theme provider selects separate customer/staff preferences by route and applies shared semantic tokens to the document, including portals; photograph overlays retain stable contrast in both modes.
+- Customer first-paint loading is bootstrapped before React and dismissed once existing page/content requests and first-viewport images settle; it never duplicates data requests or replays on client navigation, and has a failure deadline to avoid trapping visitors.

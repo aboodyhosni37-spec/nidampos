@@ -335,16 +335,17 @@ export const uploadSiteImage = async (file: File): Promise<string> => {
 };
 
 /** Live website content for customer-facing pages. */
-export const useSiteContent = (): SiteContent => {
+export const useSiteContent = (onSettled?: () => void): SiteContent => {
   const [content, setContent] = useState<SiteContent>(() => getCachedContent());
 
   useEffect(() => {
     let alive = true;
     const load = () => {
-      if (isPreviewMode()) { const d = loadDraft(); if (d) { setContent(d); return; } }
+      if (isPreviewMode()) { const d = loadDraft(); if (d) { setContent(d); onSettled?.(); return; } }
       fetchSiteContent()
         .then((c) => alive && setContent(c))
-        .catch(() => {});
+        .catch(() => {})
+        .finally(() => { if (alive) onSettled?.(); });
     };
     load();
     const poll = window.setInterval(load, 15000);
@@ -360,7 +361,7 @@ export const useSiteContent = (): SiteContent => {
       window.removeEventListener("site-content-updated", load);
       window.removeEventListener("storage", load);
     };
-  }, []);
+  }, [onSettled]);
 
   return content;
 };

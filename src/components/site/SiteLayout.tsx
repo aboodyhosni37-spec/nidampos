@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Link, NavLink, Outlet, useLocation } from "react-router-dom";
 import {
   Coffee,
@@ -18,6 +18,7 @@ import { exitPreview, isPreviewMode, useSiteContent, type SiteContent } from "@/
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { CustomerLoadingBoundary } from "@/lib/customerLoading";
 
 export const SiteBrand = ({
   className,
@@ -55,7 +56,9 @@ export const SiteBrand = ({
 };
 
 const SiteLayout = () => {
-  const content = useSiteContent();
+  const [contentReady, setContentReady] = useState(false);
+  const contentSettled = useCallback(() => setContentReady(true), []);
+  const content = useSiteContent(contentSettled);
   const { count } = useCustomerCart();
   const [open, setOpen] = useState(false);
   const { pathname } = useLocation();
@@ -92,6 +95,7 @@ const SiteLayout = () => {
   ].filter((s) => !!s.url);
 
   return (
+    <CustomerLoadingBoundary ready={contentReady}>
     <div className="customer-site min-h-screen flex flex-col bg-background">
       {preview && (
         <div className="bg-foreground text-background text-xs text-center py-2 px-4">
@@ -261,6 +265,7 @@ const SiteLayout = () => {
         </div>
       </footer>
     </div>
+    </CustomerLoadingBoundary>
   );
 };
 
