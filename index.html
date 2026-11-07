@@ -15,7 +15,6 @@
       }
     </script>
     <link rel="stylesheet" href="/customer-loading.css" />
-    <link rel="preload" href="/android-chrome-512x512.png" as="image" />
     <title>LamaHamar Cafe — Cuntada Dalka</title>
     <meta name="description" content="LamaHamar Cafe in Mogadishu: freshly brewed coffee, breakfast, sandwiches and desserts. Browse the menu and order for delivery or dine-in.">
     <meta name="author" content="LamaHamar Cafe" />
@@ -40,9 +39,14 @@
   <body>
     <div id="customer-loading" class="customer-loading" role="status" aria-live="polite" aria-label="Loading LamaHamar Cafe">
       <div class="customer-loading-content">
-        <img class="customer-loading-logo" src="/android-chrome-512x512.png" alt="LamaHamar Cafe" width="176" height="176" fetchpriority="high" />
-        <p class="customer-loading-title">Welcome to LamaHamar Cafe</p>
-        <div class="customer-loading-rule" aria-hidden="true"></div>
+        <div class="customer-loading-circle" role="progressbar" aria-label="Website loading progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+          <svg viewBox="0 0 120 120" aria-hidden="true">
+            <circle class="customer-loading-track" cx="60" cy="60" r="56" />
+            <circle class="customer-loading-ring" cx="60" cy="60" r="56" pathLength="100" />
+          </svg>
+          <span class="customer-loading-percentage" aria-hidden="true">0%</span>
+        </div>
+        <p class="customer-loading-title">Preparing Your Experience…</p>
       </div>
     </div>
     <div id="root"></div>
