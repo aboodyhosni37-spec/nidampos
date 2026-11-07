@@ -1,8 +1,9 @@
 /* Stable first-paint branding, independent of the customer's saved theme. */
 :root {
   --loading-background: 0 0% 0%;
-  --loading-foreground: 42 40% 91%;
-  --loading-accent: 41 48% 61%;
+  --loading-foreground: 0 0% 100%;
+  --loading-accent: 0 0% 100%;
+  --loading-track: 0 0% 20%;
 }
 html.customer-boot body { background: hsl(var(--loading-background)); }
 .customer-loading {
@@ -20,13 +21,13 @@ html.customer-boot body { background: hsl(var(--loading-background)); }
 html:not(.customer-boot) .customer-loading { display: none; }
 .customer-loading.is-leaving { opacity: 0; pointer-events: none; }
 .customer-loading-content { width: min(100%, 360px); text-align: center; animation: customer-loading-enter 400ms ease both; }
-.customer-loading-circle { position: relative; width: 200px; height: 200px; max-width: 65vw; aspect-ratio: 1; margin: 0 auto 32px; }
+.customer-loading-circle { position: relative; width: 100px; height: 100px; max-width: 65vw; aspect-ratio: 1; margin: 0 auto 24px; }
 .customer-loading-circle svg { display: block; width: 100%; height: 100%; transform: rotate(-90deg); }
 .customer-loading-track, .customer-loading-ring { fill: none; stroke-width: 1.5; }
-.customer-loading-track { stroke: hsl(var(--loading-accent) / .18); }
+.customer-loading-track { stroke: hsl(var(--loading-track)); }
 .customer-loading-ring { stroke: hsl(var(--loading-accent)); stroke-linecap: round; stroke-dasharray: 100; stroke-dashoffset: 100; }
-.customer-loading-percentage { position: absolute; inset: 0; display: grid; place-items: center; font-family: Georgia, serif; font-size: 48px; font-weight: 400; font-variant-numeric: tabular-nums; letter-spacing: 0; }
-.customer-loading-title { margin: 0; font-family: Georgia, serif; font-size: 20px; font-weight: 400; line-height: 1.5; letter-spacing: 0; text-wrap: balance; }
+.customer-loading-percentage { position: absolute; inset: 0; display: grid; place-items: center; font-family: Georgia, serif; font-size: 26px; font-weight: 400; font-variant-numeric: tabular-nums; letter-spacing: 0; }
+.customer-loading-title { margin: 0; font-family: Georgia, serif; font-size: 16px; font-weight: 400; line-height: 1.5; letter-spacing: 0; text-wrap: balance; }
 @keyframes customer-loading-enter { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
 @media (prefers-reduced-motion: reduce) {
   .customer-loading, .customer-loading-content { animation: none; transition: none; }
