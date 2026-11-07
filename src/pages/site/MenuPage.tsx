@@ -10,6 +10,7 @@ import { loadMenu, type DbCategory, type DbProduct } from "@/lib/storefront";
 import { useSiteContent } from "@/lib/siteContent";
 import { fetchSettings, formatMoney } from "@/lib/systemSettings";
 import { MealHours } from "@/components/site/MealHours";
+import { useCustomerPageLoading } from "@/lib/customerLoading";
 
 const MenuPage = () => {
   const content = useSiteContent();
@@ -17,6 +18,7 @@ const MenuPage = () => {
   const [categories, setCategories] = useState<DbCategory[]>([]);
   const [products, setProducts] = useState<DbProduct[]>([]);
   const [loading, setLoading] = useState(true);
+  useCustomerPageLoading(loading);
   const [failed, setFailed] = useState(false);
   const [active, setActive] = useState(params.get("category") || "all");
   const [query, setQuery] = useState("");

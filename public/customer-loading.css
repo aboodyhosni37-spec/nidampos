@@ -1,0 +1,33 @@
+/* Stable first-paint branding, independent of the customer's saved theme. */
+:root {
+  --loading-background: 0 0% 0%;
+  --loading-foreground: 42 40% 91%;
+  --loading-accent: 41 48% 61%;
+}
+html.customer-boot body { background: hsl(var(--loading-background)); }
+.customer-loading {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: hsl(var(--loading-background));
+  color: hsl(var(--loading-foreground));
+  opacity: 1;
+  transition: opacity 240ms ease;
+}
+html:not(.customer-boot) .customer-loading { display: none; }
+.customer-loading.is-leaving { opacity: 0; pointer-events: none; }
+.customer-loading-content { width: min(100%, 360px); text-align: center; animation: customer-loading-enter 400ms ease both; }
+.customer-loading-logo { display: block; width: 176px; height: 176px; max-width: 65vw; margin: 0 auto 32px; object-fit: contain; }
+.customer-loading-title { margin: 0; font-family: Georgia, serif; font-size: 24px; font-weight: 400; line-height: 1.5; letter-spacing: 0; text-wrap: balance; }
+.customer-loading-rule { width: 128px; height: 2px; margin: 28px auto 0; overflow: hidden; background: hsl(var(--loading-accent) / .18); }
+.customer-loading-rule::after { content: ''; display: block; width: 45%; height: 100%; background: hsl(var(--loading-accent)); animation: customer-loading-progress 1.5s ease-in-out infinite; }
+@keyframes customer-loading-progress { from { transform: translateX(-110%); } to { transform: translateX(330%); } }
+@keyframes customer-loading-enter { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+@media (prefers-reduced-motion: reduce) {
+  .customer-loading, .customer-loading-content, .customer-loading-rule::after { animation: none; transition: none; }
+  .customer-loading-rule::after { width: 100%; }
+}
+@media print { .customer-loading { display: none !important; } }

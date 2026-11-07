@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useCustomerPageLoading } from "@/lib/customerLoading";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import {
@@ -60,6 +61,8 @@ const OrderPage = () => {
   const [table, setTable] = useState(tables[0]);
   const [submitting, setSubmitting] = useState(false);
   const [placed, setPlaced] = useState<PlacedOrder | null>(null);
+  const [initialLoading, setInitialLoading] = useState(true);
+  useCustomerPageLoading(initialLoading);
 
   // One checkout = one order: this reference is created once and reused for
   // every retry of the same checkout, so refreshes or repeated clicks can
@@ -68,13 +71,14 @@ const OrderPage = () => {
   const inFlight = useRef(false);
 
   useEffect(() => {
-    fetchSettings().then(() => setSettingsLoaded(true)).catch(() => {});
-    fetchStoreSettings()
+    const settingsRequest = fetchSettings().then(() => setSettingsLoaded(true)).catch(() => {});
+    const storeRequest = fetchStoreSettings()
       .then((s) => {
         setStore(s);
         if (!s.delivery_enabled) setOrderType("PICKUP");
       })
       .catch(() => {});
+    void Promise.allSettled([settingsRequest, storeRequest]).then(() => setInitialLoading(false));
   }, []);
 
   // Delivery fee is fixed by the selected Banadir district — never editable.
