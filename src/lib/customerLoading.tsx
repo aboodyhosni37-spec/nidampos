@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { useLocation } from "react-router-dom";
 
 const PageLoadingContext = createContext<(loading: boolean) => void>(() => {});
@@ -42,7 +42,6 @@ export function essentialImages(root: HTMLElement): HTMLImageElement[] {
 export function CustomerLoadingBoundary({ ready, children }: { ready: boolean; children: ReactNode }) {
   const { pathname } = useLocation();
   const [pageLoading, setPageLoading] = useState(() => dataPages.has(pathname));
-  const displayedProgress = useRef(0);
 
   useEffect(() => {
     if (completed) return;
@@ -52,31 +51,6 @@ export function CustomerLoadingBoundary({ ready, children }: { ready: boolean; c
     site.inert = true;
     site.setAttribute("aria-busy", "true");
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const ring = overlay.querySelector<SVGCircleElement>(".customer-loading-ring");
-    const percentage = overlay.querySelector<HTMLElement>(".customer-loading-percentage");
-    const progressbar = overlay.querySelector<HTMLElement>("[role=progressbar]");
-    let progressFrame = 0;
-    let target = displayedProgress.current;
-    const paint = (value: number) => {
-      displayedProgress.current = value;
-      if (ring) ring.style.strokeDashoffset = String(100 - value);
-      if (percentage) percentage.textContent = `${Math.floor(value)}%`;
-      progressbar?.setAttribute("aria-valuenow", String(Math.floor(value)));
-    };
-    const updateProgress = (value: number) => {
-      target = Math.max(target, value);
-      cancelAnimationFrame(progressFrame);
-      if (reducedMotion || value === 100) { paint(target); return; }
-      const from = displayedProgress.current;
-      const started = performance.now();
-      const animate = (now: number) => {
-        const fraction = Math.min(1, (now - started) / 300);
-        paint(from + (target - from) * (1 - Math.pow(1 - fraction, 3)));
-        if (fraction < 1) progressFrame = requestAnimationFrame(animate);
-      };
-      progressFrame = requestAnimationFrame(animate);
-    };
-    updateProgress(loadingProgress(ready, !pageLoading));
     const dismiss = () => {
       if (completed) return;
       completed = true;
@@ -97,20 +71,14 @@ export function CustomerLoadingBoundary({ ready, children }: { ready: boolean; c
     if (ready && !pageLoading) {
       frame = requestAnimationFrame(() => {
         const images = essentialImages(site);
-        let settledImages = 0;
-        updateProgress(loadingProgress(true, true, 0, images.length));
-        void Promise.all(images.map(image => waitForImage(image).then(() => {
-          settledImages += 1;
-          if (alive) updateProgress(loadingProgress(true, true, settledImages, images.length));
-        }))).then(() => {
-          if (alive) { updateProgress(100); dismiss(); }
+        void Promise.all(images.map(waitForImage)).then(() => {
+          if (alive) dismiss();
         });
       });
     }
     return () => {
       alive = false;
       cancelAnimationFrame(frame);
-      cancelAnimationFrame(progressFrame);
       window.clearTimeout(deadline);
       site.inert = false;
       site.removeAttribute("aria-busy");
