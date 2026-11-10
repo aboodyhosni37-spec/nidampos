@@ -1,5 +1,4 @@
 # Customer website and ordering
-- [ ] Inspect and present the customer-online-only QZ Tray auto-print plan; implementation awaits plan review and Windows printer/signing setup.
 - [x] Add and verify a first-open branded customer loading screen driven by content and visible image readiness, with reduced-motion support and no navigation replay.
 - [ ] Integrate real Hormuud EVC Plus merchant checkout for merchant 622761; blocked by missing official payment API contract and merchant credentials. Supplied Documentation.pdf verified as SMS-only, not payment authorization or settlement documentation. Preserve existing checkout until both are verified.
 - [x] Add customer Light/Dark/System controls through existing theme provider; verified persistence, device changes, customer pages/dialogs, cart controls, mobile widths and staff preference isolation.
